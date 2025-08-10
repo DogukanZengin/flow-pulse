@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:async';
 import 'dart:math' as math;
+import 'providers/theme_provider.dart';
+import 'providers/timer_provider.dart';
+import 'screens/settings_screen.dart';
+import 'services/database_service.dart';
+import 'models/session.dart';
+import 'widgets/audio_controls.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const FlowPulseApp());
 }
 
@@ -11,23 +19,26 @@ class FlowPulseApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'FlowPulse',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-          brightness: Brightness.light,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => ThemeProvider()..loadTheme(),
         ),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-          brightness: Brightness.dark,
+        ChangeNotifierProvider(
+          create: (context) => TimerProvider()..loadSettings(),
         ),
-        useMaterial3: true,
+      ],
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'FlowPulse',
+            theme: themeProvider.lightTheme,
+            darkTheme: themeProvider.darkTheme,
+            themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            home: const TimerScreen(),
+          );
+        },
       ),
-      home: const TimerScreen(),
     );
   }
 }
@@ -41,8 +52,6 @@ class TimerScreen extends StatefulWidget {
 
 class _TimerScreenState extends State<TimerScreen>
     with TickerProviderStateMixin {
-  static const int studyDurationMinutes = 25;
-  static const int breakDurationMinutes = 5;
   
   late AnimationController _progressAnimationController;
   late AnimationController _pulseAnimationController;
@@ -51,14 +60,22 @@ class _TimerScreenState extends State<TimerScreen>
   Timer? _timer;
   bool _isRunning = false;
   bool _isStudySession = true;
-  int _secondsRemaining = studyDurationMinutes * 60;
+  int _secondsRemaining = 0;
+  int _completedSessions = 0;
+  DateTime? _sessionStartTime;
+  Map<String, dynamic>? _todayStats;
   
   @override
   void initState() {
     super.initState();
     
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeTimer();
+      _loadTodayStats();
+    });
+    
     _progressAnimationController = AnimationController(
-      duration: Duration(seconds: _secondsRemaining),
+      duration: const Duration(seconds: 1500), // Will be updated dynamically
       vsync: this,
     );
     
@@ -74,6 +91,22 @@ class _TimerScreenState extends State<TimerScreen>
       parent: _pulseAnimationController,
       curve: Curves.easeInOut,
     ));
+  }
+
+  void _initializeTimer() {
+    final timerProvider = context.read<TimerProvider>();
+    setState(() {
+      _secondsRemaining = timerProvider.focusDuration * 60;
+    });
+  }
+
+  Future<void> _loadTodayStats() async {
+    final stats = await DatabaseService.getStatistics();
+    if (mounted) {
+      setState(() {
+        _todayStats = stats;
+      });
+    }
   }
   
   @override
@@ -98,6 +131,7 @@ class _TimerScreenState extends State<TimerScreen>
   void _startTimer() {
     _progressAnimationController.duration = Duration(seconds: _secondsRemaining);
     _progressAnimationController.forward();
+    _sessionStartTime = DateTime.now();
     
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
@@ -116,28 +150,77 @@ class _TimerScreenState extends State<TimerScreen>
   }
   
   void _resetTimer() {
+    final timerProvider = context.read<TimerProvider>();
+    
+    // Save incomplete session if timer was running
+    if (_isRunning && _sessionStartTime != null) {
+      _saveSession(completed: false);
+    }
+    
     setState(() {
       _timer?.cancel();
       _isRunning = false;
+      _sessionStartTime = null;
       _secondsRemaining = _isStudySession 
-          ? studyDurationMinutes * 60 
-          : breakDurationMinutes * 60;
+          ? timerProvider.focusDuration * 60 
+          : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
       _progressAnimationController.reset();
     });
   }
+
+  bool _shouldUseLongBreak() {
+    final timerProvider = context.read<TimerProvider>();
+    return _completedSessions > 0 && _completedSessions % timerProvider.sessionsUntilLongBreak == 0;
+  }
   
   void _completeSession() {
+    final timerProvider = context.read<TimerProvider>();
     _timer?.cancel();
+    
+    // Save completed session
+    _saveSession(completed: true);
+    
     setState(() {
       _isRunning = false;
+      if (_isStudySession) {
+        _completedSessions++;
+      }
       _isStudySession = !_isStudySession;
       _secondsRemaining = _isStudySession 
-          ? studyDurationMinutes * 60 
-          : breakDurationMinutes * 60;
+          ? timerProvider.focusDuration * 60 
+          : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
       _progressAnimationController.reset();
+      _sessionStartTime = null;
     });
     
+    // Refresh stats after completing session
+    _loadTodayStats();
+    
     _showSessionCompleteDialog();
+  }
+
+  Future<void> _saveSession({required bool completed}) async {
+    if (_sessionStartTime == null) return;
+
+    final endTime = DateTime.now();
+    final actualDuration = endTime.difference(_sessionStartTime!).inSeconds;
+    
+    SessionType sessionType;
+    if (_isStudySession) {
+      sessionType = SessionType.focus;
+    } else {
+      sessionType = _shouldUseLongBreak() ? SessionType.longBreak : SessionType.shortBreak;
+    }
+
+    final session = Session(
+      startTime: _sessionStartTime!,
+      endTime: endTime,
+      duration: actualDuration,
+      type: sessionType,
+      completed: completed,
+    );
+
+    await DatabaseService.insertSession(session);
   }
   
   void _showSessionCompleteDialog() {
@@ -168,25 +251,54 @@ class _TimerScreenState extends State<TimerScreen>
     final remainingSeconds = seconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
   }
+
+  String _getSessionTitle() {
+    if (_isStudySession) {
+      return 'Focus Time';
+    } else {
+      return _shouldUseLongBreak() ? 'Long Break' : 'Break Time';
+    }
+  }
   
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final timerProvider = context.watch<TimerProvider>();
+    
     final totalSeconds = _isStudySession 
-        ? studyDurationMinutes * 60 
-        : breakDurationMinutes * 60;
-    final progress = (_secondsRemaining / totalSeconds).clamp(0.0, 1.0);
+        ? timerProvider.focusDuration * 60 
+        : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
+    final progress = totalSeconds > 0 ? (_secondsRemaining / totalSeconds).clamp(0.0, 1.0) : 0.0;
     
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
+      appBar: AppBar(
+        title: Text(
+          'FlowPulse',
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+            icon: const Icon(Icons.settings),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
-              const SizedBox(height: 40),
               Text(
-                _isStudySession ? 'Focus Time' : 'Break Time',
+                _getSessionTitle(),
                 style: theme.textTheme.headlineLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: _isStudySession 
@@ -194,6 +306,23 @@ class _TimerScreenState extends State<TimerScreen>
                       : theme.colorScheme.secondary,
                 ),
               ),
+              if (_todayStats != null)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _StatChip(
+                      icon: Icons.access_time,
+                      label: _formatTime(_todayStats!['todayFocusTime'] ?? 0),
+                      tooltip: 'Today\'s focus time',
+                    ),
+                    const SizedBox(width: 12),
+                    _StatChip(
+                      icon: Icons.local_fire_department,
+                      label: '${_todayStats!['currentStreak'] ?? 0}',
+                      tooltip: 'Current streak',
+                    ),
+                  ],
+                ),
               const SizedBox(height: 60),
               Expanded(
                 child: Center(
@@ -282,7 +411,9 @@ class _TimerScreenState extends State<TimerScreen>
                   ),
                 ],
               ),
-              const SizedBox(height: 60),
+              const SizedBox(height: 40),
+              const AudioControls(),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -339,5 +470,51 @@ class CircularProgressPainter extends CustomPainter {
     return oldDelegate.progress != progress ||
         oldDelegate.color != color ||
         oldDelegate.backgroundColor != backgroundColor;
+  }
+}
+
+class _StatChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String tooltip;
+
+  const _StatChip({
+    required this.icon,
+    required this.label,
+    required this.tooltip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return Tooltip(
+      message: tooltip,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
