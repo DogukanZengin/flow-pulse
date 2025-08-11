@@ -5,6 +5,8 @@ import 'dart:math' as math;
 import 'providers/theme_provider.dart';
 import 'providers/timer_provider.dart';
 import 'screens/settings_screen.dart';
+import 'screens/analytics_screen.dart';
+import 'screens/tasks_screen.dart';
 import 'services/database_service.dart';
 import 'models/session.dart';
 import 'widgets/audio_controls.dart';
@@ -35,9 +37,72 @@ class FlowPulseApp extends StatelessWidget {
             theme: themeProvider.lightTheme,
             darkTheme: themeProvider.darkTheme,
             themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            home: const TimerScreen(),
+            home: const MainScreen(),
           );
         },
+      ),
+    );
+  }
+}
+
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _currentIndex = 0;
+  late List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      const TimerScreen(),
+      const TasksScreen(),
+      const AnalyticsScreen(),
+      const SettingsScreen(),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.timer),
+            selectedIcon: Icon(Icons.timer),
+            label: 'Timer',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.task_alt),
+            selectedIcon: Icon(Icons.task_alt),
+            label: 'Tasks',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.analytics),
+            selectedIcon: Icon(Icons.analytics),
+            label: 'Analytics',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings),
+            selectedIcon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+        ],
       ),
     );
   }
@@ -280,17 +345,6 @@ class _TimerScreenState extends State<TimerScreen>
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
-            },
-            icon: const Icon(Icons.settings),
-          ),
-        ],
       ),
       body: SafeArea(
         child: Padding(

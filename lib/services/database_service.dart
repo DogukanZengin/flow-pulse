@@ -83,6 +83,22 @@ class DatabaseService {
     return List.generate(maps.length, (i) => Session.fromMap(maps[i]));
   }
 
+  // Get sessions within a date range
+  static Future<List<Session>> getSessionsByDateRange(DateTime startDate, DateTime endDate) async {
+    final db = await database;
+    
+    final List<Map<String, dynamic>> maps = await db.query(
+      _tableName,
+      where: 'start_time >= ? AND start_time < ?',
+      whereArgs: [
+        startDate.millisecondsSinceEpoch,
+        endDate.millisecondsSinceEpoch,
+      ],
+      orderBy: 'start_time ASC',
+    );
+    return List.generate(maps.length, (i) => Session.fromMap(maps[i]));
+  }
+
   // Get total focus time for today
   static Future<int> getTodayFocusTime() async {
     final today = DateTime.now();

@@ -53,6 +53,19 @@ dependencies:
   
   # Image handling
   image_picker: ^1.0.4
+  
+  # Phase 3: Smart features
+  fl_chart: ^0.68.0
+  device_calendar: ^4.3.2
+  permission_handler: ^11.0.1
+  csv: ^6.0.0
+  pdf: ^3.10.7
+  path_provider: ^2.1.1
+  intl: ^0.19.0
+  timezone: ^0.9.2
+  
+  # ML and analytics (optional for now)
+  # tflite_flutter: ^0.10.4
 
 dev_dependencies:
   flutter_test:
