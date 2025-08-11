@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum AppTheme {
+  // Free themes
   indigo,
   ocean,
   forest,
@@ -9,6 +10,28 @@ enum AppTheme {
   lavender,
   charcoal,
   midnight,
+  
+  // Premium animated themes
+  cosmicPulse,
+  auroralBloom,
+  liquidGold,
+  neonNights,
+  crystalCave,
+  volcanoFire,
+  deepSpace,
+  sakuraBloom,
+  electroMist,
+  prismShift,
+  galaxySwirl,
+  emeraldFlow,
+  rubyGlow,
+  sapphireWave,
+  opalShimmer,
+  diamondDust,
+  copperFlame,
+  steelStorm,
+  goldRush,
+  silverMoon,
 }
 
 class ThemeProvider extends ChangeNotifier {
@@ -18,6 +41,24 @@ class ThemeProvider extends ChangeNotifier {
 
   AppTheme get currentTheme => _currentTheme;
   bool get isDarkMode => _isDarkMode;
+  
+  static List<AppTheme> get freeThemes => [
+    AppTheme.indigo,
+    AppTheme.ocean,
+    AppTheme.forest,
+    AppTheme.sunset,
+    AppTheme.lavender,
+    AppTheme.charcoal,
+    AppTheme.midnight,
+  ];
+  
+  static List<AppTheme> get premiumThemes => AppTheme.values
+      .where((theme) => !freeThemes.contains(theme))
+      .toList();
+      
+  bool isThemePremium(AppTheme theme) => premiumThemes.contains(theme);
+  bool get isCurrentThemePremium => isThemePremium(_currentTheme);
+  bool get hasAnimatedBackground => isThemePremium(_currentTheme);
 
   static const String _themeKey = 'app_theme';
   static const String _darkModeKey = 'dark_mode';
@@ -95,6 +136,57 @@ class ThemeProvider extends ChangeNotifier {
           surface: const Color(0xFFF8F9FA),
           brightness: Brightness.light,
         );
+      
+      // Premium animated themes (light variants)
+      case AppTheme.cosmicPulse:
+        return _createTheme(
+          primary: const Color(0xFF6A1B9A),
+          secondary: const Color(0xFFE91E63),
+          surface: const Color(0xFFFCF4FF),
+          brightness: Brightness.light,
+        );
+      case AppTheme.auroralBloom:
+        return _createTheme(
+          primary: const Color(0xFF00BCD4),
+          secondary: const Color(0xFF4CAF50),
+          surface: const Color(0xFFF0FDFF),
+          brightness: Brightness.light,
+        );
+      case AppTheme.liquidGold:
+        return _createTheme(
+          primary: const Color(0xFFFF8F00),
+          secondary: const Color(0xFFFFC107),
+          surface: const Color(0xFFFFF8E1),
+          brightness: Brightness.light,
+        );
+      case AppTheme.neonNights:
+        return _createTheme(
+          primary: const Color(0xFF00E676),
+          secondary: const Color(0xFFE91E63),
+          surface: const Color(0xFFF1F8E9),
+          brightness: Brightness.light,
+        );
+      case AppTheme.crystalCave:
+        return _createTheme(
+          primary: const Color(0xFF9C27B0),
+          secondary: const Color(0xFF00BCD4),
+          surface: const Color(0xFFFCF4FF),
+          brightness: Brightness.light,
+        );
+      case AppTheme.volcanoFire:
+        return _createTheme(
+          primary: const Color(0xFFD32F2F),
+          secondary: const Color(0xFFFF5722),
+          surface: const Color(0xFFFFF3E0),
+          brightness: Brightness.light,
+        );
+      default:
+        return _createTheme(
+          primary: const Color(0xFF6A1B9A),
+          secondary: const Color(0xFFE91E63),
+          surface: const Color(0xFFFCF4FF),
+          brightness: Brightness.light,
+        );
     }
   }
 
@@ -149,6 +241,57 @@ class ThemeProvider extends ChangeNotifier {
           surface: const Color(0xFF0A0E1A),
           brightness: Brightness.dark,
         );
+      
+      // Premium animated themes (dark variants)
+      case AppTheme.cosmicPulse:
+        return _createTheme(
+          primary: const Color(0xFFAB47BC),
+          secondary: const Color(0xFFEC407A),
+          surface: const Color(0xFF1A0D1F),
+          brightness: Brightness.dark,
+        );
+      case AppTheme.auroralBloom:
+        return _createTheme(
+          primary: const Color(0xFF26C6DA),
+          secondary: const Color(0xFF66BB6A),
+          surface: const Color(0xFF0A1F1F),
+          brightness: Brightness.dark,
+        );
+      case AppTheme.liquidGold:
+        return _createTheme(
+          primary: const Color(0xFFFFB74D),
+          secondary: const Color(0xFFFFD54F),
+          surface: const Color(0xFF1F1A0A),
+          brightness: Brightness.dark,
+        );
+      case AppTheme.neonNights:
+        return _createTheme(
+          primary: const Color(0xFF69F0AE),
+          secondary: const Color(0xFFFF4081),
+          surface: const Color(0xFF0D1F0D),
+          brightness: Brightness.dark,
+        );
+      case AppTheme.crystalCave:
+        return _createTheme(
+          primary: const Color(0xFFBA68C8),
+          secondary: const Color(0xFF4DD0E1),
+          surface: const Color(0xFF1A0D1F),
+          brightness: Brightness.dark,
+        );
+      case AppTheme.volcanoFire:
+        return _createTheme(
+          primary: const Color(0xFFEF5350),
+          secondary: const Color(0xFFFF7043),
+          surface: const Color(0xFF1F0A0A),
+          brightness: Brightness.dark,
+        );
+      default:
+        return _createTheme(
+          primary: const Color(0xFFAB47BC),
+          secondary: const Color(0xFFEC407A),
+          surface: const Color(0xFF1A0D1F),
+          brightness: Brightness.dark,
+        );
     }
   }
 
@@ -194,6 +337,7 @@ class ThemeProvider extends ChangeNotifier {
 
   String getThemeName(AppTheme theme) {
     switch (theme) {
+      // Free themes
       case AppTheme.indigo:
         return 'Indigo';
       case AppTheme.ocean:
@@ -208,6 +352,48 @@ class ThemeProvider extends ChangeNotifier {
         return 'Charcoal';
       case AppTheme.midnight:
         return 'Midnight';
+      
+      // Premium animated themes
+      case AppTheme.cosmicPulse:
+        return 'Cosmic Pulse';
+      case AppTheme.auroralBloom:
+        return 'Auroral Bloom';
+      case AppTheme.liquidGold:
+        return 'Liquid Gold';
+      case AppTheme.neonNights:
+        return 'Neon Nights';
+      case AppTheme.crystalCave:
+        return 'Crystal Cave';
+      case AppTheme.volcanoFire:
+        return 'Volcano Fire';
+      case AppTheme.deepSpace:
+        return 'Deep Space';
+      case AppTheme.sakuraBloom:
+        return 'Sakura Bloom';
+      case AppTheme.electroMist:
+        return 'Electro Mist';
+      case AppTheme.prismShift:
+        return 'Prism Shift';
+      case AppTheme.galaxySwirl:
+        return 'Galaxy Swirl';
+      case AppTheme.emeraldFlow:
+        return 'Emerald Flow';
+      case AppTheme.rubyGlow:
+        return 'Ruby Glow';
+      case AppTheme.sapphireWave:
+        return 'Sapphire Wave';
+      case AppTheme.opalShimmer:
+        return 'Opal Shimmer';
+      case AppTheme.diamondDust:
+        return 'Diamond Dust';
+      case AppTheme.copperFlame:
+        return 'Copper Flame';
+      case AppTheme.steelStorm:
+        return 'Steel Storm';
+      case AppTheme.goldRush:
+        return 'Gold Rush';
+      case AppTheme.silverMoon:
+        return 'Silver Moon';
     }
   }
 }

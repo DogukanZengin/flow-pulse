@@ -43,6 +43,16 @@ dependencies:
   # UI and state management
   provider: ^6.1.1
   path: ^1.9.0
+  
+  # Premium features and subscriptions
+  purchases_flutter: ^6.0.1
+  
+  # Animations and effects
+  lottie: ^3.0.0
+  flutter_staggered_animations: ^1.1.1
+  
+  # Image handling
+  image_picker: ^1.0.4
 
 dev_dependencies:
   flutter_test:
