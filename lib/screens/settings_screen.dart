@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/timer_provider.dart';
+import '../services/subscription_service.dart';
+import '../services/background_service.dart';
+import '../widgets/premium_audio_controls.dart';
+import '../widgets/breathing_exercise.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -16,10 +20,27 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Premium status and upgrade
+          const _PremiumSection(),
+          const SizedBox(height: 24),
+          
+          // Core timer settings
           const _TimerSection(),
           const SizedBox(height: 24),
+          
+          // Theme and background settings (premium features)
           const _ThemeSection(),
           const SizedBox(height: 24),
+          
+          // Audio settings (premium mixing)
+          const PremiumAudioControls(),
+          const SizedBox(height: 24),
+          
+          // Breathing exercises (premium)
+          const _BreathingSection(),
+          const SizedBox(height: 24),
+          
+          // Original settings
           const _AutoStartSection(),
           const SizedBox(height: 24),
           const _PresetSection(),
@@ -252,6 +273,46 @@ class _ThemeSection extends StatelessWidget {
         return const Color(0xFF455A64);
       case AppTheme.midnight:
         return const Color(0xFF1A237E);
+      case AppTheme.cosmicPulse:
+        return const Color(0xFF6A1B9A);
+      case AppTheme.auroralBloom:
+        return const Color(0xFF00BCD4);
+      case AppTheme.liquidGold:
+        return const Color(0xFFFF8F00);
+      case AppTheme.neonNights:
+        return const Color(0xFF00E676);
+      case AppTheme.crystalCave:
+        return const Color(0xFF9C27B0);
+      case AppTheme.volcanoFire:
+        return const Color(0xFFD32F2F);
+      case AppTheme.deepSpace:
+        return const Color(0xFF1A237E);
+      case AppTheme.sakuraBloom:
+        return const Color(0xFFE91E63);
+      case AppTheme.electroMist:
+        return const Color(0xFF00BCD4);
+      case AppTheme.prismShift:
+        return const Color(0xFF9C27B0);
+      case AppTheme.galaxySwirl:
+        return const Color(0xFF3F51B5);
+      case AppTheme.emeraldFlow:
+        return const Color(0xFF2E7D32);
+      case AppTheme.rubyGlow:
+        return const Color(0xFFD32F2F);
+      case AppTheme.sapphireWave:
+        return const Color(0xFF0277BD);
+      case AppTheme.opalShimmer:
+        return const Color(0xFF9C27B0);
+      case AppTheme.diamondDust:
+        return const Color(0xFF78909C);
+      case AppTheme.copperFlame:
+        return const Color(0xFFD84315);
+      case AppTheme.steelStorm:
+        return const Color(0xFF455A64);
+      case AppTheme.goldRush:
+        return const Color(0xFFFF8F00);
+      case AppTheme.silverMoon:
+        return const Color(0xFF78909C);
     }
   }
 }
@@ -390,6 +451,195 @@ class _PresetButton extends StatelessWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PremiumSection extends StatelessWidget {
+  const _PremiumSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final subscriptionService = SubscriptionService.instance;
+    
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      subscriptionService.isPremium ? Icons.star : Icons.star_border,
+                      color: Colors.amber,
+                      size: 28,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      subscriptionService.isPremium ? 'Premium Active' : 'Free Plan',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: subscriptionService.isPremium ? Colors.amber : null,
+                      ),
+                    ),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    await subscriptionService.togglePremiumForDemo();
+                  },
+                  icon: const Icon(Icons.science),
+                  label: Text(subscriptionService.isPremium ? 'Disable Premium' : 'Enable Premium'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.purple,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (!subscriptionService.isPremium) ...[
+              Text(
+                'Unlock Premium Features:',
+                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              _buildFeatureList([
+                '25+ premium ambient sounds',
+                'Advanced sound mixing & layering',
+                'Premium animated themes',
+                'Custom backgrounds',
+                'Breathing exercises',
+                'Enhanced achievements',
+              ]),
+            ] else ...[
+              Text(
+                'Thank you for supporting FlowPulse Premium!',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: Colors.amber,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Enjoy unlimited access to all premium features.',
+                style: theme.textTheme.bodyMedium,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildFeatureList(List<String> features) {
+    return Column(
+      children: features.map((feature) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          children: [
+            const Icon(Icons.check, color: Colors.green, size: 16),
+            const SizedBox(width: 8),
+            Text(feature),
+          ],
+        ),
+      )).toList(),
+    );
+  }
+}
+
+class _BreathingSection extends StatelessWidget {
+  const _BreathingSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final subscriptionService = SubscriptionService.instance;
+    
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Breathing Exercises',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (!subscriptionService.isPremium)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.amber,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'PREMIUM',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (!subscriptionService.isPremium) ...[
+              Container(
+                height: 120,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.air,
+                        size: 32,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Guided Breathing Exercises',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Premium feature',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ] else ...[
+              BreathingExercise(
+                primaryColor: theme.colorScheme.primary,
+                secondaryColor: theme.colorScheme.secondary,
+                inhaleSeconds: 4,
+                holdSeconds: 4,
+                exhaleSeconds: 4,
+                pauseSeconds: 4,
+              ),
+            ],
           ],
         ),
       ),
