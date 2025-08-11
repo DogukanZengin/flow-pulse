@@ -1,25 +1,62 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:flutter/foundation.dart';
 import '../models/task.dart';
+import 'storage_service.dart';
+
+// Import conditionally
+import 'package:sqflite_common_ffi/sqflite_ffi.dart' if (dart.library.io) 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class TaskService {
   static Database? _database;
   static const String _tasksTable = 'tasks';
   static const String _projectsTable = 'projects';
+  static bool _initialized = false;
+
+  // Check if we should use SQLite or SharedPreferences
+  static bool get _useSQLite => !kIsWeb;
+
+  static Future<void> _initializeDatabaseFactory() async {
+    if (_initialized) return;
+    
+    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      // Initialize FFI for desktop platforms
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+    _initialized = true;
+  }
 
   static Future<Database> get database async {
+    if (!_useSQLite) {
+      throw UnsupportedError('SQLite not supported on this platform');
+    }
     if (_database != null) return _database!;
+    await _initializeDatabaseFactory();
     _database = await _initDatabase();
     return _database!;
   }
 
   static Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'flowpulse_tasks.db');
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _onCreate,
-    );
+    if (!_useSQLite) {
+      throw UnsupportedError('SQLite not supported on this platform');
+    }
+    
+    try {
+      String path = join(await getDatabasesPath(), 'flowpulse_tasks.db');
+      return await openDatabase(
+        path,
+        version: 1,
+        onCreate: _onCreate,
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('Task database initialization error: $e');
+      }
+      rethrow;
+    }
   }
 
   static Future<void> _onCreate(Database db, int version) async {
@@ -69,6 +106,11 @@ class TaskService {
 
   /// Create a new project
   static Future<String> createProject(Project project) async {
+    if (!_useSQLite) {
+      await StorageService.saveProject(project);
+      return project.id;
+    }
+    
     final db = await database;
     await db.insert(_projectsTable, project.toMap());
     return project.id;
@@ -76,6 +118,29 @@ class TaskService {
 
   /// Get all projects
   static Future<List<Project>> getAllProjects({bool includeArchived = false}) async {
+    if (!_useSQLite) {
+      final projects = await StorageService.getAllProjects();
+      
+      // Ensure default project exists for web
+      if (projects.isEmpty || !projects.any((p) => p.id == 'default')) {
+        final defaultProject = Project(
+          id: 'default',
+          name: 'Personal',
+          description: 'Default project for personal tasks',
+          color: '#2196F3',
+          createdAt: DateTime.now(),
+        );
+        await StorageService.saveProject(defaultProject);
+        projects.add(defaultProject);
+      }
+      
+      if (includeArchived) {
+        return projects;
+      } else {
+        return projects.where((p) => !p.isArchived).toList();
+      }
+    }
+    
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       _projectsTable,
