@@ -336,29 +336,56 @@ class _TimerScreenState extends State<TimerScreen>
     final progress = totalSeconds > 0 ? (_secondsRemaining / totalSeconds).clamp(0.0, 1.0) : 0.0;
     
     return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      appBar: AppBar(
-        title: Text(
-          'FlowPulse',
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
+      body: AnimatedContainer(
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeInOut,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: _isStudySession 
+                ? [
+                    const Color(0xFF6B5B95), // Deep Purple
+                    const Color(0xFF88B0D3), // Sky Blue
+                  ]
+                : [
+                    const Color(0xFFFF6B6B), // Coral
+                    const Color(0xFFFECA57), // Golden Yellow
+                  ],
           ),
         ),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: SingleChildScrollView(
-            child: Column(
+        child: Column(
+          children: [
+            AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              title: Text(
+                'FlowPulse',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              centerTitle: true,
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: SingleChildScrollView(
+                  child: Column(
               children: [
               Text(
                 _getSessionTitle(),
                 style: theme.textTheme.headlineLarge?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: _isStudySession 
-                      ? theme.colorScheme.primary 
-                      : theme.colorScheme.secondary,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      offset: const Offset(0, 2),
+                      blurRadius: 4,
+                      color: Colors.black.withOpacity(0.3),
+                    ),
+                  ],
                 ),
               ),
               if (_todayStats != null)
@@ -396,10 +423,7 @@ class _TimerScreenState extends State<TimerScreen>
                               child: CustomPaint(
                                 painter: CircularProgressPainter(
                                   progress: progress,
-                                  color: _isStudySession 
-                                      ? theme.colorScheme.primary 
-                                      : theme.colorScheme.secondary,
-                                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                                  isStudySession: _isStudySession,
                                 ),
                               ),
                             ),
@@ -411,13 +435,28 @@ class _TimerScreenState extends State<TimerScreen>
                                   style: theme.textTheme.displayLarge?.copyWith(
                                     fontWeight: FontWeight.w300,
                                     fontSize: 64,
+                                    color: Colors.white,
+                                    shadows: [
+                                      Shadow(
+                                        offset: const Offset(0, 2),
+                                        blurRadius: 8,
+                                        color: Colors.black.withOpacity(0.4),
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   _isRunning ? 'Stay Focused!' : 'Paused',
                                   style: theme.textTheme.titleMedium?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
+                                    color: Colors.white.withOpacity(0.9),
+                                    shadows: [
+                                      Shadow(
+                                        offset: const Offset(0, 1),
+                                        blurRadius: 4,
+                                        color: Colors.black.withOpacity(0.3),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -432,47 +471,115 @@ class _TimerScreenState extends State<TimerScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  IconButton(
-                    onPressed: _resetTimer,
-                    icon: const Icon(Icons.refresh),
-                    iconSize: 32,
-                    color: theme.colorScheme.onSurfaceVariant,
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      onPressed: _resetTimer,
+                      icon: const Icon(Icons.refresh),
+                      iconSize: 28,
+                      color: Colors.white,
+                    ),
                   ),
-                  const SizedBox(width: 24),
-                  FloatingActionButton.large(
-                    onPressed: _toggleTimer,
-                    backgroundColor: _isStudySession 
-                        ? theme.colorScheme.primary 
-                        : theme.colorScheme.secondary,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      child: Icon(
-                        _isRunning ? Icons.pause : Icons.play_arrow,
-                        key: ValueKey(_isRunning),
-                        size: 40,
+                  const SizedBox(width: 16),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeInOut,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: _isStudySession 
+                            ? [const Color(0xFF6B5B95), const Color(0xFF88B0D3)]
+                            : [const Color(0xFFFF6B6B), const Color(0xFFFECA57)],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (_isStudySession 
+                              ? const Color(0xFF6B5B95) 
+                              : const Color(0xFFFF6B6B)).withOpacity(0.4),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: GestureDetector(
+                      onTap: _toggleTimer,
+                      child: Container(
+                        width: 96,
+                        height: 96,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                        ),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 250),
+                          switchInCurve: Curves.elasticOut,
+                          switchOutCurve: Curves.easeInBack,
+                          transitionBuilder: (Widget child, Animation<double> animation) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: ScaleTransition(
+                                scale: animation,
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: Icon(
+                            _isRunning ? Icons.pause : Icons.play_arrow,
+                            key: ValueKey(_isRunning),
+                            size: 40,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 24),
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _isStudySession = !_isStudySession;
-                        _resetTimer();
-                      });
-                    },
-                    icon: Icon(_isStudySession ? Icons.coffee : Icons.psychology),
-                    iconSize: 32,
-                    color: theme.colorScheme.onSurfaceVariant,
+                  const SizedBox(width: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _isStudySession = !_isStudySession;
+                          _resetTimer();
+                        });
+                      },
+                      icon: Icon(_isStudySession ? Icons.coffee : Icons.psychology),
+                      iconSize: 28,
+                      color: Colors.white,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 40),
               const AudioControls(),
               const SizedBox(height: 24),
-            ],
-          ),
-          ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -481,52 +588,82 @@ class _TimerScreenState extends State<TimerScreen>
 
 class CircularProgressPainter extends CustomPainter {
   final double progress;
-  final Color color;
-  final Color backgroundColor;
+  final bool isStudySession;
   
   CircularProgressPainter({
     required this.progress,
-    required this.color,
-    required this.backgroundColor,
+    required this.isStudySession,
   });
   
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
-    const strokeWidth = 12.0;
+    const strokeWidth = 16.0;
+    const glowStrokeWidth = 24.0;
     
+    // Gradient colors based on session type
+    final gradientColors = isStudySession 
+        ? [const Color(0xFF6B5B95), const Color(0xFF88B0D3)]
+        : [const Color(0xFFFF6B6B), const Color(0xFFFECA57)];
+    
+    // Background circle with subtle transparency
     final backgroundPaint = Paint()
-      ..color = backgroundColor
+      ..color = Colors.white.withOpacity(0.1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
     
+    // Glow effect paint
+    final glowPaint = Paint()
+      ..color = gradientColors[0].withOpacity(0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = glowStrokeWidth
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8.0);
+    
+    // Progress gradient paint
     final progressPaint = Paint()
-      ..color = color
+      ..shader = SweepGradient(
+        colors: gradientColors,
+        startAngle: -math.pi / 2,
+        endAngle: 3 * math.pi / 2,
+      ).createShader(Rect.fromCircle(center: center, radius: radius))
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
     
+    // Draw background circle
     canvas.drawCircle(center, radius, backgroundPaint);
     
-    const startAngle = -math.pi / 2;
-    final sweepAngle = 2 * math.pi * progress;
-    
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      startAngle,
-      sweepAngle,
-      false,
-      progressPaint,
-    );
+    if (progress > 0) {
+      const startAngle = -math.pi / 2;
+      final sweepAngle = 2 * math.pi * progress;
+      
+      // Draw glow effect
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sweepAngle,
+        false,
+        glowPaint,
+      );
+      
+      // Draw progress arc with gradient
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sweepAngle,
+        false,
+        progressPaint,
+      );
+    }
   }
   
   @override
   bool shouldRepaint(CircularProgressPainter oldDelegate) {
     return oldDelegate.progress != progress ||
-        oldDelegate.color != color ||
-        oldDelegate.backgroundColor != backgroundColor;
+        oldDelegate.isStudySession != isStudySession;
   }
 }
 
