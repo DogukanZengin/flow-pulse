@@ -349,8 +349,9 @@ class _TimerScreenState extends State<TimerScreen>
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
               Text(
                 _getSessionTitle(),
                 style: theme.textTheme.headlineLarge?.copyWith(
@@ -377,8 +378,9 @@ class _TimerScreenState extends State<TimerScreen>
                     ),
                   ],
                 ),
-              const SizedBox(height: 60),
-              Expanded(
+              const SizedBox(height: 40),
+              SizedBox(
+                height: 320,
                 child: Center(
                   child: AnimatedBuilder(
                     animation: _pulseAnimation,
@@ -469,6 +471,7 @@ class _TimerScreenState extends State<TimerScreen>
               const AudioControls(),
               const SizedBox(height: 24),
             ],
+          ),
           ),
         ),
       ),

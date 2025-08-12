@@ -1190,6 +1190,7 @@ PODS:
   - abseil/xcprivacy (1.20240722.0)
   - audioplayers_darwin (0.0.1):
     - Flutter
+    - FlutterMacOS
   - BoringSSL-GRPC (0.0.37):
     - BoringSSL-GRPC/Implementation (= 0.0.37)
     - BoringSSL-GRPC/Interface (= 0.0.37)
@@ -1430,13 +1431,13 @@ PODS:
   - permission_handler_apple (9.3.0):
     - Flutter
   - PromisesObjC (2.4.0)
-  - purchases_flutter (6.30.2):
+  - purchases_flutter (9.2.0):
     - Flutter
-    - PurchasesHybridCommon (= 11.1.0)
-  - PurchasesHybridCommon (11.1.0):
-    - RevenueCat (= 4.43.2)
+    - PurchasesHybridCommon (= 16.2.0)
+  - PurchasesHybridCommon (16.2.0):
+    - RevenueCat (= 5.34.0)
   - RecaptchaInterop (101.0.0)
-  - RevenueCat (4.43.2)
+  - RevenueCat (5.34.0)
   - share_plus (0.0.1):
     - Flutter
   - shared_preferences_foundation (0.0.1):
@@ -1448,7 +1449,7 @@ PODS:
   - TOCropViewController (2.7.4)
 
 DEPENDENCIES:
-  - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/ios`)
+  - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/darwin`)
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
   - device_calendar (from `.symlinks/plugins/device_calendar/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
@@ -1497,7 +1498,7 @@ SPEC REPOS:
 
 EXTERNAL SOURCES:
   audioplayers_darwin:
-    :path: ".symlinks/plugins/audioplayers_darwin/ios"
+    :path: ".symlinks/plugins/audioplayers_darwin/darwin"
   cloud_firestore:
     :path: ".symlinks/plugins/cloud_firestore/ios"
   device_calendar:
@@ -1531,7 +1532,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   abseil: a05cc83bf02079535e17169a73c5be5ba47f714b
-  audioplayers_darwin: ccf9c770ee768abb07e26d90af093f7bab1c12ab
+  audioplayers_darwin: 4f9ca89d92d3d21cec7ec580e78ca888e5fb68bd
   BoringSSL-GRPC: dded2a44897e45f28f08ae87a55ee4bcd19bc508
   cloud_firestore: fdcc87898326e396d6ef6df543acf9b5c2034b95
   device_calendar: b55b2c5406cfba45c95a59f9059156daee1f74ed
@@ -1565,10 +1566,10 @@ SPEC CHECKSUMS:
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  purchases_flutter: 9d73ec69e46d4c4e014d4b40c2d9fa60a21b8745
-  PurchasesHybridCommon: 4022d5944cb30ec44ba5159e42aa161fe0e30175
+  purchases_flutter: b0a7ec52cb03768814b5758b2e8dc7c9a1f381da
+  PurchasesHybridCommon: 55e97b4e090015ed138988e6559def2bd4c50ebe
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
-  RevenueCat: 3d934653b7e8b09af88fd47e9e84cfaf5d0a89ba
+  RevenueCat: eb2aa042789d9c99ad5172bd96e28b96286d6ada
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0

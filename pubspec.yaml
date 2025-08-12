@@ -36,16 +36,16 @@ dependencies:
   cupertino_icons: ^1.0.8
   
   # Core functionality dependencies
-  shared_preferences: ^2.2.2
-  sqflite: ^2.3.0
-  audioplayers: ^5.2.1
+  shared_preferences: ^2.5.3
+  sqflite: ^2.4.2
+  audioplayers: ^6.5.0
   
   # UI and state management
   provider: ^6.1.1
   path: ^1.9.0
   
   # Premium features and subscriptions
-  purchases_flutter: ^6.0.1
+  purchases_flutter: ^9.2.0
   
   # Animations and effects
   lottie: ^3.0.0

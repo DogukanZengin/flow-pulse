@@ -317,7 +317,7 @@ class ThemeProvider extends ChangeNotifier {
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
