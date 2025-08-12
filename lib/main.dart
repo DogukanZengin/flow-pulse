@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'dart:math' as math;
@@ -11,6 +12,9 @@ import 'screens/tasks_screen.dart';
 import 'services/database_service.dart';
 import 'models/session.dart';
 import 'widgets/audio_controls.dart';
+import 'widgets/rolling_timer.dart';
+import 'widgets/celebration_dialog.dart';
+import 'services/ui_sound_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -102,10 +106,34 @@ class _MainScreenState extends State<MainScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildNavItem(Icons.timer, 'Timer', 0),
-                  _buildNavItem(Icons.task_alt, 'Tasks', 1),
-                  _buildNavItem(Icons.analytics, 'Analytics', 2),
-                  _buildNavItem(Icons.settings, 'Settings', 3),
+                  _NavItem(
+                    icon: Icons.timer,
+                    label: 'Timer',
+                    index: 0,
+                    isSelected: _currentIndex == 0,
+                    onTap: () => _selectTab(0),
+                  ),
+                  _NavItem(
+                    icon: Icons.task_alt,
+                    label: 'Tasks',
+                    index: 1,
+                    isSelected: _currentIndex == 1,
+                    onTap: () => _selectTab(1),
+                  ),
+                  _NavItem(
+                    icon: Icons.analytics,
+                    label: 'Analytics',
+                    index: 2,
+                    isSelected: _currentIndex == 2,
+                    onTap: () => _selectTab(2),
+                  ),
+                  _NavItem(
+                    icon: Icons.settings,
+                    label: 'Settings',
+                    index: 3,
+                    isSelected: _currentIndex == 3,
+                    onTap: () => _selectTab(3),
+                  ),
                 ],
               ),
             ),
@@ -115,44 +143,10 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, int index) {
-    final isSelected = _currentIndex == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _currentIndex = index;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        decoration: BoxDecoration(
-          color: isSelected 
-              ? Colors.white.withOpacity(0.3) 
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: Colors.white.withOpacity(isSelected ? 1.0 : 0.7),
-              size: isSelected ? 28 : 24,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white.withOpacity(isSelected ? 1.0 : 0.7),
-                fontSize: isSelected ? 12 : 10,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  void _selectTab(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
   }
 }
 
@@ -257,8 +251,10 @@ class _TimerScreenState extends State<TimerScreen>
       _isRunning = !_isRunning;
       if (_isRunning) {
         _startTimer();
+        UISoundService.instance.timerStart();
       } else {
         _pauseTimer();
+        UISoundService.instance.timerPause();
       }
     });
   }
@@ -312,6 +308,9 @@ class _TimerScreenState extends State<TimerScreen>
     final timerProvider = context.read<TimerProvider>();
     _timer?.cancel();
     
+    // Play session complete sound
+    UISoundService.instance.sessionComplete();
+    
     // Save completed session
     _saveSession(completed: true);
     
@@ -362,21 +361,10 @@ class _TimerScreenState extends State<TimerScreen>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Text(_isStudySession ? 'Break Complete!' : 'Study Session Complete!'),
-        content: Text(
-          _isStudySession 
-              ? 'Ready to start another study session?' 
-              : 'Time for a break!',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('OK'),
-          ),
-        ],
+      barrierColor: Colors.black.withOpacity(0.7),
+      builder: (context) => CelebrationDialog(
+        isStudySession: _isStudySession,
+        onDismiss: () => Navigator.of(context).pop(),
       ),
     );
   }
@@ -521,9 +509,9 @@ class _TimerScreenState extends State<TimerScreen>
                             Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
-                                  _formatTime(_secondsRemaining),
-                                  style: theme.textTheme.displayLarge?.copyWith(
+                                RollingTimer(
+                                  seconds: _secondsRemaining,
+                                  textStyle: theme.textTheme.displayLarge?.copyWith(
                                     fontWeight: FontWeight.w300,
                                     fontSize: 64,
                                     color: Colors.white,
@@ -608,35 +596,10 @@ class _TimerScreenState extends State<TimerScreen>
                         ),
                       ],
                     ),
-                    child: GestureDetector(
+                    child: _ElasticPlayButton(
+                      isRunning: _isRunning,
                       onTap: _toggleTimer,
-                      child: Container(
-                        width: 96,
-                        height: 96,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                        ),
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 250),
-                          switchInCurve: Curves.elasticOut,
-                          switchOutCurve: Curves.easeInBack,
-                          transitionBuilder: (Widget child, Animation<double> animation) {
-                            return FadeTransition(
-                              opacity: animation,
-                              child: ScaleTransition(
-                                scale: animation,
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: Icon(
-                            _isRunning ? Icons.pause : Icons.play_arrow,
-                            key: ValueKey(_isRunning),
-                            size: 40,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
+                      isStudySession: _isStudySession,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -804,6 +767,281 @@ class _StatChip extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _NavItem extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final int index;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.index,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<_NavItem> createState() => _NavItemState();
+}
+
+class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    
+    // Create elastic animation: 1.0 -> 0.95 -> 1.05 -> 1.0
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.0, end: 0.95)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 25,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.95, end: 1.05)
+            .chain(CurveTween(curve: Curves.elasticOut)),
+        weight: 50,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.05, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 25,
+      ),
+    ]).animate(_animationController);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() async {
+    // Play UI sound and haptic feedback
+    UISoundService.instance.navigationSwitch();
+    
+    // Play elastic animation
+    await _animationController.forward();
+    _animationController.reset();
+    
+    // Execute the original onTap callback
+    widget.onTap();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _scaleAnimation,
+      builder: (context, child) {
+        return MouseRegion(
+          onEnter: (_) {
+            if (!widget.isSelected) {
+              setState(() {});
+            }
+          },
+          onExit: (_) {
+            if (!widget.isSelected) {
+              setState(() {});
+            }
+          },
+          child: Transform.scale(
+            scale: _scaleAnimation.value,
+            child: GestureDetector(
+              onTap: _handleTap,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: widget.isSelected 
+                      ? Colors.white.withOpacity(0.3) 
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: widget.isSelected ? [
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ] : null,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        widget.icon,
+                        color: Colors.white.withOpacity(widget.isSelected ? 1.0 : 0.7),
+                        size: widget.isSelected ? 28 : 24,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 200),
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(widget.isSelected ? 1.0 : 0.7),
+                        fontSize: widget.isSelected ? 12 : 10,
+                        fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                      child: Text(widget.label),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ElasticPlayButton extends StatefulWidget {
+  final bool isRunning;
+  final VoidCallback onTap;
+  final bool isStudySession;
+
+  const _ElasticPlayButton({
+    required this.isRunning,
+    required this.onTap,
+    required this.isStudySession,
+  });
+
+  @override
+  State<_ElasticPlayButton> createState() => _ElasticPlayButtonState();
+}
+
+class _ElasticPlayButtonState extends State<_ElasticPlayButton> 
+    with TickerProviderStateMixin {
+  late AnimationController _scaleController;
+  late AnimationController _iconController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _iconScaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Scale animation controller
+    _scaleController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    
+    // Icon transition controller
+    _iconController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    
+    // Elastic scale animation: 1.0 -> 0.85 -> 1.15 -> 1.0
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.0, end: 0.85)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 20,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.85, end: 1.15)
+            .chain(CurveTween(curve: Curves.elasticOut)),
+        weight: 60,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.15, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 20,
+      ),
+    ]).animate(_scaleController);
+    
+    // Icon scale animation for icon switching
+    _iconScaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.2,
+    ).animate(CurvedAnimation(
+      parent: _iconController,
+      curve: Curves.elasticOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _scaleController.dispose();
+    _iconController.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() async {
+    // Play UI sound (the timer toggle already handles timer start/pause sounds)
+    UISoundService.instance.buttonTap();
+    
+    // Play elastic scale animation
+    _scaleController.forward().then((_) {
+      _scaleController.reset();
+    });
+    
+    // Play icon animation
+    _iconController.forward().then((_) {
+      _iconController.reverse();
+    });
+    
+    // Execute the onTap callback
+    widget.onTap();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_scaleAnimation, _iconScaleAnimation]),
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: GestureDetector(
+            onTap: _handleTap,
+            child: Container(
+              width: 96,
+              height: 96,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+              ),
+              child: Transform.scale(
+                scale: _iconScaleAnimation.value,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  switchInCurve: Curves.elasticOut,
+                  switchOutCurve: Curves.easeInBack,
+                  transitionBuilder: (Widget child, Animation<double> animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: ScaleTransition(
+                        scale: animation,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Icon(
+                    widget.isRunning ? Icons.pause : Icons.play_arrow,
+                    key: ValueKey(widget.isRunning),
+                    size: 40,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
