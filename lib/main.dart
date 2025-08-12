@@ -14,7 +14,11 @@ import 'models/session.dart';
 import 'widgets/audio_controls.dart';
 import 'widgets/rolling_timer.dart';
 import 'widgets/celebration_dialog.dart';
+import 'widgets/particle_system.dart';
+import 'widgets/gradient_mesh_background.dart';
+import 'screens/ambient_mode_screen.dart';
 import 'services/ui_sound_service.dart';
+import 'services/time_based_theme_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -369,6 +373,22 @@ class _TimerScreenState extends State<TimerScreen>
     );
   }
   
+  void _enterAmbientMode() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AmbientModeScreen(
+          isRunning: _isRunning,
+          isStudySession: _isStudySession,
+          secondsRemaining: _secondsRemaining,
+          progress: 1 - (_secondsRemaining / (context.read<TimerProvider>().focusDuration * 60)),
+          sessionTitle: _getSessionTitle(),
+          onTap: _toggleTimer,
+          onBack: () => Navigator.of(context).pop(),
+        ),
+      ),
+    );
+  }
+  
   String _formatTime(int seconds) {
     final minutes = seconds ~/ 60;
     final remainingSeconds = seconds % 60;
@@ -387,6 +407,7 @@ class _TimerScreenState extends State<TimerScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final timerProvider = context.watch<TimerProvider>();
+    final timeColors = TimeBasedThemeService.instance.getTimeBasedColors(_isStudySession);
     
     final totalSeconds = _isStudySession 
         ? timerProvider.focusDuration * 60 
@@ -401,18 +422,34 @@ class _TimerScreenState extends State<TimerScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: _isStudySession 
-                ? [
-                    const Color(0xFF6B5B95), // Deep Purple
-                    const Color(0xFF88B0D3), // Sky Blue
-                  ]
-                : [
-                    const Color(0xFFFF6B6B), // Coral
-                    const Color(0xFFFECA57), // Golden Yellow
-                  ],
+            colors: timeColors.primaryGradient,
           ),
         ),
-        child: Column(
+        child: Stack(
+          children: [
+            // Gradient mesh background
+            if (timerProvider.enableVisualEffects)
+              Positioned.fill(
+                child: RepaintBoundary(
+                  child: GradientMeshBackground(
+                    isStudySession: _isStudySession,
+                    isEnabled: timerProvider.enableVisualEffects,
+                  ),
+                ),
+              ),
+            // Particle system background
+            if (timerProvider.enableVisualEffects)
+              Positioned.fill(
+                child: RepaintBoundary(
+                  child: ParticleSystem(
+                    isRunning: _isRunning,
+                    isStudySession: _isStudySession,
+                    screenSize: MediaQuery.of(context).size,
+                    timeBasedColors: timeColors.particleColors,
+                  ),
+                ),
+              ),
+            Column(
           children: [
             AppBar(
               backgroundColor: Colors.transparent,
@@ -464,48 +501,51 @@ class _TimerScreenState extends State<TimerScreen>
                   ],
                 ),
               const SizedBox(height: 40),
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                child: ClipOval(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                    child: Container(
-                      width: 360,
-                      height: 360,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.12),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.25),
-                          width: 2.0,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 30,
-                            offset: const Offset(0, 10),
+              RepaintBoundary(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  child: ClipOval(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                      child: Container(
+                        width: 360,
+                        height: 360,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.12),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.25),
+                            width: 2.0,
                           ),
-                        ],
-                      ),
-                      child: Center(
-                        child: AnimatedBuilder(
-                          animation: _pulseAnimation,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: _isRunning ? _pulseAnimation.value : 1.0,
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  SizedBox(
-                                    width: 280,
-                                    height: 280,
-                                    child: CustomPaint(
-                                      painter: CircularProgressPainter(
-                                        progress: progress,
-                                        isStudySession: _isStudySession,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 30,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: AnimatedBuilder(
+                            animation: _pulseAnimation,
+                            builder: (context, child) {
+                              return Transform.scale(
+                                scale: _isRunning ? _pulseAnimation.value : 1.0,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    RepaintBoundary(
+                                      child: SizedBox(
+                                        width: 280,
+                                        height: 280,
+                                        child: CustomPaint(
+                                          painter: CircularProgressPainter(
+                                            progress: progress,
+                                            isStudySession: _isStudySession,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
                             Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -545,6 +585,7 @@ class _TimerScreenState extends State<TimerScreen>
                       );
                     },
                   ),
+                        ),
                       ),
                     ),
                   ),
@@ -573,7 +614,27 @@ class _TimerScreenState extends State<TimerScreen>
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      onPressed: _enterAmbientMode,
+                      icon: const Icon(Icons.fullscreen),
+                      iconSize: 28,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 600),
                     curve: Curves.easeInOut,
@@ -602,7 +663,7 @@ class _TimerScreenState extends State<TimerScreen>
                       isStudySession: _isStudySession,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -637,6 +698,8 @@ class _TimerScreenState extends State<TimerScreen>
                 ),
               ),
             ),
+          ],
+        ),
           ],
         ),
       ),
