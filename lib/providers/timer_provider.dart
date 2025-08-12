@@ -8,6 +8,7 @@ class TimerProvider extends ChangeNotifier {
   int _sessionsUntilLongBreak = 4;
   bool _autoStartBreaks = false;
   bool _autoStartPomodoros = false;
+  bool _enableVisualEffects = true; // Performance setting
   
   SharedPreferences? _prefs;
 
@@ -18,6 +19,7 @@ class TimerProvider extends ChangeNotifier {
   int get sessionsUntilLongBreak => _sessionsUntilLongBreak;
   bool get autoStartBreaks => _autoStartBreaks;
   bool get autoStartPomodoros => _autoStartPomodoros;
+  bool get enableVisualEffects => _enableVisualEffects;
 
   // SharedPreferences keys
   static const String _focusDurationKey = 'focus_duration';
@@ -26,6 +28,7 @@ class TimerProvider extends ChangeNotifier {
   static const String _sessionsUntilLongBreakKey = 'sessions_until_long_break';
   static const String _autoStartBreaksKey = 'auto_start_breaks';
   static const String _autoStartPomodorosKey = 'auto_start_pomodoros';
+  static const String _enableVisualEffectsKey = 'enable_visual_effects';
 
   Future<void> loadSettings() async {
     _prefs = await SharedPreferences.getInstance();
@@ -36,6 +39,7 @@ class TimerProvider extends ChangeNotifier {
     _sessionsUntilLongBreak = _prefs?.getInt(_sessionsUntilLongBreakKey) ?? 4;
     _autoStartBreaks = _prefs?.getBool(_autoStartBreaksKey) ?? false;
     _autoStartPomodoros = _prefs?.getBool(_autoStartPomodorosKey) ?? false;
+    _enableVisualEffects = _prefs?.getBool(_enableVisualEffectsKey) ?? true;
     
     notifyListeners();
   }
@@ -96,5 +100,11 @@ class TimerProvider extends ChangeNotifier {
     await setBreakDuration(3);
     await setLongBreakDuration(15);
     await setSessionsUntilLongBreak(6);
+  }
+  
+  Future<void> setEnableVisualEffects(bool enabled) async {
+    _enableVisualEffects = enabled;
+    await _prefs?.setBool(_enableVisualEffectsKey, _enableVisualEffects);
+    notifyListeners();
   }
 }
