@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'dart:ui';
 import '../providers/theme_provider.dart';
 import '../providers/timer_provider.dart';
 import '../services/subscription_service.dart';
@@ -13,13 +15,37 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-        centerTitle: true,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF6B5B95), // Deep Purple
+              Color(0xFF88B0D3), // Sky Blue
+            ],
+          ),
+        ),
+        child: Column(
+          children: [
+            AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              title: const Text(
+                'Settings',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              centerTitle: true,
+            ),
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 120), // Space for floating nav
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
           // Premium status and upgrade
           const _PremiumSection(),
           const SizedBox(height: 24),
@@ -37,14 +63,19 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 24),
           
           // Breathing exercises (premium)
-          const _BreathingSection(),
-          const SizedBox(height: 24),
-          
-          // Original settings
-          const _AutoStartSection(),
-          const SizedBox(height: 24),
-          const _PresetSection(),
-        ],
+                    const _BreathingSection(),
+                    const SizedBox(height: 24),
+                    
+                    // Original settings
+                    const _AutoStartSection(),
+                    const SizedBox(height: 24),
+                    const _PresetSection(),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -58,18 +89,39 @@ class _TimerSection extends StatelessWidget {
     final theme = Theme.of(context);
     final timerProvider = context.watch<TimerProvider>();
     
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Timer Settings',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1.5,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Timer Settings',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
             const SizedBox(height: 16),
             _TimerSlider(
               title: 'Focus Duration',
@@ -119,6 +171,8 @@ class _TimerSection extends StatelessWidget {
               },
             ),
           ],
+            ),
+          ),
         ),
       ),
     );
@@ -156,12 +210,14 @@ class _TimerSlider extends StatelessWidget {
           children: [
             Text(
               title,
-              style: theme.textTheme.titleMedium,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: Colors.white,
+              ),
             ),
             Text(
               subtitle,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.primary,
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -187,22 +243,43 @@ class _ThemeSection extends StatelessWidget {
     final theme = Theme.of(context);
     final themeProvider = context.watch<ThemeProvider>();
     
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Appearance',
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: const Text('Dark Mode'),
-              subtitle: const Text('Use dark theme'),
+              title: const Text('Dark Mode', style: TextStyle(color: Colors.white)),
+              subtitle: const Text('Use dark theme', style: TextStyle(color: Colors.white70)),
               value: themeProvider.isDarkMode,
               onChanged: (value) {
                 context.read<ThemeProvider>().toggleDarkMode();
@@ -211,7 +288,9 @@ class _ThemeSection extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Theme Color',
-              style: theme.textTheme.titleMedium,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: Colors.white,
+              ),
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -248,10 +327,12 @@ class _ThemeSection extends StatelessWidget {
             Text(
               themeProvider.getThemeName(themeProvider.currentTheme),
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+                color: Colors.white70,
               ),
             ),
           ],
+            ),
+          ),
         ),
       ),
     );
@@ -325,36 +406,59 @@ class _AutoStartSection extends StatelessWidget {
     final theme = Theme.of(context);
     final timerProvider = context.watch<TimerProvider>();
     
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Automation',
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 8),
             SwitchListTile(
-              title: const Text('Auto-start Breaks'),
-              subtitle: const Text('Automatically start break timer'),
+              title: const Text('Auto-start Breaks', style: TextStyle(color: Colors.white)),
+              subtitle: const Text('Automatically start break timer', style: TextStyle(color: Colors.white70)),
               value: timerProvider.autoStartBreaks,
               onChanged: (value) {
                 context.read<TimerProvider>().setAutoStartBreaks(value);
               },
             ),
             SwitchListTile(
-              title: const Text('Auto-start Focus'),
-              subtitle: const Text('Automatically start focus timer after breaks'),
+              title: const Text('Auto-start Focus', style: TextStyle(color: Colors.white)),
+              subtitle: const Text('Automatically start focus timer after breaks', style: TextStyle(color: Colors.white70)),
               value: timerProvider.autoStartPomodoros,
               onChanged: (value) {
                 context.read<TimerProvider>().setAutoStartPomodoros(value);
               },
             ),
           ],
+            ),
+          ),
         ),
       ),
     );
@@ -368,50 +472,88 @@ class _PresetSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Timer Presets',
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 16),
             _PresetButton(
               title: 'Classic Pomodoro',
               subtitle: '25 min focus • 5 min break',
-              onTap: () {
-                context.read<TimerProvider>().setClassicPomodoro();
+              onTap: () async {
+                await context.read<TimerProvider>().setClassicPomodoro();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Classic Pomodoro preset applied! ⏱️')),
+                  );
+                }
               },
             ),
             const SizedBox(height: 8),
             _PresetButton(
               title: 'Extended Focus',
               subtitle: '45 min focus • 10 min break',
-              onTap: () {
-                context.read<TimerProvider>().setExtendedFocus();
+              onTap: () async {
+                await context.read<TimerProvider>().setExtendedFocus();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Extended Focus preset applied! 🎯')),
+                  );
+                }
               },
             ),
             const SizedBox(height: 8),
             _PresetButton(
               title: 'Quick Sprints',
               subtitle: '15 min focus • 3 min break',
-              onTap: () {
-                context.read<TimerProvider>().setQuickSprints();
+              onTap: () async {
+                await context.read<TimerProvider>().setQuickSprints();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Quick Sprints preset applied! ⚡')),
+                  );
+                }
               },
             ),
           ],
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-class _PresetButton extends StatelessWidget {
+class _PresetButton extends StatefulWidget {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
@@ -423,37 +565,93 @@ class _PresetButton extends StatelessWidget {
   });
 
   @override
+  State<_PresetButton> createState() => _PresetButtonState();
+}
+
+class _PresetButtonState extends State<_PresetButton> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() async {
+    // Trigger haptic feedback
+    HapticFeedback.lightImpact();
+    
+    // Play scale animation
+    await _animationController.forward();
+    await _animationController.reverse();
+    
+    // Execute the original onTap callback
+    widget.onTap();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+    return AnimatedBuilder(
+      animation: _scaleAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: InkWell(
+            onTap: _handleTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
               ),
             ),
-            Text(
-              subtitle,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -466,10 +664,30 @@ class _PremiumSection extends StatelessWidget {
     final theme = Theme.of(context);
     final subscriptionService = SubscriptionService.instance;
     
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -487,7 +705,7 @@ class _PremiumSection extends StatelessWidget {
                       subscriptionService.isPremium ? 'Premium Active' : 'Free Plan',
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: subscriptionService.isPremium ? Colors.amber : null,
+                        color: subscriptionService.isPremium ? Colors.amber : Colors.white,
                       ),
                     ),
                   ],
@@ -535,6 +753,8 @@ class _PremiumSection extends StatelessWidget {
               ),
             ],
           ],
+            ),
+          ),
         ),
       ),
     );
@@ -564,10 +784,30 @@ class _BreathingSection extends StatelessWidget {
     final theme = Theme.of(context);
     final subscriptionService = SubscriptionService.instance;
     
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -577,6 +817,7 @@ class _BreathingSection extends StatelessWidget {
                   'Breathing Exercises',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
                 if (!subscriptionService.isPremium)
@@ -603,7 +844,11 @@ class _BreathingSection extends StatelessWidget {
                 height: 120,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  color: Colors.white.withOpacity(0.1),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1,
+                  ),
                 ),
                 child: Center(
                   child: Column(
@@ -612,19 +857,22 @@ class _BreathingSection extends StatelessWidget {
                       Icon(
                         Icons.air,
                         size: 32,
-                        color: theme.colorScheme.primary,
+                        color: Colors.white,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Guided Breathing Exercises',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Premium feature',
-                        style: theme.textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.white70,
+                        ),
                       ),
                     ],
                   ),
@@ -641,6 +889,8 @@ class _BreathingSection extends StatelessWidget {
               ),
             ],
           ],
+            ),
+          ),
         ),
       ),
     );

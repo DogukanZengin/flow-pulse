@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import '../services/audio_service.dart';
 
 class AudioControls extends StatefulWidget {
@@ -25,11 +26,28 @@ class _AudioControlsState extends State<AudioControls> {
     final theme = Theme.of(context);
     
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -38,13 +56,14 @@ class _AudioControlsState extends State<AudioControls> {
               Icon(
                 Icons.music_note,
                 size: 20,
-                color: theme.colorScheme.onSurfaceVariant,
+                color: Colors.white.withOpacity(0.9),
               ),
               const SizedBox(width: 8),
               Text(
                 'Ambient Sounds',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
+                  color: Colors.white,
                 ),
               ),
               const Spacer(),
@@ -74,21 +93,19 @@ class _AudioControlsState extends State<AudioControls> {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: isSelected 
-                        ? theme.colorScheme.primary.withValues(alpha: 0.2)
-                        : theme.colorScheme.surface,
+                        ? Colors.white.withOpacity(0.3)
+                        : Colors.white.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isSelected 
-                          ? theme.colorScheme.primary 
-                          : theme.colorScheme.outline.withValues(alpha: 0.3),
+                          ? Colors.white.withOpacity(0.6)
+                          : Colors.white.withOpacity(0.2),
                     ),
                   ),
                   child: Text(
                     sound.displayName,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: isSelected 
-                          ? theme.colorScheme.primary 
-                          : theme.colorScheme.onSurfaceVariant,
+                      color: Colors.white.withOpacity(isSelected ? 1.0 : 0.8),
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
@@ -103,7 +120,7 @@ class _AudioControlsState extends State<AudioControls> {
                 Icon(
                   Icons.volume_down,
                   size: 16,
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: Colors.white.withOpacity(0.9),
                 ),
                 Expanded(
                   child: Slider(
@@ -120,12 +137,15 @@ class _AudioControlsState extends State<AudioControls> {
                 Icon(
                   Icons.volume_up,
                   size: 16,
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: Colors.white.withOpacity(0.9),
                 ),
               ],
             ),
           ],
         ],
+            ),
+          ),
+        ),
       ),
     );
   }

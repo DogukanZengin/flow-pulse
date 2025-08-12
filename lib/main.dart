@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui';
 import 'providers/theme_provider.dart';
 import 'providers/timer_provider.dart';
 import 'screens/settings_screen.dart';
@@ -74,35 +75,82 @@ class _MainScreenState extends State<MainScreen> {
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.timer),
-            selectedIcon: Icon(Icons.timer),
-            label: 'Timer',
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: Container(
+        margin: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            child: Container(
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildNavItem(Icons.timer, 'Timer', 0),
+                  _buildNavItem(Icons.task_alt, 'Tasks', 1),
+                  _buildNavItem(Icons.analytics, 'Analytics', 2),
+                  _buildNavItem(Icons.settings, 'Settings', 3),
+                ],
+              ),
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.task_alt),
-            selectedIcon: Icon(Icons.task_alt),
-            label: 'Tasks',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.analytics),
-            selectedIcon: Icon(Icons.analytics),
-            label: 'Analytics',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, String label, int index) {
+    final isSelected = _currentIndex == index;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _currentIndex = index;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? Colors.white.withOpacity(0.3) 
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: Colors.white.withOpacity(isSelected ? 1.0 : 0.7),
+              size: isSelected ? 28 : 24,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withOpacity(isSelected ? 1.0 : 0.7),
+                fontSize: isSelected ? 12 : 10,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -158,11 +206,33 @@ class _TimerScreenState extends State<TimerScreen>
     ));
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reinitialize timer when TimerProvider settings change
+    if (mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _reinitializeTimer();
+      });
+    }
+  }
+
   void _initializeTimer() {
     final timerProvider = context.read<TimerProvider>();
     setState(() {
       _secondsRemaining = timerProvider.focusDuration * 60;
     });
+  }
+
+  void _reinitializeTimer() {
+    if (!_isRunning) {
+      final timerProvider = context.read<TimerProvider>();
+      setState(() {
+        _secondsRemaining = _isStudySession 
+            ? timerProvider.focusDuration * 60
+            : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
+      });
+    }
   }
 
   Future<void> _loadTodayStats() async {
@@ -406,27 +476,48 @@ class _TimerScreenState extends State<TimerScreen>
                   ],
                 ),
               const SizedBox(height: 40),
-              SizedBox(
-                height: 320,
-                child: Center(
-                  child: AnimatedBuilder(
-                    animation: _pulseAnimation,
-                    builder: (context, child) {
-                      return Transform.scale(
-                        scale: _isRunning ? _pulseAnimation.value : 1.0,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SizedBox(
-                              width: 280,
-                              height: 280,
-                              child: CustomPaint(
-                                painter: CircularProgressPainter(
-                                  progress: progress,
-                                  isStudySession: _isStudySession,
-                                ),
-                              ),
-                            ),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                child: ClipOval(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                    child: Container(
+                      width: 360,
+                      height: 360,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.12),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.25),
+                          width: 2.0,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 30,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: AnimatedBuilder(
+                          animation: _pulseAnimation,
+                          builder: (context, child) {
+                            return Transform.scale(
+                              scale: _isRunning ? _pulseAnimation.value : 1.0,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 280,
+                                    height: 280,
+                                    child: CustomPaint(
+                                      painter: CircularProgressPainter(
+                                        progress: progress,
+                                        isStudySession: _isStudySession,
+                                      ),
+                                    ),
+                                  ),
                             Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -466,8 +557,12 @@ class _TimerScreenState extends State<TimerScreen>
                       );
                     },
                   ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
+              const SizedBox(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

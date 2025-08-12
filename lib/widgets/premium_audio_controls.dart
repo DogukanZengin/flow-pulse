@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:ui';
 import '../services/audio_service.dart';
 import '../services/subscription_service.dart';
 import '../providers/theme_provider.dart';
@@ -21,82 +22,120 @@ class _PremiumAudioControlsState extends State<PremiumAudioControls> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final subscriptionService = SubscriptionService.instance;
     
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with mixing toggle
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Premium Audio',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Text(
-                      'Mixing',
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    const SizedBox(width: 8),
-                    Switch(
-                      value: _audioService.isMixingMode,
-                      onChanged: subscriptionService.isPremium ? (value) {
-                        setState(() {
-                          if (value) {
-                            _audioService.enableMixingMode();
-                          } else {
-                            _audioService.disableMixingMode();
-                          }
-                        });
-                      } : null,
-                    ),
-                  ],
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            
-            // Category selector
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: SoundCategory.values.map((category) {
-                  final isSelected = category == _selectedCategory;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: FilterChip(
-                      label: Text(_getCategoryName(category)),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          _selectedCategory = category;
-                        });
-                      },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header with mixing toggle
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Premium Audio',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
-                  );
-                }).toList(),
-              ),
+                    Row(
+                      children: [
+                        Text(
+                          'Mixing',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Switch(
+                          value: _audioService.isMixingMode,
+                          onChanged: subscriptionService.isPremium ? (value) {
+                            setState(() {
+                              if (value) {
+                                _audioService.enableMixingMode();
+                              } else {
+                                _audioService.disableMixingMode();
+                              }
+                            });
+                          } : null,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                // Category selector
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: SoundCategory.values.map((category) {
+                      final isSelected = category == _selectedCategory;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          label: Text(
+                            _getCategoryName(category),
+                            style: TextStyle(
+                              color: isSelected ? Colors.black : Colors.black.withOpacity(0.7),
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            ),
+                          ),
+                          selected: isSelected,
+                          backgroundColor: Colors.white.withOpacity(0.8),
+                          selectedColor: Colors.white.withOpacity(0.9),
+                          checkmarkColor: Colors.black,
+                          side: BorderSide(
+                            color: isSelected ? Colors.white.withOpacity(0.9) : Colors.white.withOpacity(0.6),
+                            width: isSelected ? 2 : 1,
+                          ),
+                          onSelected: (selected) {
+                            setState(() {
+                              _selectedCategory = category;
+                            });
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Sound library
+                if (!subscriptionService.isPremium)
+                  _buildPremiumUpgradePrompt(context)
+                else
+                  _buildSoundLibrary(context, themeProvider),
+                
+                const SizedBox(height: 16),
+                
+                // Active sounds (mixing mode)
+                if (_audioService.isMixingMode && _audioService.activeSounds.isNotEmpty)
+                  _buildActiveSoundsPanel(context),
+              ],
             ),
-            const SizedBox(height: 16),
-            
-            // Sound library
-            if (!subscriptionService.isPremium)
-              _buildPremiumUpgradePrompt(context)
-            else
-              _buildSoundLibrary(context, themeProvider),
-            
-            const SizedBox(height: 16),
-            
-            // Active sounds (mixing mode)
-            if (_audioService.isMixingMode && _audioService.activeSounds.isNotEmpty)
-              _buildActiveSoundsPanel(context),
-          ],
+          ),
         ),
       ),
     );
@@ -121,20 +160,23 @@ class _PremiumAudioControlsState extends State<PremiumAudioControls> {
             Icon(
               Icons.headphones,
               size: 48,
-              color: Theme.of(context).colorScheme.primary,
+              color: Colors.white,
             ),
             const SizedBox(height: 16),
             Text(
               '25+ Premium Sounds',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Unlock advanced sound mixing\nand premium audio library',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.white.withOpacity(0.8),
+              ),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -263,6 +305,7 @@ class _PremiumAudioControlsState extends State<PremiumAudioControls> {
           'Active Sounds',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
+            color: Colors.white,
           ),
         ),
         const SizedBox(height: 8),
@@ -275,7 +318,9 @@ class _PremiumAudioControlsState extends State<PremiumAudioControls> {
                   flex: 2,
                   child: Text(
                     sound.displayName,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 Expanded(
