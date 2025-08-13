@@ -143,7 +143,7 @@ class _PremiumAudioControlsState extends State<PremiumAudioControls> {
   
   Widget _buildPremiumUpgradePrompt(BuildContext context) {
     return Container(
-      height: 200,
+      height: 210,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         gradient: LinearGradient(

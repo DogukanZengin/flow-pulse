@@ -779,14 +779,6 @@ class _TimerScreenState extends State<TimerScreen>
                 ),
               ),
               const SizedBox(height: 20),
-              // Avatar Mascot
-              Center(
-                child: AvatarMascotWidget(
-                  isRunning: _isRunning,
-                  isStudySession: _isStudySession,
-                ),
-              ),
-              const SizedBox(height: 20),
               RepaintBoundary(
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -833,40 +825,63 @@ class _TimerScreenState extends State<TimerScreen>
                                         ),
                                       ),
                                     ),
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                RollingTimer(
-                                  seconds: _secondsRemaining,
-                                  textStyle: theme.textTheme.displayLarge?.copyWith(
-                                    fontWeight: FontWeight.w300,
-                                    fontSize: 64,
-                                    color: Colors.white,
-                                    shadows: [
-                                      Shadow(
-                                        offset: const Offset(0, 2),
-                                        blurRadius: 8,
-                                        color: Colors.black.withOpacity(0.4),
+                                    // Timer text positioned above avatar
+                                    Positioned(
+                                      top: 45,
+                                      left: 0,
+                                      right: 0,
+                                      child: Center(
+                                        child: RollingTimer(
+                                          seconds: _secondsRemaining,
+                                          textStyle: theme.textTheme.displayLarge?.copyWith(
+                                            fontWeight: FontWeight.w300,
+                                            fontSize: 44,
+                                            color: Colors.white,
+                                            shadows: [
+                                              Shadow(
+                                                offset: const Offset(0, 2),
+                                                blurRadius: 8,
+                                                color: Colors.black.withOpacity(0.4),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _isRunning ? 'Stay Focused!' : 'Paused',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    color: Colors.white.withOpacity(0.9),
-                                    shadows: [
-                                      Shadow(
-                                        offset: const Offset(0, 1),
-                                        blurRadius: 4,
-                                        color: Colors.black.withOpacity(0.3),
+                                    ),
+                                    // Avatar Mascot positioned in center-bottom area
+                                    Positioned(
+                                      top: 110,
+                                      left: 0,
+                                      right: 0,
+                                      child: Center(
+                                        child: AvatarMascotWidget(
+                                          isRunning: _isRunning,
+                                          isStudySession: _isStudySession,
+                                          size: 70,
+                                        ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
+                                    ),
+                                    // Status text positioned below avatar
+                                    Positioned(
+                                      bottom: 45,
+                                      left: 0,
+                                      right: 0,
+                                      child: Center(
+                                        child: Text(
+                                          _isRunning ? 'Stay Focused!' : 'Paused',
+                                          style: theme.textTheme.titleMedium?.copyWith(
+                                            color: Colors.white.withOpacity(0.9),
+                                            shadows: [
+                                              Shadow(
+                                                offset: const Offset(0, 1),
+                                                blurRadius: 4,
+                                                color: Colors.black.withOpacity(0.3),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                           ],
                         ),
                       );

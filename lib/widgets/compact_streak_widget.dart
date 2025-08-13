@@ -86,9 +86,9 @@ class _CompactStreakWidgetState extends State<CompactStreakWidget>
         return Transform.scale(
           scale: _pulseAnimation.value * _growthAnimation.value,
           child: Container(
-            height: 60,
+            height: 48,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(24),
               color: GamificationService.instance.getStreakColor().withOpacity(0.1),
               border: Border.all(
                 color: GamificationService.instance.getStreakColor().withOpacity(0.3),
@@ -97,20 +97,20 @@ class _CompactStreakWidgetState extends State<CompactStreakWidget>
               boxShadow: [
                 BoxShadow(
                   color: GamificationService.instance.getStreakColor().withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Streak emoji with effects
                   Container(
-                    width: 32,
-                    height: 32,
+                    width: 28,
+                    height: 28,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: GamificationService.instance.getStreakColor().withOpacity(0.2),
@@ -121,7 +121,7 @@ class _CompactStreakWidgetState extends State<CompactStreakWidget>
                         // Background effect for high streaks
                         if (widget.streakCount >= 7)
                           CustomPaint(
-                            size: const Size(32, 32),
+                            size: const Size(28, 28),
                             painter: CompactStreakEffectPainter(
                               streakCount: widget.streakCount,
                               animationValue: _pulseAnimation.value,
@@ -131,7 +131,7 @@ class _CompactStreakWidgetState extends State<CompactStreakWidget>
                         // Emoji
                         Text(
                           GamificationService.instance.getStreakEmoji(),
-                          style: const TextStyle(fontSize: 18),
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ],
                     ),
@@ -148,7 +148,7 @@ class _CompactStreakWidgetState extends State<CompactStreakWidget>
                         Text(
                           '${widget.streakCount} days',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: GamificationService.instance.getStreakColor(),
                           ),
@@ -156,7 +156,7 @@ class _CompactStreakWidgetState extends State<CompactStreakWidget>
                         Text(
                           _getCompactDescription(widget.streakCount),
                           style: const TextStyle(
-                            fontSize: 10,
+                            fontSize: 9,
                             color: Colors.white70,
                           ),
                           maxLines: 1,

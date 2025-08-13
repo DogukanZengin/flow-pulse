@@ -5,11 +5,13 @@ import '../services/gamification_service.dart';
 class AvatarMascotWidget extends StatefulWidget {
   final bool isRunning;
   final bool isStudySession;
+  final double size;
   
   const AvatarMascotWidget({
     Key? key,
     required this.isRunning,
     required this.isStudySession,
+    this.size = 120,
   }) : super(key: key);
 
   @override
@@ -116,29 +118,30 @@ class _AvatarMascotWidgetState extends State<AvatarMascotWidget>
   Widget build(BuildContext context) {
     final mascotColor = _getMascotColor();
     final mood = _getMascotMood();
+    final scaleFactor = widget.size / 120; // Default size is 120
     
     return AnimatedBuilder(
       animation: _floatAnimation,
       builder: (context, child) {
         return Transform.translate(
-          offset: Offset(0, _floatAnimation.value),
+          offset: Offset(0, _floatAnimation.value * scaleFactor),
           child: Container(
-            width: 120,
-            height: 120,
+            width: widget.size,
+            height: widget.size,
             child: Stack(
               alignment: Alignment.center,
               children: [
                 // Glow effect
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: widget.size * 0.83, // 100/120 ratio
+                  height: widget.size * 0.83,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
                         color: mascotColor.withOpacity(0.4),
-                        blurRadius: 30,
-                        spreadRadius: 10,
+                        blurRadius: 30 * scaleFactor,
+                        spreadRadius: 10 * scaleFactor,
                       ),
                     ],
                   ),
@@ -146,8 +149,8 @@ class _AvatarMascotWidgetState extends State<AvatarMascotWidget>
                 
                 // Main body
                 Container(
-                  width: 80,
-                  height: 80,
+                  width: widget.size * 0.67, // 80/120 ratio
+                  height: widget.size * 0.67,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
@@ -167,34 +170,34 @@ class _AvatarMascotWidgetState extends State<AvatarMascotWidget>
                     children: [
                       // Eyes
                       Positioned(
-                        top: 25,
-                        left: 20,
+                        top: 25 * scaleFactor,
+                        left: 20 * scaleFactor,
                         child: AnimatedBuilder(
                           animation: _blinkAnimation,
                           builder: (context, child) {
                             return Container(
-                              width: 12,
-                              height: 12 * _blinkAnimation.value,
+                              width: 12 * scaleFactor,
+                              height: 12 * scaleFactor * _blinkAnimation.value,
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(6),
+                                borderRadius: BorderRadius.circular(6 * scaleFactor),
                               ),
                             );
                           },
                         ),
                       ),
                       Positioned(
-                        top: 25,
-                        right: 20,
+                        top: 25 * scaleFactor,
+                        right: 20 * scaleFactor,
                         child: AnimatedBuilder(
                           animation: _blinkAnimation,
                           builder: (context, child) {
                             return Container(
-                              width: 12,
-                              height: 12 * _blinkAnimation.value,
+                              width: 12 * scaleFactor,
+                              height: 12 * scaleFactor * _blinkAnimation.value,
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(6),
+                                borderRadius: BorderRadius.circular(6 * scaleFactor),
                               ),
                             );
                           },
@@ -203,12 +206,12 @@ class _AvatarMascotWidgetState extends State<AvatarMascotWidget>
                       
                       // Mouth based on mood
                       Positioned(
-                        bottom: 20,
+                        bottom: 20 * scaleFactor,
                         left: 0,
                         right: 0,
                         child: Center(
                           child: CustomPaint(
-                            size: const Size(30, 15),
+                            size: Size(30 * scaleFactor, 15 * scaleFactor),
                             painter: MouthPainter(
                               mood: mood,
                               animation: _moodAnimation.value,
@@ -220,14 +223,14 @@ class _AvatarMascotWidgetState extends State<AvatarMascotWidget>
                       // Status indicator
                       if (widget.isRunning)
                         Positioned(
-                          top: 5,
-                          right: 5,
+                          top: 5 * scaleFactor,
+                          right: 5 * scaleFactor,
                           child: AnimatedBuilder(
                             animation: _moodAnimation,
                             builder: (context, child) {
                               return Container(
-                                width: 10,
-                                height: 10,
+                                width: 10 * scaleFactor,
+                                height: 10 * scaleFactor,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: widget.isStudySession 
@@ -238,8 +241,8 @@ class _AvatarMascotWidgetState extends State<AvatarMascotWidget>
                                       color: widget.isStudySession 
                                           ? Colors.green.withOpacity(0.5)
                                           : Colors.orange.withOpacity(0.5),
-                                      blurRadius: 10,
-                                      spreadRadius: 2,
+                                      blurRadius: 10 * scaleFactor,
+                                      spreadRadius: 2 * scaleFactor,
                                     ),
                                   ],
                                 ),
@@ -255,20 +258,20 @@ class _AvatarMascotWidgetState extends State<AvatarMascotWidget>
                 Positioned(
                   bottom: 0,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: EdgeInsets.symmetric(horizontal: 8 * scaleFactor, vertical: 2 * scaleFactor),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(10 * scaleFactor),
                       border: Border.all(
                         color: mascotColor,
-                        width: 1,
+                        width: 1 * scaleFactor,
                       ),
                     ),
                     child: Text(
                       'Lv.${GamificationService.instance.currentLevel}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 10,
+                        fontSize: 10 * scaleFactor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
