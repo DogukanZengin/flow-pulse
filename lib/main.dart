@@ -19,10 +19,18 @@ import 'widgets/gradient_mesh_background.dart';
 import 'screens/ambient_mode_screen.dart';
 import 'services/ui_sound_service.dart';
 import 'services/time_based_theme_service.dart';
+import 'services/gamification_service.dart';
+import 'widgets/xp_bar.dart';
+import 'widgets/compact_streak_widget.dart';
+import 'widgets/goals_tracker_widget.dart';
+import 'widgets/achievement_badges_widget.dart';
+import 'widgets/avatar_mascot_widget.dart';
+import 'widgets/theme_selector_widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const FlowPulseApp()); // Updated with time-based colors
+  await GamificationService.instance.initialize();
+  runApp(const FlowPulseApp()); // Updated with gamification system
 }
 
 class FlowPulseApp extends StatelessWidget {
@@ -308,12 +316,22 @@ class _TimerScreenState extends State<TimerScreen>
     return _completedSessions > 0 && _completedSessions % timerProvider.sessionsUntilLongBreak == 0;
   }
   
-  void _completeSession() {
+  void _completeSession() async {
     final timerProvider = context.read<TimerProvider>();
     _timer?.cancel();
     
     // Play session complete sound
     UISoundService.instance.sessionComplete();
+    
+    // Calculate session duration and award XP
+    final sessionDuration = _isStudySession 
+        ? timerProvider.focusDuration 
+        : (_shouldUseLongBreak() ? timerProvider.longBreakDuration : timerProvider.breakDuration);
+    
+    final reward = await GamificationService.instance.completeSession(
+      durationMinutes: sessionDuration,
+      isStudySession: _isStudySession,
+    );
     
     // Save completed session
     _saveSession(completed: true);
@@ -334,7 +352,7 @@ class _TimerScreenState extends State<TimerScreen>
     // Refresh stats after completing session
     _loadTodayStats();
     
-    _showSessionCompleteDialog();
+    _showSessionCompleteDialog(reward);
   }
 
   Future<void> _saveSession({required bool completed}) async {
@@ -361,13 +379,14 @@ class _TimerScreenState extends State<TimerScreen>
     await DatabaseService.insertSession(session);
   }
   
-  void _showSessionCompleteDialog() {
+  void _showSessionCompleteDialog(GamificationReward reward) {
     showDialog(
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black.withOpacity(0.7),
       builder: (context) => CelebrationDialog(
         isStudySession: _isStudySession,
+        reward: reward,
         onDismiss: () => Navigator.of(context).pop(),
       ),
     );
@@ -495,12 +514,50 @@ class _TimerScreenState extends State<TimerScreen>
                     const SizedBox(width: 12),
                     _StatChip(
                       icon: Icons.local_fire_department,
-                      label: '${_todayStats!['currentStreak'] ?? 0}',
+                      label: '${GamificationService.instance.currentStreak}',
                       tooltip: 'Current streak',
                     ),
                   ],
                 ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 16),
+              
+              // Gamification Row: XP Bar and Streak
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    // XP Bar (takes most space)
+                    Expanded(
+                      flex: 2,
+                      child: XPBar(
+                        currentXP: GamificationService.instance.totalXP,
+                        currentLevel: GamificationService.instance.currentLevel,
+                        progress: GamificationService.instance.getLevelProgress(),
+                      ),
+                    ),
+                    
+                    const SizedBox(width: 16),
+                    
+                    // Compact Streak Widget
+                    Expanded(
+                      flex: 1,
+                      child: CompactStreakWidget(
+                        streakCount: GamificationService.instance.currentStreak,
+                        showAnimation: false,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Avatar Mascot
+              Center(
+                child: AvatarMascotWidget(
+                  isRunning: _isRunning,
+                  isStudySession: _isStudySession,
+                ),
+              ),
+              const SizedBox(height: 20),
               RepaintBoundary(
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -690,6 +747,15 @@ class _TimerScreenState extends State<TimerScreen>
               const SizedBox(height: 40),
               const AudioControls(),
               const SizedBox(height: 24),
+              // Theme Selector
+              const ThemeSelectorWidget(),
+              const SizedBox(height: 20),
+              // Daily/Weekly Goals Tracker
+              const GoalsTrackerWidget(),
+              const SizedBox(height: 20),
+              // Achievement Badges
+              const AchievementBadgesWidget(),
+              const SizedBox(height: 40),
                     ],
                   ),
                 ),

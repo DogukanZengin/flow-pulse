@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui';
 import 'dart:math' as math;
+import '../services/gamification_service.dart';
 
 class CelebrationDialog extends StatefulWidget {
   final bool isStudySession;
+  final GamificationReward? reward;
   final VoidCallback onDismiss;
 
   const CelebrationDialog({
     super.key,
     required this.isStudySession,
+    this.reward,
     required this.onDismiss,
   });
 
@@ -198,7 +201,116 @@ class _CelebrationDialogState extends State<CelebrationDialog>
                               textAlign: TextAlign.center,
                             ),
                             
-                            const SizedBox(height: 32),
+                            const SizedBox(height: 24),
+                            
+                            // Reward information
+                            if (widget.reward != null) ...[
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.2),
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    // XP Gained
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.stars,
+                                          color: Colors.amber,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          '+${widget.reward!.xpGained} XP',
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.amber,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    
+                                    // Level up notification
+                                    if (widget.reward!.leveledUp) ...[
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [Colors.purple, Colors.pink],
+                                          ),
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          'LEVEL UP! Level ${widget.reward!.newLevel}',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                    
+                                    // Streak info
+                                    if (widget.reward!.currentStreak > 0) ...[
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            GamificationService.instance.getStreakEmoji(),
+                                            style: const TextStyle(fontSize: 16),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            '${widget.reward!.currentStreak} day streak!',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: GamificationService.instance.getStreakColor(),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                    
+                                    // Unlocked themes
+                                    if (widget.reward!.unlockedThemes.isNotEmpty) ...[
+                                      const SizedBox(height: 8),
+                                      Wrap(
+                                        spacing: 8,
+                                        children: widget.reward!.unlockedThemes.map((theme) => 
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.green.withOpacity(0.2),
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(color: Colors.green),
+                                            ),
+                                            child: Text(
+                                              'New theme: $theme',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ).toList(),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                            ],
                             
                             // Continue button
                             SizedBox(
