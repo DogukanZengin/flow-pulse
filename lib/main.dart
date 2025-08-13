@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
@@ -20,6 +21,10 @@ import 'screens/ambient_mode_screen.dart';
 import 'services/ui_sound_service.dart';
 import 'services/time_based_theme_service.dart';
 import 'services/gamification_service.dart';
+import 'services/notification_service.dart';
+import 'services/quick_actions_service.dart';
+import 'services/deep_linking_service.dart';
+import 'services/live_activities_service.dart';
 import 'widgets/xp_bar.dart';
 import 'widgets/compact_streak_widget.dart';
 import 'widgets/goals_tracker_widget.dart';
@@ -29,8 +34,19 @@ import 'widgets/theme_selector_widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize core services
   await GamificationService.instance.initialize();
-  runApp(const FlowPulseApp()); // Updated with gamification system
+  
+  // Mobile-only services
+  if (!kIsWeb) {
+    await NotificationService().initialize();
+    await QuickActionsService().initialize();
+    await DeepLinkingService().initialize();
+    await LiveActivitiesService().initialize();
+  }
+  
+  runApp(const FlowPulseApp());
 }
 
 class FlowPulseApp extends StatelessWidget {
@@ -72,16 +88,62 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   late List<Widget> _screens;
+  final GlobalKey<_TimerScreenState> _timerKey = GlobalKey<_TimerScreenState>();
 
   @override
   void initState() {
     super.initState();
     _screens = [
-      const TimerScreen(),
+      TimerScreen(key: _timerKey),
       const TasksScreen(),
       const AnalyticsScreen(),
       const SettingsScreen(),
     ];
+    
+    // Set up quick actions and deep linking callbacks
+    _setupQuickActions();
+    _setupDeepLinking();
+  }
+  
+  void _setupQuickActions() {
+    QuickActionsService().setActionCallback((action) {
+      _handleAction(action);
+    });
+  }
+  
+  void _setupDeepLinking() {
+    DeepLinkingService().setLinkCallback((action) {
+      _handleAction(action);
+    });
+  }
+  
+  void _handleAction(String action) {
+    switch (action) {
+      case 'start_focus':
+        setState(() => _currentIndex = 0);
+        _timerKey.currentState?.startFocusSession();
+        break;
+      case 'start_break':
+        setState(() => _currentIndex = 0);
+        _timerKey.currentState?.startBreakSession();
+        break;
+      case 'pause_timer':
+        _timerKey.currentState?.pauseTimer();
+        break;
+      case 'resume_timer':
+        _timerKey.currentState?.resumeTimer();
+        break;
+      case 'reset_timer':
+        _timerKey.currentState?.resetTimer();
+        break;
+      case 'view_stats':
+        setState(() => _currentIndex = 2);
+        break;
+      case 'ambient_mode':
+        setState(() => _currentIndex = 0);
+        _timerKey.currentState?.enterAmbientMode();
+        break;
+    }
   }
 
   @override
@@ -276,10 +338,67 @@ class _TimerScreenState extends State<TimerScreen>
     _progressAnimationController.forward();
     _sessionStartTime = DateTime.now();
     
+    // Show notification with timer controls
+    NotificationService().showTimerWithActions(
+      title: _getSessionTitle(),
+      body: 'Timer running: ${_formatTime(_secondsRemaining)} remaining',
+      isRunning: true,
+    );
+    
+    // Schedule background timer check
+    NotificationService().scheduleBackgroundTimerCheck(
+      durationSeconds: _secondsRemaining,
+      isStudySession: _isStudySession,
+    );
+    
+    // Update quick actions
+    QuickActionsService().updateShortcuts(
+      isTimerRunning: true,
+      isStudySession: _isStudySession,
+    );
+    
+    // Start Live Activity (iOS)
+    final timerProvider = context.read<TimerProvider>();
+    final totalSeconds = _isStudySession 
+        ? timerProvider.focusDuration * 60 
+        : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
+    
+    LiveActivitiesService().startTimerActivity(
+      sessionTitle: _getSessionTitle(),
+      totalSeconds: totalSeconds,
+      remainingSeconds: _secondsRemaining,
+      isStudySession: _isStudySession,
+    );
+    
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         if (_secondsRemaining > 0) {
           _secondsRemaining--;
+          
+          // Update notification every 30 seconds to avoid spam
+          if (_secondsRemaining % 30 == 0) {
+            NotificationService().showTimerWithActions(
+              title: _getSessionTitle(),
+              body: 'Timer running: ${_formatTime(_secondsRemaining)} remaining',
+              isRunning: true,
+            );
+          }
+          
+          // Update Live Activity every 10 seconds
+          if (_secondsRemaining % 10 == 0) {
+            final timerProvider = context.read<TimerProvider>();
+            final totalSeconds = _isStudySession 
+                ? timerProvider.focusDuration * 60 
+                : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
+            
+            LiveActivitiesService().updateTimerActivity(
+              sessionTitle: _getSessionTitle(),
+              totalSeconds: totalSeconds,
+              remainingSeconds: _secondsRemaining,
+              isRunning: true,
+              isStudySession: _isStudySession,
+            );
+          }
         } else {
           _completeSession();
         }
@@ -290,6 +409,35 @@ class _TimerScreenState extends State<TimerScreen>
   void _pauseTimer() {
     _timer?.cancel();
     _progressAnimationController.stop();
+    
+    // Cancel background timer check
+    NotificationService().cancelBackgroundTimerCheck();
+    
+    // Show paused notification
+    NotificationService().showTimerWithActions(
+      title: '⏸️ ${_getSessionTitle()} Paused',
+      body: 'Tap to resume: ${_formatTime(_secondsRemaining)} remaining',
+      isRunning: false,
+    );
+    
+    // Update quick actions
+    QuickActionsService().updateShortcuts(
+      isTimerRunning: false,
+      isStudySession: _isStudySession,
+    );
+    
+    // Update Live Activity to paused state
+    final timerProvider = context.read<TimerProvider>();
+    final totalSeconds = _isStudySession 
+        ? timerProvider.focusDuration * 60 
+        : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
+    
+    LiveActivitiesService().pauseTimerActivity(
+      sessionTitle: _getSessionTitle(),
+      totalSeconds: totalSeconds,
+      remainingSeconds: _secondsRemaining,
+      isStudySession: _isStudySession,
+    );
   }
   
   void _resetTimer() {
@@ -300,6 +448,13 @@ class _TimerScreenState extends State<TimerScreen>
       _saveSession(completed: false);
     }
     
+    // Cancel notifications and background tasks
+    NotificationService().cancelBackgroundTimerCheck();
+    NotificationService().cancelAllNotifications();
+    
+    // End Live Activity
+    LiveActivitiesService().endTimerActivity();
+    
     setState(() {
       _timer?.cancel();
       _isRunning = false;
@@ -309,6 +464,12 @@ class _TimerScreenState extends State<TimerScreen>
           : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
       _progressAnimationController.reset();
     });
+    
+    // Update quick actions
+    QuickActionsService().updateShortcuts(
+      isTimerRunning: false,
+      isStudySession: _isStudySession,
+    );
   }
 
   bool _shouldUseLongBreak() {
@@ -323,14 +484,25 @@ class _TimerScreenState extends State<TimerScreen>
     // Play session complete sound
     UISoundService.instance.sessionComplete();
     
+    final wasStudySession = _isStudySession;
+    
+    // Show completion notification
+    NotificationService().showTimerNotification(
+      title: wasStudySession ? 'Focus Session Complete! 🎉' : 'Break Time Complete! ☕',
+      body: wasStudySession 
+          ? 'Great work! Time for a well-deserved break.'
+          : 'Break time is over. Ready to focus again?',
+      payload: 'session_completed',
+    );
+    
     // Calculate session duration and award XP
-    final sessionDuration = _isStudySession 
+    final sessionDuration = wasStudySession 
         ? timerProvider.focusDuration 
         : (_shouldUseLongBreak() ? timerProvider.longBreakDuration : timerProvider.breakDuration);
     
     final reward = await GamificationService.instance.completeSession(
       durationMinutes: sessionDuration,
-      isStudySession: _isStudySession,
+      isStudySession: wasStudySession,
     );
     
     // Save completed session
@@ -338,7 +510,7 @@ class _TimerScreenState extends State<TimerScreen>
     
     setState(() {
       _isRunning = false;
-      if (_isStudySession) {
+      if (wasStudySession) {
         _completedSessions++;
       }
       _isStudySession = !_isStudySession;
@@ -348,6 +520,18 @@ class _TimerScreenState extends State<TimerScreen>
       _progressAnimationController.reset();
       _sessionStartTime = null;
     });
+    
+    // Update quick actions for new session
+    QuickActionsService().updateShortcuts(
+      isTimerRunning: false,
+      isStudySession: _isStudySession,
+    );
+    
+    // Complete Live Activity
+    LiveActivitiesService().completeTimerActivity(
+      isStudySession: wasStudySession,
+      nextSessionType: _isStudySession ? 'Focus Session' : 'Break Time',
+    );
     
     // Refresh stats after completing session
     _loadTodayStats();
@@ -420,6 +604,51 @@ class _TimerScreenState extends State<TimerScreen>
     } else {
       return _shouldUseLongBreak() ? 'Long Break' : 'Break Time';
     }
+  }
+  
+  // External control methods for quick actions and deep linking
+  void startFocusSession() {
+    if (!_isStudySession || _isRunning) {
+      setState(() {
+        _isStudySession = true;
+        _resetTimer();
+      });
+    }
+    if (!_isRunning) {
+      _toggleTimer();
+    }
+  }
+  
+  void startBreakSession() {
+    if (_isStudySession || _isRunning) {
+      setState(() {
+        _isStudySession = false;
+        _resetTimer();
+      });
+    }
+    if (!_isRunning) {
+      _toggleTimer();
+    }
+  }
+  
+  void pauseTimer() {
+    if (_isRunning) {
+      _toggleTimer();
+    }
+  }
+  
+  void resumeTimer() {
+    if (!_isRunning) {
+      _toggleTimer();
+    }
+  }
+  
+  void resetTimer() {
+    _resetTimer();
+  }
+  
+  void enterAmbientMode() {
+    _enterAmbientMode();
   }
   
   @override
