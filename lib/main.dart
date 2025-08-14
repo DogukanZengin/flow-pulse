@@ -10,6 +10,7 @@ import 'providers/timer_provider.dart';
 import 'screens/settings_screen.dart';
 import 'screens/analytics_screen.dart';
 import 'screens/tasks_screen.dart';
+import 'screens/ocean_debug_screen.dart';
 import 'services/database_service.dart';
 import 'models/session.dart';
 import 'widgets/rolling_timer.dart';
@@ -94,6 +95,7 @@ class _MainScreenState extends State<MainScreen> {
       TimerScreen(key: _timerKey),
       const TasksScreen(),
       const AnalyticsScreen(),
+      const OceanDebugScreen(),
       const SettingsScreen(),
     ];
     
@@ -199,11 +201,18 @@ class _MainScreenState extends State<MainScreen> {
                     onTap: () => _selectTab(2),
                   ),
                   _NavItem(
-                    icon: Icons.settings,
-                    label: 'Settings',
+                    icon: Icons.waves,
+                    label: 'Ocean',
                     index: 3,
                     isSelected: _currentIndex == 3,
                     onTap: () => _selectTab(3),
+                  ),
+                  _NavItem(
+                    icon: Icons.settings,
+                    label: 'Settings',
+                    index: 4,
+                    isSelected: _currentIndex == 4,
+                    onTap: () => _selectTab(4),
                   ),
                 ],
               ),

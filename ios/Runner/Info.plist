@@ -45,5 +45,36 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- Privacy - Calendar Usage Description -->
+	<key>NSCalendarsUsageDescription</key>
+	<string>FlowPulse needs access to your calendar to schedule focus sessions and sync your productivity schedule with your existing calendar events.</string>
+	
+	<!-- Privacy - Camera Usage Description -->
+	<key>NSCameraUsageDescription</key>
+	<string>FlowPulse uses the camera to let you capture and attach images to your tasks and notes for better organization.</string>
+	
+	<!-- Privacy - Photo Library Usage Description -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>FlowPulse needs access to your photo library to let you select and attach images to your tasks and notes.</string>
+	
+	<!-- Privacy - Microphone Usage Description -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>FlowPulse uses the microphone to provide audio feedback and voice notes for your productivity sessions.</string>
+	
+	<!-- Privacy - Notifications Usage Description -->
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>FlowPulse sends notifications to remind you about focus sessions, breaks, and productivity milestones.</string>
+	
+	<!-- Privacy - Face ID Usage Description -->
+	<key>NSFaceIDUsageDescription</key>
+	<string>FlowPulse uses Face ID to securely protect your productivity data and statistics.</string>
+	
+	<!-- Background Processing for Timer and Audio -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>fetch</string>
+	</array>
 </dict>
 </plist>
