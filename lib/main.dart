@@ -13,7 +13,6 @@ import 'screens/tasks_screen.dart';
 import 'screens/ocean_debug_screen.dart';
 import 'services/database_service.dart';
 import 'models/session.dart';
-import 'widgets/rolling_timer.dart';
 import 'widgets/celebration_dialog.dart';
 import 'widgets/particle_system.dart';
 import 'widgets/gradient_mesh_background.dart';
@@ -29,6 +28,10 @@ import 'widgets/goals_tracker_widget.dart';
 import 'widgets/achievement_badges_widget.dart';
 import 'widgets/avatar_mascot_widget.dart';
 import 'widgets/theme_selector_widget.dart';
+import 'widgets/aquarium_widget.dart';
+import 'models/aquarium.dart';
+import 'models/creature.dart';
+import 'models/coral.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -252,6 +255,11 @@ class _TimerScreenState extends State<TimerScreen>
   DateTime? _sessionStartTime;
   Map<String, dynamic>? _todayStats;
   
+  // Ocean system state
+  Aquarium? _aquarium;
+  List<Creature> _visibleCreatures = [];
+  List<Coral> _visibleCorals = [];
+  
   @override
   void initState() {
     super.initState();
@@ -259,6 +267,7 @@ class _TimerScreenState extends State<TimerScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeTimer();
       _loadTodayStats();
+      _initializeOceanSystem();
     });
     
     _progressAnimationController = AnimationController(
@@ -315,6 +324,103 @@ class _TimerScreenState extends State<TimerScreen>
       setState(() {
         _todayStats = stats;
       });
+    }
+  }
+  
+  Future<void> _initializeOceanSystem() async {
+    try {
+      // Create demo aquarium for the UI integration
+      final demoAquarium = Aquarium(
+        id: 'demo_aquarium',
+        currentBiome: BiomeType.shallowWaters,
+        pearlWallet: const PearlWallet(pearls: 150, crystals: 2),
+        ecosystemHealth: 0.85,
+        createdAt: DateTime.now().subtract(const Duration(days: 7)),
+        lastActiveAt: DateTime.now().subtract(const Duration(hours: 2)),
+        unlockedBiomes: const {
+          BiomeType.shallowWaters: true,
+          BiomeType.coralGarden: true,
+        },
+        settings: const AquariumSettings(),
+        stats: const AquariumStats(
+          totalCreaturesDiscovered: 3,
+          totalCoralsGrown: 2,
+          totalFocusTime: 180,
+          currentStreak: 4,
+          longestStreak: 7,
+        ),
+      );
+      
+      // Create some demo creatures
+      final demoCreatures = [
+        Creature(
+          id: 'clownfish',
+          name: 'Clownfish',
+          species: 'Amphiprioninae',
+          rarity: CreatureRarity.common,
+          type: CreatureType.starterFish,
+          habitat: BiomeType.shallowWaters,
+          animationAsset: 'assets/creatures/clownfish.png',
+          pearlValue: 10,
+          requiredLevel: 1,
+          description: 'A friendly orange fish that lives in sea anemones',
+          discoveryChance: 0.7,
+          isDiscovered: true,
+          discoveredAt: DateTime.now().subtract(const Duration(days: 2)),
+        ),
+        Creature(
+          id: 'blue_tang',
+          name: 'Blue Tang',
+          species: 'Paracanthurus hepatus',
+          rarity: CreatureRarity.common,
+          type: CreatureType.starterFish,
+          habitat: BiomeType.shallowWaters,
+          animationAsset: 'assets/creatures/blue_tang.png',
+          pearlValue: 12,
+          requiredLevel: 2,
+          description: 'A vibrant blue fish with a peaceful nature',
+          discoveryChance: 0.7,
+          isDiscovered: true,
+          discoveredAt: DateTime.now().subtract(const Duration(days: 1)),
+        ),
+      ];
+      
+      // Create some demo corals
+      final demoCorals = [
+        Coral(
+          id: 'brain_coral_1',
+          type: CoralType.brain,
+          stage: CoralStage.mature,
+          growthProgress: 0.8,
+          plantedAt: DateTime.now().subtract(const Duration(days: 3)),
+          lastGrowthAt: DateTime.now().subtract(const Duration(hours: 4)),
+          biome: BiomeType.shallowWaters,
+          sessionsGrown: 3,
+        ),
+        Coral(
+          id: 'staghorn_coral_1',
+          type: CoralType.staghorn,
+          stage: CoralStage.flourishing,
+          growthProgress: 1.0,
+          plantedAt: DateTime.now().subtract(const Duration(days: 2)),
+          lastGrowthAt: DateTime.now().subtract(const Duration(hours: 1)),
+          biome: BiomeType.shallowWaters,
+          sessionsGrown: 4,
+          attractedSpecies: ['clownfish'],
+        ),
+      ];
+      
+      if (mounted) {
+        setState(() {
+          _aquarium = demoAquarium;
+          _visibleCreatures = demoCreatures;
+          _visibleCorals = demoCorals;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error initializing ocean system: $e');
+      }
     }
   }
   
@@ -813,95 +919,35 @@ class _TimerScreenState extends State<TimerScreen>
                                   builder: (context, child) {
                                     return Transform.scale(
                                       scale: _isRunning ? _pulseAnimation.value : 1.0,
-                                      child: Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                    RepaintBoundary(
-                                      child: SizedBox(
-                                        width: 280,
-                                        height: 280,
-                                        child: CustomPaint(
-                                          painter: CircularProgressPainter(
-                                            progress: progress,
-                                            isStudySession: _isStudySession,
-                                            timeColors: timeColors,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    // Timer text positioned higher up in the circle
-                                    Positioned(
-                                      top: 80,
-                                      left: 0,
-                                      right: 0,
-                                      child: Center(
-                                        child: RollingTimer(
-                                          seconds: _secondsRemaining,
-                                          textStyle: theme.textTheme.displayLarge?.copyWith(
-                                            fontWeight: FontWeight.w300,
-                                            fontSize: 42,
-                                            color: Colors.white,
-                                            shadows: [
-                                              Shadow(
-                                                offset: const Offset(0, 2),
-                                                blurRadius: 8,
-                                                color: Colors.black.withOpacity(0.4),
+                                      child: _aquarium != null
+                                          ? AquariumWidget(
+                                              aquarium: _aquarium!,
+                                              progress: progress,
+                                              isRunning: _isRunning,
+                                              isStudySession: _isStudySession,
+                                              visibleCreatures: _visibleCreatures,
+                                              visibleCorals: _visibleCorals,
+                                              onTap: _toggleTimer,
+                                            )
+                                          : Container(
+                                              width: 360,
+                                              height: 360,
+                                              decoration: const BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    Color(0xFF87CEEB),
+                                                    Color(0xFF00A6D6),
+                                                    Color(0xFF006994),
+                                                  ],
+                                                ),
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    // Play/Pause button in the center with proper styling
-                                    Center(
-                                      child: AnimatedContainer(
-                                        duration: const Duration(milliseconds: 600),
-                                        curve: Curves.easeInOut,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
-                                            colors: timeColors.primaryGradient,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: timeColors.primaryGradient[0].withOpacity(0.4),
-                                              blurRadius: 20,
-                                              offset: const Offset(0, 8),
+                                              child: const Center(
+                                                child: CircularProgressIndicator(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
                                             ),
-                                          ],
-                                        ),
-                                        child: _ElasticPlayButton(
-                                          isRunning: _isRunning,
-                                          onTap: _toggleTimer,
-                                          isStudySession: _isStudySession,
-                                        ),
-                                      ),
-                                    ),
-                                    // Status text positioned at the bottom
-                                    Positioned(
-                                      bottom: 80,
-                                      left: 0,
-                                      right: 0,
-                                      child: Center(
-                                        child: Text(
-                                          _isRunning ? 'Stay Focused!' : 'Tap to Start',
-                                          style: theme.textTheme.titleMedium?.copyWith(
-                                            color: Colors.white.withOpacity(0.9),
-                                            shadows: [
-                                              Shadow(
-                                                offset: const Offset(0, 1),
-                                                blurRadius: 4,
-                                                color: Colors.black.withOpacity(0.3),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                        ],
-                                      ),
                                     );
                                   },
                                 ),
