@@ -86,9 +86,9 @@ class _CompactStreakWidgetState extends State<CompactStreakWidget>
         return Transform.scale(
           scale: _pulseAnimation.value * _growthAnimation.value,
           child: Container(
-            height: 48,
+            height: 52,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(26),
               color: GamificationService.instance.getStreakColor().withOpacity(0.1),
               border: Border.all(
                 color: GamificationService.instance.getStreakColor().withOpacity(0.3),
@@ -103,14 +103,14 @@ class _CompactStreakWidgetState extends State<CompactStreakWidget>
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Streak emoji with effects
                   Container(
-                    width: 28,
-                    height: 28,
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: GamificationService.instance.getStreakColor().withOpacity(0.2),
@@ -121,7 +121,7 @@ class _CompactStreakWidgetState extends State<CompactStreakWidget>
                         // Background effect for high streaks
                         if (widget.streakCount >= 7)
                           CustomPaint(
-                            size: const Size(28, 28),
+                            size: const Size(32, 32),
                             painter: CompactStreakEffectPainter(
                               streakCount: widget.streakCount,
                               animationValue: _pulseAnimation.value,
@@ -131,36 +131,38 @@ class _CompactStreakWidgetState extends State<CompactStreakWidget>
                         // Emoji
                         Text(
                           GamificationService.instance.getStreakEmoji(),
-                          style: const TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 18),
                         ),
                       ],
                     ),
                   ),
                   
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   
-                  // Streak count and description
-                  Expanded(
+                  // Streak count and description - improved layout
+                  Flexible(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${widget.streakCount} days',
+                          '${widget.streakCount} ${widget.streakCount == 1 ? 'day' : 'days'}',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: GamificationService.instance.getStreakColor(),
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                         Text(
                           _getCompactDescription(widget.streakCount),
                           style: const TextStyle(
-                            fontSize: 9,
+                            fontSize: 11,
                             color: Colors.white70,
                           ),
-                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ],
                     ),

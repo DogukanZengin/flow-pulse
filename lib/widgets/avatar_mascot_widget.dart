@@ -131,7 +131,7 @@ class _AvatarMascotWidgetState extends State<AvatarMascotWidget>
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Glow effect
+                // Subtle glow effect
                 Container(
                   width: widget.size * 0.83, // 100/120 ratio
                   height: widget.size * 0.83,
@@ -139,9 +139,9 @@ class _AvatarMascotWidgetState extends State<AvatarMascotWidget>
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: mascotColor.withOpacity(0.4),
-                        blurRadius: 30 * scaleFactor,
-                        spreadRadius: 10 * scaleFactor,
+                        color: mascotColor.withOpacity(0.2),
+                        blurRadius: 20 * scaleFactor,
+                        spreadRadius: 5 * scaleFactor,
                       ),
                     ],
                   ),
@@ -157,20 +157,20 @@ class _AvatarMascotWidgetState extends State<AvatarMascotWidget>
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        mascotColor.withOpacity(0.9),
-                        mascotColor.withOpacity(0.7),
+                        mascotColor.withOpacity(0.3),
+                        mascotColor.withOpacity(0.2),
                       ],
                     ),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
-                      width: 2,
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1,
                     ),
                   ),
                   child: Stack(
                     children: [
                       // Eyes
                       Positioned(
-                        top: 25 * scaleFactor,
+                        top: 22 * scaleFactor,
                         left: 20 * scaleFactor,
                         child: AnimatedBuilder(
                           animation: _blinkAnimation,
@@ -187,7 +187,7 @@ class _AvatarMascotWidgetState extends State<AvatarMascotWidget>
                         ),
                       ),
                       Positioned(
-                        top: 25 * scaleFactor,
+                        top: 22 * scaleFactor,
                         right: 20 * scaleFactor,
                         child: AnimatedBuilder(
                           animation: _blinkAnimation,
@@ -206,12 +206,12 @@ class _AvatarMascotWidgetState extends State<AvatarMascotWidget>
                       
                       // Mouth based on mood
                       Positioned(
-                        bottom: 20 * scaleFactor,
+                        bottom: 18 * scaleFactor,
                         left: 0,
                         right: 0,
                         child: Center(
                           child: CustomPaint(
-                            size: Size(30 * scaleFactor, 15 * scaleFactor),
+                            size: Size(40 * scaleFactor, 20 * scaleFactor),
                             painter: MouthPainter(
                               mood: mood,
                               animation: _moodAnimation.value,
@@ -299,7 +299,7 @@ class MouthPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = Colors.white
-      ..strokeWidth = 2
+      ..strokeWidth = 3
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
     
@@ -310,40 +310,40 @@ class MouthPainter extends CustomPainter {
     switch (mood) {
       case 'focused':
         // Straight line (concentrated)
-        path.moveTo(5, centerY);
-        path.lineTo(size.width - 5, centerY);
+        path.moveTo(8, centerY);
+        path.lineTo(size.width - 8, centerY);
         break;
         
       case 'relaxed':
-        // Small smile
-        path.moveTo(5, centerY);
+        // Nice smile
+        path.moveTo(8, centerY - 2);
         path.quadraticBezierTo(
           centerX, 
-          centerY + 5 + (animation * 2), 
-          size.width - 5, 
-          centerY,
+          centerY + 10 + (animation * 3), 
+          size.width - 8, 
+          centerY - 2,
         );
         break;
         
       case 'waiting':
-        // Slight frown
-        path.moveTo(5, centerY + 3);
+        // Subtle neutral/slightly concerned expression
+        path.moveTo(6, centerY + 1);
         path.quadraticBezierTo(
           centerX, 
-          centerY - 2 - (animation * 2), 
-          size.width - 5, 
-          centerY + 3,
+          centerY - 2 - (animation * 1), 
+          size.width - 6, 
+          centerY + 1,
         );
         break;
         
       default: // happy
-        // Big smile
-        path.moveTo(5, centerY - 2);
+        // Gentle natural smile - longer/broader
+        path.moveTo(4, centerY - 1);
         path.quadraticBezierTo(
           centerX, 
-          centerY + 8 + (animation * 3), 
-          size.width - 5, 
-          centerY - 2,
+          centerY + 5 + (animation * 1), 
+          size.width - 4, 
+          centerY - 1,
         );
         break;
     }

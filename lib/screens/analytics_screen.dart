@@ -423,38 +423,131 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Center(
-                      child: SizedBox(
-                        height: 150,
-                        child: PieChart(
-                          PieChartData(
-                            sectionsSpace: 2,
-                            centerSpaceRadius: 40,
-                            sections: [
-                              PieChartSectionData(
-                                value: avgCompletionRate * 100,
-                                color: Colors.green,
-                                title: '${(avgCompletionRate * 100).round()}%',
-                                titleStyle: const TextStyle(
+                    Row(
+                      children: [
+                        // Pie Chart
+                        Expanded(
+                          flex: 2,
+                          child: SizedBox(
+                            height: 120,
+                            child: PieChart(
+                              PieChartData(
+                                sectionsSpace: 3,
+                                centerSpaceRadius: 30,
+                                startDegreeOffset: -90,
+                                sections: [
+                                  PieChartSectionData(
+                                    value: avgCompletionRate * 100,
+                                    color: Colors.green.withOpacity(0.8),
+                                    title: '',
+                                    radius: 35,
+                                    borderSide: BorderSide(
+                                      color: Colors.white.withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  PieChartSectionData(
+                                    value: (1 - avgCompletionRate) * 100,
+                                    color: Colors.white.withOpacity(0.1),
+                                    title: '',
+                                    radius: 35,
+                                    borderSide: BorderSide(
+                                      color: Colors.white.withOpacity(0.2),
+                                      width: 1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        // Statistics Text
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Completion Rate',
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: Colors.white.withOpacity(0.9),
                                 ),
                               ),
-                              PieChartSectionData(
-                                value: (1 - avgCompletionRate) * 100,
-                                color: Colors.grey[300],
-                                title: '${((1 - avgCompletionRate) * 100).round()}%',
-                                titleStyle: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black54,
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.withOpacity(0.8),
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Completed: ${(avgCompletionRate * 100).round()}%',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white.withOpacity(0.8),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.3),
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Incomplete: ${((1 - avgCompletionRate) * 100).round()}%',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white.withOpacity(0.8),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.2),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  avgCompletionRate >= 0.8
+                                      ? 'Excellent! 🎉'
+                                      : avgCompletionRate >= 0.6
+                                          ? 'Good progress! 👍'
+                                          : avgCompletionRate >= 0.4
+                                              ? 'Keep improving! 💪'
+                                              : 'Focus on consistency! 🎯',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white.withOpacity(0.9),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                   ],

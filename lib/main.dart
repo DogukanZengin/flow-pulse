@@ -12,7 +12,6 @@ import 'screens/analytics_screen.dart';
 import 'screens/tasks_screen.dart';
 import 'services/database_service.dart';
 import 'models/session.dart';
-import 'widgets/audio_controls.dart';
 import 'widgets/rolling_timer.dart';
 import 'widgets/celebration_dialog.dart';
 import 'widgets/particle_system.dart';
@@ -25,8 +24,6 @@ import 'services/notification_service.dart';
 import 'services/quick_actions_service.dart';
 import 'services/deep_linking_service.dart';
 import 'services/live_activities_service.dart';
-import 'widgets/xp_bar.dart';
-import 'widgets/compact_streak_widget.dart';
 import 'widgets/goals_tracker_widget.dart';
 import 'widgets/achievement_badges_widget.dart';
 import 'widgets/avatar_mascot_widget.dart';
@@ -748,70 +745,68 @@ class _TimerScreenState extends State<TimerScreen>
                     ),
                   ],
                 ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               
-              // Gamification Row: XP Bar and Streak
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+              // Compact Level and Streak Bars positioned above timer - centered
+              Center(
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // XP Bar (takes most space)
-                    Expanded(
-                      flex: 2,
-                      child: XPBar(
-                        currentXP: GamificationService.instance.totalXP,
-                        currentLevel: GamificationService.instance.currentLevel,
-                        progress: GamificationService.instance.getLevelProgress(),
-                      ),
+                    // Compact Level Bar
+                    _CompactXPBar(
+                      currentXP: GamificationService.instance.totalXP,
+                      currentLevel: GamificationService.instance.currentLevel,
+                      progress: GamificationService.instance.getLevelProgress(),
                     ),
-                    
-                    const SizedBox(width: 16),
-                    
+                    const SizedBox(width: 12),
                     // Compact Streak Widget
-                    Expanded(
-                      flex: 1,
-                      child: CompactStreakWidget(
-                        streakCount: GamificationService.instance.currentStreak,
-                        showAnimation: false,
-                      ),
+                    _CompactStreakBar(
+                      streakCount: GamificationService.instance.currentStreak,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-              RepaintBoundary(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  child: ClipOval(
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              const SizedBox(height: 16),
+              
+              // Timer circle with avatar positioned upper left
+              Stack(
+                alignment: Alignment.topLeft,
+                children: [
+                  // Timer circle
+                  Center(
+                    child: RepaintBoundary(
                       child: Container(
-                        width: 360,
-                        height: 360,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.12),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.25),
-                            width: 2.0,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 30,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: AnimatedBuilder(
-                            animation: _pulseAnimation,
-                            builder: (context, child) {
-                              return Transform.scale(
-                                scale: _isRunning ? _pulseAnimation.value : 1.0,
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        child: ClipOval(
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                            child: Container(
+                              width: 360,
+                              height: 360,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.12),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.25),
+                                  width: 2.0,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 30,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: AnimatedBuilder(
+                                  animation: _pulseAnimation,
+                                  builder: (context, child) {
+                                    return Transform.scale(
+                                      scale: _isRunning ? _pulseAnimation.value : 1.0,
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
                                     RepaintBoundary(
                                       child: SizedBox(
                                         width: 280,
@@ -825,9 +820,9 @@ class _TimerScreenState extends State<TimerScreen>
                                         ),
                                       ),
                                     ),
-                                    // Timer text positioned above avatar
+                                    // Timer text positioned higher up in the circle
                                     Positioned(
-                                      top: 45,
+                                      top: 80,
                                       left: 0,
                                       right: 0,
                                       child: Center(
@@ -835,7 +830,7 @@ class _TimerScreenState extends State<TimerScreen>
                                           seconds: _secondsRemaining,
                                           textStyle: theme.textTheme.displayLarge?.copyWith(
                                             fontWeight: FontWeight.w300,
-                                            fontSize: 44,
+                                            fontSize: 42,
                                             color: Colors.white,
                                             shadows: [
                                               Shadow(
@@ -848,27 +843,41 @@ class _TimerScreenState extends State<TimerScreen>
                                         ),
                                       ),
                                     ),
-                                    // Avatar Mascot positioned in center-bottom area
-                                    Positioned(
-                                      top: 110,
-                                      left: 0,
-                                      right: 0,
-                                      child: Center(
-                                        child: AvatarMascotWidget(
+                                    // Play/Pause button in the center with proper styling
+                                    Center(
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 600),
+                                        curve: Curves.easeInOut,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: timeColors.primaryGradient,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: timeColors.primaryGradient[0].withOpacity(0.4),
+                                              blurRadius: 20,
+                                              offset: const Offset(0, 8),
+                                            ),
+                                          ],
+                                        ),
+                                        child: _ElasticPlayButton(
                                           isRunning: _isRunning,
+                                          onTap: _toggleTimer,
                                           isStudySession: _isStudySession,
-                                          size: 70,
                                         ),
                                       ),
                                     ),
-                                    // Status text positioned below avatar
+                                    // Status text positioned at the bottom
                                     Positioned(
-                                      bottom: 45,
+                                      bottom: 80,
                                       left: 0,
                                       right: 0,
                                       child: Center(
                                         child: Text(
-                                          _isRunning ? 'Stay Focused!' : 'Paused',
+                                          _isRunning ? 'Stay Focused!' : 'Tap to Start',
                                           style: theme.textTheme.titleMedium?.copyWith(
                                             color: Colors.white.withOpacity(0.9),
                                             shadows: [
@@ -882,18 +891,32 @@ class _TimerScreenState extends State<TimerScreen>
                                         ),
                                       ),
                                     ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                  // Avatar positioned at upper left of timer
+                  Positioned(
+                    left: MediaQuery.of(context).size.width / 2 - 140,
+                    top: 10,
+                    child: AvatarMascotWidget(
+                      isRunning: _isRunning,
+                      isStudySession: _isStudySession,
+                      size: 65,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 32),
+              // Control buttons row
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -916,52 +939,7 @@ class _TimerScreenState extends State<TimerScreen>
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      onPressed: _enterAmbientMode,
-                      icon: const Icon(Icons.fullscreen),
-                      iconSize: 28,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 600),
-                    curve: Curves.easeInOut,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: timeColors.primaryGradient,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: timeColors.primaryGradient[0].withOpacity(0.4),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: _ElasticPlayButton(
-                      isRunning: _isRunning,
-                      onTap: _toggleTimer,
-                      isStudySession: _isStudySession,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -986,11 +964,31 @@ class _TimerScreenState extends State<TimerScreen>
                       color: Colors.white,
                     ),
                   ),
+                  const SizedBox(width: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      onPressed: _enterAmbientMode,
+                      icon: const Icon(Icons.fullscreen),
+                      iconSize: 28,
+                      color: Colors.white,
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 40),
-              const AudioControls(),
               const SizedBox(height: 24),
+              // const AudioControls(), // Hidden for now
+              // const SizedBox(height: 24),
               // Theme Selector
               const ThemeSelectorWidget(),
               const SizedBox(height: 20),
@@ -1381,8 +1379,8 @@ class _ElasticPlayButtonState extends State<_ElasticPlayButton>
           child: GestureDetector(
             onTap: _handleTap,
             child: Container(
-              width: 96,
-              height: 96,
+              width: 80,
+              height: 80,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
               ),
@@ -1404,11 +1402,298 @@ class _ElasticPlayButtonState extends State<_ElasticPlayButton>
                   child: Icon(
                     widget.isRunning ? Icons.pause : Icons.play_arrow,
                     key: ValueKey(widget.isRunning),
-                    size: 40,
+                    size: 36,
                     color: Colors.white,
                   ),
                 ),
               ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// Compact XP Bar widget for positioning above timer
+class _CompactXPBar extends StatefulWidget {
+  final int currentXP;
+  final int currentLevel;
+  final double progress;
+  
+  const _CompactXPBar({
+    required this.currentXP,
+    required this.currentLevel,
+    required this.progress,
+  });
+  
+  @override
+  State<_CompactXPBar> createState() => _CompactXPBarState();
+}
+
+class _CompactXPBarState extends State<_CompactXPBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _glowController;
+  late Animation<double> _glowAnimation;
+  
+  @override
+  void initState() {
+    super.initState();
+    
+    _glowController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+    
+    _glowAnimation = Tween<double>(
+      begin: 0.5,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _glowController,
+      curve: Curves.easeInOut,
+    ));
+  }
+  
+  @override
+  void dispose() {
+    _glowController.dispose();
+    super.dispose();
+  }
+  
+  Color _getLevelColor() {
+    if (widget.currentLevel >= 25) return Colors.purple;
+    if (widget.currentLevel >= 20) return Colors.indigo;
+    if (widget.currentLevel >= 15) return Colors.blue;
+    if (widget.currentLevel >= 10) return Colors.teal;
+    if (widget.currentLevel >= 5) return Colors.green;
+    return Colors.lightBlue;
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    final levelColor = _getLevelColor();
+    
+    return AnimatedBuilder(
+      animation: _glowAnimation,
+      builder: (context, child) {
+        return Container(
+          width: 140,
+          height: 32,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: Colors.white.withOpacity(0.1),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: levelColor.withOpacity(0.3 * _glowAnimation.value),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              // Progress fill
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: LinearProgressIndicator(
+                    value: widget.progress,
+                    backgroundColor: Colors.transparent,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      levelColor.withOpacity(0.8),
+                    ),
+                  ),
+                ),
+              ),
+              
+              // Content
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Level badge - blended with background
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: levelColor.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 0.5,
+                        ),
+                      ),
+                      child: Text(
+                        'LV${widget.currentLevel}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(0, 1),
+                              blurRadius: 2,
+                              color: Colors.black54,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    
+                    // XP text
+                    Text(
+                      '${GamificationService.instance.getCurrentLevelXP()}/${GamificationService.instance.getXPForNextLevel()}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        shadows: [
+                          Shadow(
+                            offset: Offset(0, 1),
+                            blurRadius: 2,
+                            color: Colors.black38,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// Compact Streak Bar widget to match the level bar style
+class _CompactStreakBar extends StatefulWidget {
+  final int streakCount;
+  
+  const _CompactStreakBar({
+    required this.streakCount,
+  });
+  
+  @override
+  State<_CompactStreakBar> createState() => _CompactStreakBarState();
+}
+
+class _CompactStreakBarState extends State<_CompactStreakBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _glowController;
+  late Animation<double> _glowAnimation;
+  
+  @override
+  void initState() {
+    super.initState();
+    
+    _glowController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+    
+    _glowAnimation = Tween<double>(
+      begin: 0.5,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _glowController,
+      curve: Curves.easeInOut,
+    ));
+  }
+  
+  @override
+  void dispose() {
+    _glowController.dispose();
+    super.dispose();
+  }
+  
+  Color _getStreakColor() {
+    if (widget.streakCount >= 30) return Colors.orange;
+    if (widget.streakCount >= 14) return Colors.red;
+    if (widget.streakCount >= 7) return Colors.purple;
+    if (widget.streakCount >= 3) return Colors.green;
+    if (widget.streakCount >= 1) return Colors.blue;
+    return Colors.grey;
+  }
+  
+  String _getStreakEmoji() {
+    if (widget.streakCount >= 30) return '🔥';
+    if (widget.streakCount >= 14) return '⚡';
+    if (widget.streakCount >= 7) return '💜';
+    if (widget.streakCount >= 3) return '✨';
+    if (widget.streakCount >= 1) return '🌟';
+    return '💤';
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    final streakColor = _getStreakColor();
+    
+    return AnimatedBuilder(
+      animation: _glowAnimation,
+      builder: (context, child) {
+        return Container(
+          width: 110,
+          height: 32,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: Colors.white.withOpacity(0.1),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: streakColor.withOpacity(0.3 * _glowAnimation.value),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Streak emoji badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: streakColor.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Text(
+                    _getStreakEmoji(),
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+                
+                // Streak text
+                Text(
+                  '${widget.streakCount} ${widget.streakCount == 1 ? 'day' : 'days'}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    shadows: [
+                      Shadow(
+                        offset: Offset(0, 1),
+                        blurRadius: 2,
+                        color: Colors.black38,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         );

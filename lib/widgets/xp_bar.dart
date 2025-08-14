@@ -168,13 +168,13 @@ class _XPBarState extends State<XPBar> with TickerProviderStateMixin {
                   
                   // Content
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Level badge
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(20),
@@ -188,14 +188,14 @@ class _XPBarState extends State<XPBar> with TickerProviderStateMixin {
                               Icon(
                                 Icons.star,
                                 color: Colors.white,
-                                size: 16,
+                                size: 14,
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: 3),
                               Text(
                                 'LV ${widget.currentLevel}',
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 12,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -203,20 +203,24 @@ class _XPBarState extends State<XPBar> with TickerProviderStateMixin {
                           ),
                         ),
                         
-                        // XP text
-                        Text(
-                          '${GamificationService.instance.getCurrentLevelXP()} / ${GamificationService.instance.getXPForNextLevel()} XP',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            shadows: [
-                              Shadow(
-                                offset: Offset(0, 1),
-                                blurRadius: 3,
-                                color: Colors.black38,
-                              ),
-                            ],
+                        // XP text - made more compact
+                        Flexible(
+                          child: Text(
+                            '${GamificationService.instance.getCurrentLevelXP()} / ${GamificationService.instance.getXPForNextLevel()} XP',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              shadows: [
+                                Shadow(
+                                  offset: Offset(0, 1),
+                                  blurRadius: 3,
+                                  color: Colors.black38,
+                                ),
+                              ],
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],

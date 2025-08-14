@@ -197,7 +197,7 @@ class _AchievementBadgesWidgetState extends State<AchievementBadgesWidget>
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
