@@ -32,6 +32,9 @@ import 'widgets/aquarium_widget.dart';
 import 'models/aquarium.dart';
 import 'models/creature.dart';
 import 'models/coral.dart';
+import 'services/creature_service.dart';
+import 'widgets/creature_discovery_animation.dart';
+import 'services/ocean_activity_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -450,6 +453,19 @@ class _TimerScreenState extends State<TimerScreen>
     _progressAnimationController.forward();
     _sessionStartTime = DateTime.now();
     
+    // Log coral planting activity for focus sessions
+    if (_isStudySession) {
+      final coralType = _aquarium?.corals.isNotEmpty == true 
+          ? _aquarium!.corals.first.type 
+          : CoralType.brain;
+      final biome = _aquarium?.currentBiome ?? BiomeType.shallowWaters;
+      
+      OceanActivityService.logCoralPlanted(
+        coralType: coralType,
+        biome: biome,
+      );
+    }
+    
     // Show notification with timer controls
     NotificationService().showTimerWithActions(
       title: _getSessionTitle(),
@@ -558,6 +574,14 @@ class _TimerScreenState extends State<TimerScreen>
     // Save incomplete session if timer was running
     if (_isRunning && _sessionStartTime != null) {
       _saveSession(completed: false);
+      
+      // Log pollution event for abandoned focus session
+      if (_isStudySession) {
+        OceanActivityService.logPollutionEvent(
+          reason: 'Focus session abandoned',
+          ecosystemDamage: 0.05, // 5% damage for abandoning
+        );
+      }
     }
     
     // Cancel notifications and background tasks
@@ -598,20 +622,52 @@ class _TimerScreenState extends State<TimerScreen>
     
     final wasStudySession = _isStudySession;
     
-    // Show completion notification
-    NotificationService().showTimerNotification(
-      title: wasStudySession ? 'Focus Session Complete! 🎉' : 'Break Time Complete! ☕',
-      body: wasStudySession 
-          ? 'Great work! Time for a well-deserved break.'
-          : 'Break time is over. Ready to focus again?',
-      payload: 'session_completed',
-    );
-    
-    // Calculate session duration and award XP
+    // Calculate session duration
     final sessionDuration = wasStudySession 
         ? timerProvider.focusDuration 
         : (_shouldUseLongBreak() ? timerProvider.longBreakDuration : timerProvider.breakDuration);
     
+    // Check for creature discovery (only for focus sessions)
+    Creature? discoveredCreature;
+    if (wasStudySession && _aquarium != null) {
+      discoveredCreature = await CreatureService.checkForCreatureDiscovery(
+        aquarium: _aquarium!,
+        sessionDurationMinutes: sessionDuration,
+        sessionCompleted: true,
+      );
+      
+      if (discoveredCreature != null) {
+        // Add to visible creatures
+        final creature = discoveredCreature; // Capture non-null value
+        setState(() {
+          if (!_visibleCreatures.any((c) => c.id == creature.id)) {
+            _visibleCreatures.add(creature);
+          }
+        });
+      }
+    }
+    
+    // Update notification with ocean theme if creature discovered
+    final notificationTitle = wasStudySession 
+        ? (discoveredCreature != null 
+            ? '🐠 New Creature Discovered!' 
+            : '🪸 Coral Bloomed Beautifully!')
+        : '🌊 Peaceful Currents Restored';
+    
+    final notificationBody = wasStudySession
+        ? (discoveredCreature != null
+            ? 'You discovered a ${discoveredCreature.name}! +${discoveredCreature.pearlValue} pearls earned!'
+            : 'Your coral garden is growing! Keep focusing to attract marine life.')
+        : 'Ready for another dive into deep focus?';
+    
+    // Show completion notification
+    NotificationService().showTimerNotification(
+      title: notificationTitle,
+      body: notificationBody,
+      payload: 'session_completed',
+    );
+    
+    // Award XP and rewards
     final reward = await GamificationService.instance.completeSession(
       durationMinutes: sessionDuration,
       isStudySession: wasStudySession,
@@ -619,6 +675,22 @@ class _TimerScreenState extends State<TimerScreen>
     
     // Save completed session
     _saveSession(completed: true);
+    
+    // Log ocean activity for the session
+    if (wasStudySession) {
+      // Use first coral in aquarium or default to brain coral
+      final coralType = _aquarium?.corals.isNotEmpty == true 
+          ? _aquarium!.corals.first.type 
+          : CoralType.brain;
+      
+      await OceanActivityService.logCoralGrowth(
+        coralType: coralType,
+        finalStage: CoralStage.flourishing,
+        sessionDurationMinutes: sessionDuration,
+        discoveredCreatures: discoveredCreature != null ? [discoveredCreature] : [],
+        pearlsEarned: discoveredCreature?.pearlValue ?? 0,
+      );
+    }
     
     setState(() {
       _isRunning = false;
@@ -648,7 +720,12 @@ class _TimerScreenState extends State<TimerScreen>
     // Refresh stats after completing session
     _loadTodayStats();
     
-    _showSessionCompleteDialog(reward);
+    // Show creature discovery animation if creature was discovered
+    if (discoveredCreature != null) {
+      _showCreatureDiscoveryAnimation(discoveredCreature);
+    } else {
+      _showSessionCompleteDialog(reward);
+    }
   }
 
   Future<void> _saveSession({required bool completed}) async {
@@ -684,6 +761,27 @@ class _TimerScreenState extends State<TimerScreen>
         isStudySession: _isStudySession,
         reward: reward,
         onDismiss: () => Navigator.of(context).pop(),
+      ),
+    );
+  }
+  
+  void _showCreatureDiscoveryAnimation(Creature creature) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.transparent,
+      builder: (context) => CreatureDiscoveryAnimation(
+        creature: creature,
+        onComplete: () {
+          Navigator.of(context).pop();
+          // Show regular completion dialog after creature discovery
+          // Create a simple reward for the discovery
+          final discoveryReward = GamificationReward()
+            ..xpGained = creature.pearlValue * 10 // Convert pearls to XP
+            ..currentStreak = GamificationService.instance.currentStreak
+            ..newLevel = GamificationService.instance.currentLevel;
+          _showSessionCompleteDialog(discoveryReward);
+        },
       ),
     );
   }
