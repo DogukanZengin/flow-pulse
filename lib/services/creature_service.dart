@@ -28,11 +28,12 @@ class CreatureService {
     CoralType.fire: 0.03,       // +3% discovery chance (but other benefits)
   };
   
-  /// Check if a creature should be discovered after a session
+  /// Check if a creature should be discovered after a session with depth-based spawning
   static Future<Creature?> checkForCreatureDiscovery({
     required Aquarium aquarium,
     required int sessionDurationMinutes,
     required bool sessionCompleted,
+    required double sessionDepth, // New parameter for depth-based discovery
   }) async {
     // Only discover creatures on completed sessions
     if (!sessionCompleted) return null;
@@ -53,13 +54,8 @@ class CreatureService {
       }
     }
     
-    // Longer sessions have slightly higher discovery chance
-    if (sessionDurationMinutes >= 25) {
-      discoveryChance += 0.1;
-    }
-    if (sessionDurationMinutes >= 45) {
-      discoveryChance += 0.1;
-    }
+    // Apply depth-based discovery bonuses according to Master Plan
+    discoveryChance = applyDepthBasedDiscoveryRates(discoveryChance, sessionDurationMinutes, sessionDepth);
     
     // Cap discovery chance at 80%
     discoveryChance = discoveryChance.clamp(0.0, 0.8);
@@ -69,12 +65,12 @@ class CreatureService {
       return null; // No discovery this time
     }
     
-    // A creature will be discovered! Determine which one
-    return await _selectCreatureToDiscover(aquarium);
+    // A creature will be discovered! Determine which one based on depth
+    return await _selectCreatureToDiscover(aquarium, sessionDepth, sessionDurationMinutes);
   }
   
-  /// Select which creature to discover based on rarity and biome
-  static Future<Creature?> _selectCreatureToDiscover(Aquarium aquarium) async {
+  /// Select which creature to discover based on rarity, biome, and depth
+  static Future<Creature?> _selectCreatureToDiscover(Aquarium aquarium, double depth, int sessionDuration) async {
     // Get all undiscovered creatures
     final allCreatures = await DatabaseService.getAllCreatures();
     final undiscoveredCreatures = allCreatures
@@ -262,5 +258,58 @@ class CreatureService {
           c.rarity == CreatureRarity.legendary
         ).toList();
     }
+  }
+
+  /// Apply depth-based discovery rates according to Master Plan
+  static double applyDepthBasedDiscoveryRates(double baseChance, int sessionDuration, double depth) {
+    double discoveryChance = baseChance;
+    
+    // Expedition type bonuses based on Master Plan
+    if (sessionDuration >= 15 && sessionDuration <= 20 && depth <= 10) {
+      // Shallow Water Research (15-20min, 5-10m depth)
+      discoveryChance += 0.40; // High discovery rate (40% chance)
+    } else if (sessionDuration >= 25 && sessionDuration <= 30 && depth <= 20) {
+      // Mid-Water Expedition (25-30min, 10-20m depth)  
+      discoveryChance += 0.25; // Medium discovery rate (25% chance)
+    } else if (sessionDuration >= 45 && sessionDuration <= 60 && depth <= 40) {
+      // Deep Sea Research (45-60min, 20-40m depth)
+      discoveryChance += 0.15; // Low but valuable (15% chance)
+    } else if (sessionDuration >= 90 && depth > 40) {
+      // Abyssal Expedition (90min+, 40m+ depth)
+      discoveryChance += 0.05; // Very rare but legendary (5% chance)
+    }
+    
+    return discoveryChance.clamp(0.0, 0.8);
+  }
+
+  /// Get biome type based on session depth
+  static BiomeType getBiomeFromDepth(double depth) {
+    if (depth <= 10) {
+      return BiomeType.shallowWaters;
+    } else if (depth <= 20) {
+      return BiomeType.coralGarden;
+    } else if (depth <= 40) {
+      return BiomeType.deepOcean;
+    } else {
+      return BiomeType.abyssalZone;
+    }
+  }
+
+  /// Calculate depth progression based on session progress (0.0 to 1.0)
+  static double calculateSessionDepth(int sessionDurationMinutes, double progress) {
+    // Target depth based on session duration (Master Plan)
+    double targetDepth;
+    if (sessionDurationMinutes <= 20) {
+      targetDepth = 10; // Shallow Water Research (5-10m)
+    } else if (sessionDurationMinutes <= 30) {
+      targetDepth = 20; // Mid-Water Expedition (10-20m)
+    } else if (sessionDurationMinutes <= 60) {
+      targetDepth = 40; // Deep Sea Research (20-40m)
+    } else {
+      targetDepth = 60; // Abyssal Expedition (40m+)
+    }
+    
+    // Return current depth based on session progress
+    return targetDepth * progress;
   }
 }

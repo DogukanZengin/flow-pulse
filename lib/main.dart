@@ -8,7 +8,7 @@ import 'providers/timer_provider.dart';
 import 'screens/settings_screen.dart';
 import 'screens/analytics_screen.dart';
 import 'screens/tasks_screen.dart';
-import 'screens/ocean_debug_screen.dart';
+import 'screens/enhanced_ocean_debug_screen.dart';
 import 'services/database_service.dart';
 import 'models/session.dart';
 import 'widgets/celebration_dialog.dart';
@@ -96,7 +96,7 @@ class _MainScreenState extends State<MainScreen> {
       TimerScreen(key: _timerKey),
       const TasksScreen(),
       const AnalyticsScreen(),
-      const OceanDebugScreen(),
+      const EnhancedOceanDebugScreen(),
       const SettingsScreen(),
     ];
     
@@ -622,10 +622,12 @@ class _TimerScreenState extends State<TimerScreen>
     // Check for creature discovery (only for focus sessions)
     Creature? discoveredCreature;
     if (wasStudySession && _aquarium != null) {
+      final sessionDepth = CreatureService.calculateSessionDepth(sessionDuration, 1.0);
       discoveredCreature = await CreatureService.checkForCreatureDiscovery(
         aquarium: _aquarium!,
         sessionDurationMinutes: sessionDuration,
         sessionCompleted: true,
+        sessionDepth: sessionDepth,
       );
       
       if (discoveredCreature != null) {
