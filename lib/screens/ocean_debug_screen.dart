@@ -6,6 +6,7 @@ import '../models/ocean_activity.dart';
 import '../services/ocean_setup_service.dart';
 import '../services/ocean_activity_service.dart';
 import '../services/database_service.dart';
+import '../widgets/creature_discovery_animation.dart';
 import 'dart:math' as math;
 
 class OceanDebugScreen extends StatefulWidget {
@@ -606,6 +607,67 @@ class _OceanDebugScreenState extends State<OceanDebugScreen> with SingleTickerPr
                   ),
                 ),
                 const SizedBox(height: 12),
+                
+                // Creature Discovery Debug Buttons
+                const Divider(color: Colors.white30),
+                const Text(
+                  '🐠 Test Creature Discovery',
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    _buildCreatureDiscoveryButton(CreatureRarity.common, Colors.grey),
+                    _buildCreatureDiscoveryButton(CreatureRarity.uncommon, Colors.green),
+                    _buildCreatureDiscoveryButton(CreatureRarity.rare, Colors.blue),
+                    _buildCreatureDiscoveryButton(CreatureRarity.legendary, Colors.purple),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                
+                // Quick Actions
+                const Divider(color: Colors.white30),
+                const Text(
+                  '⚡ Quick Actions',
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _triggerPollutionEvent,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Pollution Event'),
+                    ),
+                    ElevatedButton(
+                      onPressed: _addRandomActivity,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Random Activity'),
+                    ),
+                    ElevatedButton(
+                      onPressed: _resetAllProgress,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Reset Progress'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                
                 ElevatedButton.icon(
                   onPressed: _refreshData,
                   icon: const Icon(Icons.refresh),
@@ -869,6 +931,167 @@ class _OceanDebugScreenState extends State<OceanDebugScreen> with SingleTickerPr
 
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
+  }
+  
+  Color _getRarityColor(CreatureRarity rarity) {
+    switch (rarity) {
+      case CreatureRarity.common:
+        return Colors.grey;
+      case CreatureRarity.uncommon:
+        return Colors.green;
+      case CreatureRarity.rare:
+        return Colors.blue;
+      case CreatureRarity.legendary:
+        return Colors.purple;
+    }
+  }
+  
+  Widget _buildCreatureDiscoveryButton(CreatureRarity rarity, Color color) {
+    return ElevatedButton(
+      onPressed: () => _testCreatureDiscovery(rarity),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+      ),
+      child: Text('${rarity.displayName} Discovery'),
+    );
+  }
+  
+  void _testCreatureDiscovery(CreatureRarity rarity) {
+    // Get color for rarity
+    final color = _getRarityColor(rarity);
+    
+    // Find an undiscovered creature of this rarity
+    final candidates = allCreatures.where((c) => 
+      !c.isDiscovered && c.rarity == rarity
+    ).toList();
+    
+    if (candidates.isEmpty) {
+      setState(() {
+        statusMessage = "No undiscovered ${rarity.displayName} creatures available!";
+      });
+      return;
+    }
+    
+    // Pick a random creature and mark it as discovered
+    final creature = candidates[math.Random().nextInt(candidates.length)];
+    final index = allCreatures.indexWhere((c) => c.id == creature.id);
+    allCreatures[index] = creature.copyWith(
+      isDiscovered: true,
+      discoveredAt: DateTime.now(),
+    );
+    
+    // Add discovery activity
+    recentActivities.insert(0, OceanActivity.creatureDiscovered(
+      creatureName: creature.name,
+      rarity: creature.rarity.displayName,
+      pearlsEarned: creature.pearlValue,
+      timestamp: DateTime.now(),
+    ));
+    
+    // Update pearl wallet
+    final updatedWallet = aquarium!.pearlWallet.addPearls(creature.pearlValue);
+    aquarium = aquarium!.copyWith(
+      pearlWallet: updatedWallet,
+      stats: aquarium!.stats.copyWith(
+        totalCreaturesDiscovered: aquarium!.stats.totalCreaturesDiscovered + 1,
+      ),
+    );
+    
+    setState(() {
+      statusMessage = "🎉 Discovered ${creature.name} (${rarity.displayName})! +${creature.pearlValue} pearls";
+    });
+    
+    // Show the actual discovery animation
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.transparent,
+      builder: (context) => CreatureDiscoveryAnimation(
+        creature: creature,
+        onComplete: () {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('🐠 ${creature.name} added to your collection!'),
+              backgroundColor: color,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        },
+      ),
+    );
+  }
+  
+  void _triggerPollutionEvent() {
+    // Add pollution activity
+    recentActivities.insert(0, OceanActivity.pollutionEvent(
+      reason: 'Debug pollution test',
+      damageAmount: 10,
+      timestamp: DateTime.now(),
+    ));
+    
+    // Reduce ecosystem health
+    final newHealth = (aquarium!.ecosystemHealth - 0.1).clamp(0.0, 1.0);
+    aquarium = aquarium!.copyWith(ecosystemHealth: newHealth);
+    
+    setState(() {
+      statusMessage = "⚠️ Pollution event triggered! Ecosystem health: ${(newHealth * 100).toInt()}%";
+    });
+  }
+  
+  void _addRandomActivity() {
+    final activities = [
+      () => OceanActivity.pearlsEarned(
+        amount: 25,
+        source: 'debug bonus',
+        timestamp: DateTime.now(),
+      ),
+      () => OceanActivity.streakMilestone(
+        streakDays: 7,
+        bonusPearls: 50,
+        timestamp: DateTime.now(),
+      ),
+      () => OceanActivity(
+        id: 'ecosystem_${DateTime.now().millisecondsSinceEpoch}',
+        timestamp: DateTime.now(),
+        type: OceanActivityType.ecosystemThriving,
+        title: 'Ecosystem Flourishing',
+        description: '✨ Your reef is thriving beautifully!',
+        metadata: {},
+        priority: ActivityPriority.normal,
+      ),
+    ];
+    
+    final randomActivity = activities[math.Random().nextInt(activities.length)]();
+    recentActivities.insert(0, randomActivity);
+    
+    setState(() {
+      statusMessage = "📝 Added random activity: ${randomActivity.title}";
+    });
+  }
+  
+  void _resetAllProgress() {
+    // Reset all creatures to undiscovered
+    allCreatures = allCreatures.map((c) => c.copyWith(
+      isDiscovered: false,
+      discoveredAt: null,
+    )).toList();
+    
+    // Reset aquarium stats
+    aquarium = aquarium!.copyWith(
+      pearlWallet: const PearlWallet(pearls: 100, crystals: 0),
+      ecosystemHealth: 1.0,
+      stats: const AquariumStats(),
+    );
+    
+    // Clear activities and corals
+    recentActivities.clear();
+    allCorals.clear();
+    
+    setState(() {
+      statusMessage = "🔄 All progress has been reset!";
+    });
   }
 }
 
