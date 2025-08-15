@@ -5,7 +5,10 @@ import '../models/creature.dart';
 import '../models/coral.dart';
 import '../widgets/dive_computer_widget.dart';
 import '../widgets/research_progress_widget.dart';
+import '../widgets/equipment_indicator_widget.dart';
 import '../services/gamification_service.dart';
+import '../rendering/advanced_creature_renderer.dart';
+import '../rendering/biome_environment_renderer.dart';
 
 /// Full-screen marine biology research station and ocean environment
 /// Replaces the circular timer with an immersive underwater experience
@@ -269,10 +272,11 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
       animation: _waveController,
       builder: (context, child) {
         return CustomPaint(
-          painter: FullScreenWaterPainter(
+          painter: AdvancedBiomeEnvironmentPainter(
             progress: _waveController.value,
             biome: _getCurrentBiome(),
-            depthProgress: widget.sessionProgress,
+            depth: _getCurrentDepth().toDouble(),
+            sessionProgress: widget.sessionProgress,
           ),
           size: screenSize,
         );
@@ -364,10 +368,11 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
       width: 60,
       height: 45,
       child: CustomPaint(
-        painter: EnhancedCreaturePainter(
+        painter: AdvancedCreaturePainter(
           creature: creature,
           swimDirection: _fishAnimations[index].value.dx > 0.5 ? 1 : -1,
           depthLevel: _getCurrentDepth(),
+          animationValue: _fishControllers[index].value,
         ),
       ),
     );
@@ -551,6 +556,85 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
         ),
       ),
     );
+  }
+}
+
+// Advanced painters using Phase 3 rendering systems
+
+class AdvancedBiomeEnvironmentPainter extends CustomPainter {
+  final double progress;
+  final BiomeType biome;
+  final double depth;
+  final double sessionProgress;
+
+  AdvancedBiomeEnvironmentPainter({
+    required this.progress,
+    required this.biome,
+    required this.depth,
+    required this.sessionProgress,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Use our advanced biome environment renderer
+    BiomeEnvironmentRenderer.paintBiomeEnvironment(
+      canvas,
+      size,
+      biome,
+      depth,
+      sessionProgress,
+      progress,
+    );
+  }
+
+  @override
+  bool shouldRepaint(AdvancedBiomeEnvironmentPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+           oldDelegate.depth != depth ||
+           oldDelegate.sessionProgress != sessionProgress;
+  }
+}
+
+class AdvancedCreaturePainter extends CustomPainter {
+  final Creature creature;
+  final int swimDirection;
+  final int depthLevel;
+  final double animationValue;
+
+  AdvancedCreaturePainter({
+    required this.creature,
+    required this.swimDirection,
+    required this.depthLevel,
+    required this.animationValue,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    
+    if (swimDirection < 0) {
+      canvas.scale(-1, 1);
+      canvas.translate(-size.width, 0);
+    }
+
+    // Use our advanced creature renderer
+    AdvancedCreatureRenderer.paintCreature(
+      canvas,
+      size,
+      creature,
+      animationValue,
+      depthLevel.toDouble(),
+    );
+
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(AdvancedCreaturePainter oldDelegate) {
+    return oldDelegate.creature != creature ||
+           oldDelegate.swimDirection != swimDirection ||
+           oldDelegate.depthLevel != depthLevel ||
+           oldDelegate.animationValue != animationValue;
   }
 }
 

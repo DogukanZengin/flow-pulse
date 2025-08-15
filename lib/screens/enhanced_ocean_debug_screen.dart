@@ -7,10 +7,14 @@ import '../services/creature_service.dart';
 import '../widgets/species_discovery_overlay.dart';
 import '../widgets/enhanced_research_journal.dart';
 import '../widgets/marine_biology_career_widget.dart';
+import '../widgets/equipment_indicator_widget.dart';
+import '../rendering/advanced_creature_renderer.dart';
+import '../rendering/biome_environment_renderer.dart';
 import 'dart:math' as math;
 
-/// Enhanced Ocean Debug Screen for Phase 2 Features
-/// Showcases the comprehensive species database, discovery system, career progression, and research journal
+/// Enhanced Ocean Debug Screen for Phase 2 & 3 Features
+/// Showcases the comprehensive species database, discovery system, career progression, research journal,
+/// and Phase 3 advanced graphics including creature rendering, biome environments, and equipment systems
 class EnhancedOceanDebugScreen extends StatefulWidget {
   const EnhancedOceanDebugScreen({super.key});
 
@@ -39,14 +43,27 @@ class _EnhancedOceanDebugScreenState extends State<EnhancedOceanDebugScreen>
   bool sessionInProgress = false;
   late AnimationController _sessionController;
 
+  // Phase 3 Graphics Testing State
+  BiomeType selectedBiome = BiomeType.shallowWaters;
+  double graphicsTestDepth = 10.0;
+  double animationSpeed = 1.0;
+  bool enableParticleEffects = true;
+  bool enableAdvancedLighting = true;
+  Creature? selectedCreatureForRendering;
+  late AnimationController _graphicsController;
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 7, vsync: this);
+    _tabController = TabController(length: 9, vsync: this); // Increased to 9 tabs for Phase 3
     _sessionController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
+    _graphicsController = AnimationController(
+      duration: const Duration(seconds: 4),
+      vsync: this,
+    )..repeat();
     _initializeEnhancedOceanSystem();
   }
 
@@ -54,6 +71,7 @@ class _EnhancedOceanDebugScreenState extends State<EnhancedOceanDebugScreen>
   void dispose() {
     _tabController.dispose();
     _sessionController.dispose();
+    _graphicsController.dispose();
     super.dispose();
   }
 
@@ -151,6 +169,8 @@ class _EnhancedOceanDebugScreenState extends State<EnhancedOceanDebugScreen>
             Tab(icon: Icon(Icons.menu_book), text: 'Research Journal'),
             Tab(icon: Icon(Icons.school), text: 'Career'),
             Tab(icon: Icon(Icons.water_drop), text: 'Session Sim'),
+            Tab(icon: Icon(Icons.palette), text: 'Graphics Test'),
+            Tab(icon: Icon(Icons.build_circle), text: 'Equipment'),
             Tab(icon: Icon(Icons.play_arrow), text: 'Actions'),
           ],
         ),
@@ -178,6 +198,8 @@ class _EnhancedOceanDebugScreenState extends State<EnhancedOceanDebugScreen>
                   _buildResearchJournalTab(),
                   _buildCareerProgressionTab(),
                   _buildSessionSimulatorTab(),
+                  _buildGraphicsTestTab(),
+                  _buildEquipmentTab(),
                   _buildActionsTab(),
                 ],
               ),
@@ -1396,5 +1418,797 @@ class _EnhancedOceanDebugScreenState extends State<EnhancedOceanDebugScreen>
       careerTitle = "Marine Biology Intern";
       statusMessage = 'Progress reset! Starting fresh 🌊';
     });
+  }
+
+  /// Phase 3: Advanced Graphics Testing Tab
+  Widget _buildGraphicsTestTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('🎨 Phase 3 Graphics System Testing'),
+          const SizedBox(height: 16),
+          
+          // Graphics Controls Section
+          Card(
+            color: Colors.black.withValues(alpha: 0.3),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Graphics Controls',
+                    style: TextStyle(
+                      color: Colors.cyan.shade300,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Biome Selection
+                  Text('Selected Biome:', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                  const SizedBox(height: 8),
+                  DropdownButton<BiomeType>(
+                    value: selectedBiome,
+                    isExpanded: true,
+                    dropdownColor: Colors.blueGrey.shade800,
+                    style: const TextStyle(color: Colors.white),
+                    items: BiomeType.values.map((biome) {
+                      return DropdownMenuItem(
+                        value: biome,
+                        child: Text('${biome.displayName} (${biome.requiredLevel}+ level)'),
+                      );
+                    }).toList(),
+                    onChanged: (BiomeType? value) {
+                      if (value != null) {
+                        setState(() {
+                          selectedBiome = value;
+                          // Adjust depth based on biome
+                          switch (value) {
+                            case BiomeType.shallowWaters:
+                              graphicsTestDepth = 5.0;
+                              break;
+                            case BiomeType.coralGarden:
+                              graphicsTestDepth = 15.0;
+                              break;
+                            case BiomeType.deepOcean:
+                              graphicsTestDepth = 30.0;
+                              break;
+                            case BiomeType.abyssalZone:
+                              graphicsTestDepth = 50.0;
+                              break;
+                          }
+                        });
+                      }
+                    },
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Depth Control
+                  Text('Depth: ${graphicsTestDepth.toStringAsFixed(1)}m', 
+                       style: TextStyle(color: Colors.white70, fontSize: 14)),
+                  Slider(
+                    value: graphicsTestDepth,
+                    min: 0.0,
+                    max: 60.0,
+                    divisions: 60,
+                    activeColor: Colors.cyan,
+                    inactiveColor: Colors.grey,
+                    onChanged: (double value) {
+                      setState(() {
+                        graphicsTestDepth = value;
+                      });
+                    },
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Animation Speed Control
+                  Text('Animation Speed: ${animationSpeed.toStringAsFixed(1)}x', 
+                       style: TextStyle(color: Colors.white70, fontSize: 14)),
+                  Slider(
+                    value: animationSpeed,
+                    min: 0.1,
+                    max: 3.0,
+                    divisions: 29,
+                    activeColor: Colors.orange,
+                    inactiveColor: Colors.grey,
+                    onChanged: (double value) {
+                      setState(() {
+                        animationSpeed = value;
+                        _graphicsController.duration = Duration(milliseconds: (4000 / value).round());
+                      });
+                    },
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Toggle Controls
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CheckboxListTile(
+                          title: Text('Particle Effects', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          value: enableParticleEffects,
+                          activeColor: Colors.green,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              enableParticleEffects = value ?? true;
+                            });
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: CheckboxListTile(
+                          title: Text('Advanced Lighting', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                          value: enableAdvancedLighting,
+                          activeColor: Colors.yellow,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              enableAdvancedLighting = value ?? true;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Biome Environment Preview
+          Card(
+            color: Colors.black.withValues(alpha: 0.3),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Biome Environment Preview',
+                    style: TextStyle(
+                      color: Colors.cyan.shade300,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  Container(
+                    height: 200,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.cyan.withValues(alpha: 0.3)),
+                    ),
+                    child: AnimatedBuilder(
+                      animation: _graphicsController,
+                      builder: (context, child) {
+                        return CustomPaint(
+                          painter: BiomeEnvironmentTestPainter(
+                            biome: selectedBiome,
+                            depth: graphicsTestDepth,
+                            sessionProgress: 0.6,
+                            animationValue: _graphicsController.value,
+                            enableParticles: enableParticleEffects,
+                            enableLighting: enableAdvancedLighting,
+                          ),
+                          size: Size.infinite,
+                        );
+                      },
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 8),
+                  Text(
+                    'Real-time biome environment rendering with dynamic lighting and particle effects',
+                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Creature Rendering Preview
+          Card(
+            color: Colors.black.withValues(alpha: 0.3),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Advanced Creature Rendering',
+                    style: TextStyle(
+                      color: Colors.cyan.shade300,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Creature Selection
+                  Text('Test Creature:', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                  const SizedBox(height: 8),
+                  DropdownButton<Creature?>(
+                    value: selectedCreatureForRendering,
+                    hint: Text('Select a creature to test', style: TextStyle(color: Colors.white54)),
+                    isExpanded: true,
+                    dropdownColor: Colors.blueGrey.shade800,
+                    style: const TextStyle(color: Colors.white),
+                    items: [
+                      const DropdownMenuItem<Creature?>(value: null, child: Text('None')),
+                      ...discoveredCreatures.map((creature) {
+                        return DropdownMenuItem(
+                          value: creature,
+                          child: Text('${creature.name} (${creature.rarity.displayName})'),
+                        );
+                      }),
+                    ],
+                    onChanged: (Creature? value) {
+                      setState(() {
+                        selectedCreatureForRendering = value;
+                      });
+                    },
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  if (selectedCreatureForRendering != null) ...[
+                    Container(
+                      height: 120,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.blue.shade900.withValues(alpha: 0.3),
+                            Colors.blue.shade700.withValues(alpha: 0.5),
+                          ],
+                        ),
+                      ),
+                      child: AnimatedBuilder(
+                        animation: _graphicsController,
+                        builder: (context, child) {
+                          return CustomPaint(
+                            painter: AdvancedCreatureTestPainter(
+                              creature: selectedCreatureForRendering!,
+                              animationValue: _graphicsController.value,
+                              depth: graphicsTestDepth,
+                            ),
+                            size: Size.infinite,
+                          );
+                        },
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 8),
+                    Text(
+                      'Advanced creature rendering with rarity-based complexity levels',
+                      style: TextStyle(color: Colors.white54, fontSize: 12),
+                      textAlign: TextAlign.center,
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Creature Stats
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            selectedCreatureForRendering!.name,
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Species: ${selectedCreatureForRendering!.species}',
+                            style: TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                          Text(
+                            'Rarity: ${selectedCreatureForRendering!.rarity.displayName}',
+                            style: TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                          Text(
+                            'Habitat: ${selectedCreatureForRendering!.habitat.displayName}',
+                            style: TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                          Text(
+                            'Rendering Complexity: ${_getComplexityLevel(selectedCreatureForRendering!.rarity)}',
+                            style: TextStyle(color: Colors.cyan.shade300, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
+                    Container(
+                      height: 120,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Select a creature to preview advanced rendering',
+                          style: TextStyle(color: Colors.white54),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Performance Metrics
+          Card(
+            color: Colors.black.withValues(alpha: 0.3),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Graphics Performance Metrics',
+                    style: TextStyle(
+                      color: Colors.cyan.shade300,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildMetricCard('Biome Rendering', 'Active', Colors.green),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildMetricCard('Particle Systems', 
+                            enableParticleEffects ? 'Enabled' : 'Disabled', 
+                            enableParticleEffects ? Colors.green : Colors.orange),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 12),
+                  
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildMetricCard('Dynamic Lighting', 
+                            enableAdvancedLighting ? 'Advanced' : 'Basic', 
+                            enableAdvancedLighting ? Colors.green : Colors.blue),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildMetricCard('Animation Speed', 
+                            '${animationSpeed.toStringAsFixed(1)}x', 
+                            Colors.purple),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Phase 3: Equipment Testing Tab
+  Widget _buildEquipmentTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('🛠️ Marine Research Equipment System'),
+          const SizedBox(height: 16),
+          
+          // Current Level Equipment
+          Card(
+            color: Colors.black.withValues(alpha: 0.3),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Equipment for Level $currentLevel',
+                    style: TextStyle(
+                      color: Colors.cyan.shade300,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Equipment Indicator Widget
+                  EquipmentIndicatorWidget(
+                    userLevel: currentLevel,
+                    unlockedEquipment: _getUnlockedEquipment(),
+                    showCertifications: true,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Equipment Testing Controls
+          Card(
+            color: Colors.black.withValues(alpha: 0.3),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Equipment Testing Controls',
+                    style: TextStyle(
+                      color: Colors.cyan.shade300,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  Text('Test Different Levels:', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                  const SizedBox(height: 8),
+                  
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [1, 10, 25, 50, 75, 100].map((level) {
+                      return ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: currentLevel == level ? Colors.cyan : Colors.blueGrey.shade700,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            totalXP = MarineBiologyCareerService.getXPRequiredForLevel(level);
+                            currentLevel = level;
+                            careerTitle = MarineBiologyCareerService.getCareerTitle(level);
+                          });
+                        },
+                        child: Text('Level $level'),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Equipment Progression Chart
+          Card(
+            color: Colors.black.withValues(alpha: 0.3),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Equipment Progression Overview',
+                    style: TextStyle(
+                      color: Colors.cyan.shade300,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  ..._buildEquipmentProgressionList(),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getComplexityLevel(CreatureRarity rarity) {
+    switch (rarity) {
+      case CreatureRarity.common:
+        return 'Basic (Simple shape, basic animation)';
+      case CreatureRarity.uncommon:
+        return 'Enhanced (Gradient effects, complex fins)';
+      case CreatureRarity.rare:
+        return 'Advanced (Shimmer effects, glowing particles)';
+      case CreatureRarity.legendary:
+        return 'Master (Epic aura, screen-wide effects)';
+    }
+  }
+
+  List<String> _getUnlockedEquipment() {
+    List<String> equipment = [];
+    if (currentLevel >= 1) equipment.add('mask_snorkel');
+    if (currentLevel >= 2) equipment.add('fins');
+    if (currentLevel >= 3) equipment.add('notebook');
+    if (currentLevel >= 5) equipment.add('basic_camera');
+    if (currentLevel >= 11) equipment.add('scuba_gear');
+    if (currentLevel >= 15) equipment.add('digital_camera');
+    if (currentLevel >= 26) equipment.add('tech_diving');
+    if (currentLevel >= 35) equipment.add('rov');
+    if (currentLevel >= 51) equipment.add('submersible');
+    if (currentLevel >= 76) equipment.add('ai_assistant');
+    return equipment;
+  }
+
+  List<Widget> _buildEquipmentProgressionList() {
+    final equipmentData = [
+      {'name': 'Mask & Snorkel', 'level': 1, 'category': 'Basic'},
+      {'name': 'Diving Fins', 'level': 2, 'category': 'Basic'},
+      {'name': 'Waterproof Notebook', 'level': 3, 'category': 'Basic'},
+      {'name': 'Basic Camera', 'level': 5, 'category': 'Basic'},
+      {'name': 'Scuba Gear', 'level': 11, 'category': 'Intermediate'},
+      {'name': 'Underwater Lights', 'level': 13, 'category': 'Intermediate'},
+      {'name': 'Digital Camera', 'level': 15, 'category': 'Intermediate'},
+      {'name': 'Sample Kit', 'level': 18, 'category': 'Intermediate'},
+      {'name': 'Tech Diving Gear', 'level': 26, 'category': 'Advanced'},
+      {'name': 'Sonar System', 'level': 30, 'category': 'Advanced'},
+      {'name': 'ROV Companion', 'level': 35, 'category': 'Advanced'},
+      {'name': 'Specimen Lab', 'level': 40, 'category': 'Advanced'},
+      {'name': 'Research Submersible', 'level': 51, 'category': 'Expert'},
+      {'name': 'Genetic Sequencer', 'level': 60, 'category': 'Expert'},
+      {'name': 'Satellite Comm', 'level': 65, 'category': 'Expert'},
+      {'name': 'Breeding Facility', 'level': 70, 'category': 'Expert'},
+      {'name': 'AI Assistant', 'level': 76, 'category': 'Master'},
+      {'name': 'Holographic Display', 'level': 85, 'category': 'Master'},
+      {'name': 'Time-lapse Camera', 'level': 90, 'category': 'Master'},
+      {'name': 'Quantum Scanner', 'level': 95, 'category': 'Master'},
+    ];
+
+    return equipmentData.map((equipment) {
+      final isUnlocked = currentLevel >= (equipment['level'] as int);
+      final category = equipment['category'] as String;
+      Color categoryColor;
+      
+      switch (category) {
+        case 'Basic':
+          categoryColor = Colors.green;
+          break;
+        case 'Intermediate':
+          categoryColor = Colors.blue;
+          break;
+        case 'Advanced':
+          categoryColor = Colors.orange;
+          break;
+        case 'Expert':
+          categoryColor = Colors.purple;
+          break;
+        case 'Master':
+          categoryColor = Colors.amber;
+          break;
+        default:
+          categoryColor = Colors.grey;
+      }
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isUnlocked 
+              ? categoryColor.withValues(alpha: 0.2)
+              : Colors.grey.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isUnlocked ? categoryColor : Colors.grey,
+            width: isUnlocked ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isUnlocked ? Icons.check_circle : Icons.lock,
+              color: isUnlocked ? categoryColor : Colors.grey,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    equipment['name'] as String,
+                    style: TextStyle(
+                      color: isUnlocked ? Colors.white : Colors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    'Level ${equipment['level']} • $category',
+                    style: TextStyle(
+                      color: isUnlocked ? categoryColor : Colors.grey,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList();
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.cyan.shade600.withValues(alpha: 0.8),
+            Colors.blue.shade600.withValues(alpha: 0.8),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricCard(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Custom Painters for Graphics Testing
+class BiomeEnvironmentTestPainter extends CustomPainter {
+  final BiomeType biome;
+  final double depth;
+  final double sessionProgress;
+  final double animationValue;
+  final bool enableParticles;
+  final bool enableLighting;
+
+  BiomeEnvironmentTestPainter({
+    required this.biome,
+    required this.depth,
+    required this.sessionProgress,
+    required this.animationValue,
+    required this.enableParticles,
+    required this.enableLighting,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (enableLighting || enableParticles) {
+      BiomeEnvironmentRenderer.paintBiomeEnvironment(
+        canvas,
+        size,
+        biome,
+        depth,
+        sessionProgress,
+        animationValue,
+      );
+    } else {
+      // Basic rendering without advanced features
+      final paint = Paint()..color = _getBasicBiomeColor();
+      canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
+    }
+  }
+
+  Color _getBasicBiomeColor() {
+    switch (biome) {
+      case BiomeType.shallowWaters:
+        return const Color(0xFF87CEEB);
+      case BiomeType.coralGarden:
+        return const Color(0xFF40E0D0);
+      case BiomeType.deepOcean:
+        return const Color(0xFF000080);
+      case BiomeType.abyssalZone:
+        return const Color(0xFF191970);
+    }
+  }
+
+  @override
+  bool shouldRepaint(BiomeEnvironmentTestPainter oldDelegate) {
+    return oldDelegate.animationValue != animationValue ||
+           oldDelegate.depth != depth ||
+           oldDelegate.biome != biome ||
+           oldDelegate.enableParticles != enableParticles ||
+           oldDelegate.enableLighting != enableLighting;
+  }
+}
+
+class AdvancedCreatureTestPainter extends CustomPainter {
+  final Creature creature;
+  final double animationValue;
+  final double depth;
+
+  AdvancedCreatureTestPainter({
+    required this.creature,
+    required this.animationValue,
+    required this.depth,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    AdvancedCreatureRenderer.paintCreature(
+      canvas,
+      size,
+      creature,
+      animationValue,
+      depth,
+    );
+  }
+
+  @override
+  bool shouldRepaint(AdvancedCreatureTestPainter oldDelegate) {
+    return oldDelegate.creature != creature ||
+           oldDelegate.animationValue != animationValue ||
+           oldDelegate.depth != depth;
   }
 }

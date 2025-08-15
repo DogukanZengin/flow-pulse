@@ -1,8 +1,8 @@
-# 🌊 Enhanced Ocean Debug System - User Guide
+# 🌊 Enhanced Ocean Debug System - User Guide (Phase 2 & 3)
 
 ## Overview
 
-The Enhanced Ocean Debug System is a comprehensive testing interface for all Phase 2 features. It provides visual testing capabilities for the 144-species database, discovery overlays, career progression, and research journal functionality.
+The Enhanced Ocean Debug System is a comprehensive testing interface for all Phase 2 & 3 features. It provides visual testing capabilities for the 144-species database, discovery overlays, career progression, research journal functionality, advanced graphics rendering, and equipment systems.
 
 ---
 
@@ -10,7 +10,7 @@ The Enhanced Ocean Debug System is a comprehensive testing interface for all Pha
 
 1. **Launch the App**: Start FlowPulse normally
 2. **Navigate to Debug**: Tap the Ocean Debug tab in the bottom navigation (🌊 icon)
-3. **Explore Features**: Use the 7 tabs to test different Phase 2 components
+3. **Explore Features**: Use the 9 tabs to test different Phase 2 & 3 components
 
 ---
 
@@ -59,7 +59,23 @@ The Enhanced Ocean Debug System is a comprehensive testing interface for all Pha
 - **Discovery Chances**: Live calculation of spawn probabilities
 - **Session Animation**: 2-second expedition simulation with progress bar
 
-### 7. **Actions Tab** ⚡
+### 7. **Graphics Test Tab** 🎨 (Phase 3)
+- **Biome Environment Testing**: Interactive biome rendering with all 4 environments
+- **Graphics Controls**: Depth adjustment, animation speed control, feature toggles
+- **Real-time Preview**: Live biome environment rendering with particle effects and dynamic lighting
+- **Advanced Creature Rendering**: Test all 4 complexity levels (common to legendary)
+- **Creature Selection**: Choose from discovered creatures to test rendering systems
+- **Performance Metrics**: Monitor graphics system performance and feature status
+
+### 8. **Equipment Tab** 🛠️ (Phase 3)  
+- **Equipment Progression**: Visual equipment system for all 20 research tools
+- **Level Testing**: Test equipment unlocks at different user levels (1-100)
+- **Certification System**: View all 6 marine biology certifications and requirements
+- **Interactive Equipment Grid**: See unlocked vs locked equipment with animations
+- **Equipment Categories**: Test Basic, Intermediate, Advanced, Expert, and Master equipment
+- **Progression Overview**: Complete equipment unlock roadmap from Level 1-95
+
+### 9. **Actions Tab** ⚡
 - **Quick Testing**: Rapid-fire testing buttons
 - **XP Manipulation**: Gain XP boosts, complete sessions
 - **Random Discoveries**: Add random species to collection  
@@ -97,6 +113,22 @@ The Enhanced Ocean Debug System is a comprehensive testing interface for all Pha
 3. Start animated session simulation
 4. Watch real-time depth progression
 5. See discovery chance calculations
+
+### **Test Advanced Graphics System** (Phase 3)
+1. Go to **Graphics Test** tab
+2. Select different biomes (Shallow → Abyssal)
+3. Adjust depth slider to see environmental changes
+4. Toggle particle effects and lighting systems
+5. Select discovered creatures to test rendering complexity
+6. Monitor performance metrics and animation smoothness
+
+### **Test Equipment Progression** (Phase 3)
+1. Go to **Equipment** tab  
+2. Use level buttons to test different progression stages
+3. View unlocked vs locked equipment with visual indicators
+4. Check certification badge system (6 certifications)
+5. Review equipment progression overview (20 total equipment types)
+6. Test equipment categories from Basic to Master level
 
 ---
 
