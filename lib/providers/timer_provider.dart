@@ -7,7 +7,7 @@ class TimerProvider extends ChangeNotifier {
   int _longBreakDuration = 15; // minutes
   int _sessionsUntilLongBreak = 4;
   bool _autoStartBreaks = false;
-  bool _autoStartPomodoros = false;
+  bool _autoStartSessions = false;
   bool _enableVisualEffects = true; // Performance setting
   
   SharedPreferences? _prefs;
@@ -18,7 +18,7 @@ class TimerProvider extends ChangeNotifier {
   int get longBreakDuration => _longBreakDuration;
   int get sessionsUntilLongBreak => _sessionsUntilLongBreak;
   bool get autoStartBreaks => _autoStartBreaks;
-  bool get autoStartPomodoros => _autoStartPomodoros;
+  bool get autoStartSessions => _autoStartSessions;
   bool get enableVisualEffects => _enableVisualEffects;
 
   // SharedPreferences keys
@@ -27,7 +27,7 @@ class TimerProvider extends ChangeNotifier {
   static const String _longBreakDurationKey = 'long_break_duration';
   static const String _sessionsUntilLongBreakKey = 'sessions_until_long_break';
   static const String _autoStartBreaksKey = 'auto_start_breaks';
-  static const String _autoStartPomodorosKey = 'auto_start_pomodoros';
+  static const String _autoStartSessionsKey = 'auto_start_sessions';
   static const String _enableVisualEffectsKey = 'enable_visual_effects';
 
   Future<void> loadSettings() async {
@@ -38,7 +38,7 @@ class TimerProvider extends ChangeNotifier {
     _longBreakDuration = _prefs?.getInt(_longBreakDurationKey) ?? 15;
     _sessionsUntilLongBreak = _prefs?.getInt(_sessionsUntilLongBreakKey) ?? 4;
     _autoStartBreaks = _prefs?.getBool(_autoStartBreaksKey) ?? false;
-    _autoStartPomodoros = _prefs?.getBool(_autoStartPomodorosKey) ?? false;
+    _autoStartSessions = _prefs?.getBool(_autoStartSessionsKey) ?? false;
     _enableVisualEffects = _prefs?.getBool(_enableVisualEffectsKey) ?? true;
     
     notifyListeners();
@@ -74,28 +74,28 @@ class TimerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setAutoStartPomodoros(bool enabled) async {
-    _autoStartPomodoros = enabled;
-    await _prefs?.setBool(_autoStartPomodorosKey, _autoStartPomodoros);
+  Future<void> setAutoStartSessions(bool enabled) async {
+    _autoStartSessions = enabled;
+    await _prefs?.setBool(_autoStartSessionsKey, _autoStartSessions);
     notifyListeners();
   }
 
-  // Quick preset methods
-  Future<void> setClassicPomodoro() async {
+  // Marine research expedition presets
+  Future<void> setShallowWaterDive() async {
     await setFocusDuration(25);
     await setBreakDuration(5);
     await setLongBreakDuration(15);
     await setSessionsUntilLongBreak(4);
   }
 
-  Future<void> setExtendedFocus() async {
+  Future<void> setDeepSeaExpedition() async {
     await setFocusDuration(45);
     await setBreakDuration(10);
     await setLongBreakDuration(30);
     await setSessionsUntilLongBreak(3);
   }
 
-  Future<void> setQuickSprints() async {
+  Future<void> setSurfaceExploration() async {
     await setFocusDuration(15);
     await setBreakDuration(3);
     await setLongBreakDuration(15);

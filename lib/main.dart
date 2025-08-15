@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
-import 'dart:math' as math;
 import 'dart:ui';
 import 'providers/theme_provider.dart';
 import 'providers/timer_provider.dart';
@@ -15,7 +13,7 @@ import 'services/database_service.dart';
 import 'models/session.dart';
 import 'widgets/celebration_dialog.dart';
 import 'widgets/particle_system.dart';
-import 'widgets/gradient_mesh_background.dart';
+import 'widgets/underwater_environment.dart';
 import 'screens/ambient_mode_screen.dart';
 import 'services/ui_sound_service.dart';
 import 'services/time_based_theme_service.dart';
@@ -24,17 +22,14 @@ import 'services/notification_service.dart';
 import 'services/quick_actions_service.dart';
 import 'services/deep_linking_service.dart';
 import 'services/live_activities_service.dart';
-import 'widgets/goals_tracker_widget.dart';
-import 'widgets/achievement_badges_widget.dart';
-import 'widgets/avatar_mascot_widget.dart';
-import 'widgets/theme_selector_widget.dart';
-import 'widgets/aquarium_widget.dart';
+import 'widgets/full_screen_ocean_widget.dart';
 import 'models/aquarium.dart';
 import 'models/creature.dart';
 import 'models/coral.dart';
 import 'services/creature_service.dart';
 import 'widgets/creature_discovery_animation.dart';
 import 'services/ocean_activity_service.dart';
+import 'services/ocean_audio_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -160,25 +155,25 @@ class _MainScreenState extends State<MainScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Container(
-        margin: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
+        margin: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(25),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
             child: Container(
-              height: 80,
+              height: 68,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(30),
+                color: Colors.white.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(25),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
-                  width: 1.5,
+                  color: Colors.white.withOpacity(0.1),
+                  width: 1.0,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
@@ -186,22 +181,22 @@ class _MainScreenState extends State<MainScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _NavItem(
-                    icon: Icons.timer,
-                    label: 'Timer',
+                    icon: Icons.scuba_diving,
+                    label: 'Research',
                     index: 0,
                     isSelected: _currentIndex == 0,
                     onTap: () => _selectTab(0),
                   ),
                   _NavItem(
-                    icon: Icons.task_alt,
-                    label: 'Tasks',
+                    icon: Icons.book,
+                    label: 'Journal',
                     index: 1,
                     isSelected: _currentIndex == 1,
                     onTap: () => _selectTab(1),
                   ),
                   _NavItem(
-                    icon: Icons.analytics,
-                    label: 'Analytics',
+                    icon: Icons.science,
+                    label: 'Data',
                     index: 2,
                     isSelected: _currentIndex == 2,
                     onTap: () => _selectTab(2),
@@ -247,8 +242,6 @@ class _TimerScreenState extends State<TimerScreen>
     with TickerProviderStateMixin {
   
   late AnimationController _progressAnimationController;
-  late AnimationController _pulseAnimationController;
-  late Animation<double> _pulseAnimation;
   
   Timer? _timer;
   bool _isRunning = false;
@@ -271,25 +264,13 @@ class _TimerScreenState extends State<TimerScreen>
       _initializeTimer();
       _loadTodayStats();
       _initializeOceanSystem();
+      _initializeOceanAudio();
     });
     
     _progressAnimationController = AnimationController(
       duration: const Duration(seconds: 1500), // Will be updated dynamically
       vsync: this,
     );
-    
-    _pulseAnimationController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat(reverse: true);
-    
-    _pulseAnimation = Tween(
-      begin: 1.0,
-      end: 1.05,
-    ).animate(CurvedAnimation(
-      parent: _pulseAnimationController,
-      curve: Curves.easeInOut,
-    ));
   }
 
   @override
@@ -330,6 +311,12 @@ class _TimerScreenState extends State<TimerScreen>
     }
   }
   
+  Future<void> _initializeOceanAudio() async {
+    // Initialize ocean audio with current biome
+    final biome = _aquarium?.currentBiome ?? BiomeType.shallowWaters;
+    await OceanAudioService.instance.initializeBiomeAudio(biome);
+  }
+
   Future<void> _initializeOceanSystem() async {
     try {
       // Create demo aquarium for the UI integration
@@ -431,7 +418,6 @@ class _TimerScreenState extends State<TimerScreen>
   void dispose() {
     _timer?.cancel();
     _progressAnimationController.dispose();
-    _pulseAnimationController.dispose();
     super.dispose();
   }
   
@@ -452,6 +438,9 @@ class _TimerScreenState extends State<TimerScreen>
     _progressAnimationController.duration = Duration(seconds: _secondsRemaining);
     _progressAnimationController.forward();
     _sessionStartTime = DateTime.now();
+    
+    // Play ocean audio when session starts
+    OceanAudioService.instance.playSessionSound(SessionOceanSound.sessionStart);
     
     // Log coral planting activity for focus sessions
     if (_isStudySession) {
@@ -620,6 +609,9 @@ class _TimerScreenState extends State<TimerScreen>
     // Play session complete sound
     UISoundService.instance.sessionComplete();
     
+    // Play ocean audio for session completion
+    OceanAudioService.instance.playSessionSound(SessionOceanSound.sessionComplete);
+    
     final wasStudySession = _isStudySession;
     
     // Calculate session duration
@@ -714,7 +706,7 @@ class _TimerScreenState extends State<TimerScreen>
     // Complete Live Activity
     LiveActivitiesService().completeTimerActivity(
       isStudySession: wasStudySession,
-      nextSessionType: _isStudySession ? 'Focus Session' : 'Break Time',
+      nextSessionType: _isStudySession ? 'Research Dive' : 'Surface Rest',
     );
     
     // Refresh stats after completing session
@@ -766,6 +758,9 @@ class _TimerScreenState extends State<TimerScreen>
   }
   
   void _showCreatureDiscoveryAnimation(Creature creature) {
+    // Play creature discovery sound
+    OceanAudioService.instance.playOceanEffect(OceanSoundEffect.creatureDiscover);
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -810,9 +805,9 @@ class _TimerScreenState extends State<TimerScreen>
 
   String _getSessionTitle() {
     if (_isStudySession) {
-      return 'Focus Time';
+      return 'Research Dive';
     } else {
-      return _shouldUseLongBreak() ? 'Long Break' : 'Break Time';
+      return _shouldUseLongBreak() ? 'Lab Analysis' : 'Surface Rest';
     }
   }
   
@@ -889,9 +884,11 @@ class _TimerScreenState extends State<TimerScreen>
             if (timerProvider.enableVisualEffects)
               Positioned.fill(
                 child: RepaintBoundary(
-                  child: GradientMeshBackground(
+                  child: UnderwaterEnvironment(
                     isStudySession: _isStudySession,
                     isEnabled: timerProvider.enableVisualEffects,
+                    aquarium: _aquarium,
+                    visibleCreatures: _visibleCreatures,
                   ),
                 ),
               ),
@@ -921,240 +918,40 @@ class _TimerScreenState extends State<TimerScreen>
               ),
               centerTitle: true,
             ),
+            // Full-screen marine biology research station
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: SingleChildScrollView(
-                  child: Column(
-              children: [
-              Text(
-                _getSessionTitle(),
-                style: theme.textTheme.headlineLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  shadows: [
-                    Shadow(
-                      offset: const Offset(0, 2),
-                      blurRadius: 4,
-                      color: Colors.black.withOpacity(0.3),
-                    ),
-                  ],
-                ),
-              ),
-              if (_todayStats != null)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _StatChip(
-                      icon: Icons.access_time,
-                      label: _formatTime(_todayStats!['todayFocusTime'] ?? 0),
-                      tooltip: 'Today\'s focus time',
-                    ),
-                    const SizedBox(width: 12),
-                    _StatChip(
-                      icon: Icons.local_fire_department,
-                      label: '${GamificationService.instance.currentStreak}',
-                      tooltip: 'Current streak',
-                    ),
-                  ],
-                ),
-              const SizedBox(height: 20),
-              
-              // Compact Level and Streak Bars positioned above timer - centered
-              Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Compact Level Bar
-                    _CompactXPBar(
-                      currentXP: GamificationService.instance.totalXP,
-                      currentLevel: GamificationService.instance.currentLevel,
-                      progress: GamificationService.instance.getLevelProgress(),
-                    ),
-                    const SizedBox(width: 12),
-                    // Compact Streak Widget
-                    _CompactStreakBar(
-                      streakCount: GamificationService.instance.currentStreak,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Timer circle with avatar positioned upper left
-              Stack(
-                alignment: Alignment.topLeft,
-                children: [
-                  // Timer circle
-                  Center(
-                    child: RepaintBoundary(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 20),
-                        child: ClipOval(
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                            child: Container(
-                              width: 360,
-                              height: 360,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.12),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.25),
-                                  width: 2.0,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 30,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: Center(
-                                child: AnimatedBuilder(
-                                  animation: _pulseAnimation,
-                                  builder: (context, child) {
-                                    return Transform.scale(
-                                      scale: _isRunning ? _pulseAnimation.value : 1.0,
-                                      child: _aquarium != null
-                                          ? AquariumWidget(
-                                              aquarium: _aquarium!,
-                                              progress: progress,
-                                              isRunning: _isRunning,
-                                              isStudySession: _isStudySession,
-                                              visibleCreatures: _visibleCreatures,
-                                              visibleCorals: _visibleCorals,
-                                              onTap: _toggleTimer,
-                                            )
-                                          : Container(
-                                              width: 360,
-                                              height: 360,
-                                              decoration: const BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                gradient: LinearGradient(
-                                                  colors: [
-                                                    Color(0xFF87CEEB),
-                                                    Color(0xFF00A6D6),
-                                                    Color(0xFF006994),
-                                                  ],
-                                                ),
-                                              ),
-                                              child: const Center(
-                                                child: CircularProgressIndicator(
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
+              child: _aquarium != null
+                  ? FullScreenOceanWidget(
+                      aquarium: _aquarium!,
+                      sessionProgress: 1.0 - progress, // Invert for depth progression
+                      isRunning: _isRunning,
+                      isStudySession: _isStudySession,
+                      visibleCreatures: _visibleCreatures,
+                      visibleCorals: _visibleCorals,
+                      secondsRemaining: _secondsRemaining,
+                      totalSessionSeconds: totalSeconds,
+                      onTap: _toggleTimer,
+                    )
+                  : Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Color(0xFF87CEEB),
+                            Color(0xFF00A6D6),
+                            Color(0xFF006994),
+                          ],
+                        ),
+                      ),
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
                         ),
                       ),
                     ),
-                  ),
-                  // Avatar positioned at upper left of timer
-                  Positioned(
-                    left: MediaQuery.of(context).size.width / 2 - 140,
-                    top: 10,
-                    child: AvatarMascotWidget(
-                      isRunning: _isRunning,
-                      isStudySession: _isStudySession,
-                      size: 65,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              // Control buttons row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      onPressed: _resetTimer,
-                      icon: const Icon(Icons.refresh),
-                      iconSize: 28,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _isStudySession = !_isStudySession;
-                          _resetTimer();
-                        });
-                      },
-                      icon: Icon(_isStudySession ? Icons.coffee : Icons.psychology),
-                      iconSize: 28,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: IconButton(
-                      onPressed: _enterAmbientMode,
-                      icon: const Icon(Icons.fullscreen),
-                      iconSize: 28,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              // const AudioControls(), // Hidden for now
-              // const SizedBox(height: 24),
-              // Theme Selector
-              const ThemeSelectorWidget(),
-              const SizedBox(height: 20),
-              // Daily/Weekly Goals Tracker
-              const GoalsTrackerWidget(),
-              const SizedBox(height: 20),
-              // Achievement Badges
-              const AchievementBadgesWidget(),
-              const SizedBox(height: 40),
-                    ],
-                  ),
-                ),
-              ),
             ),
           ],
         ),
@@ -1165,133 +962,7 @@ class _TimerScreenState extends State<TimerScreen>
   }
 }
 
-class CircularProgressPainter extends CustomPainter {
-  final double progress;
-  final bool isStudySession;
-  final TimeOfDayColors timeColors;
-  
-  CircularProgressPainter({
-    required this.progress,
-    required this.isStudySession,
-    required this.timeColors,
-  });
-  
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
-    const strokeWidth = 16.0;
-    const glowStrokeWidth = 24.0;
-    
-    // Use time-based gradient colors
-    final gradientColors = timeColors.primaryGradient;
-    
-    // Background circle with subtle transparency
-    final backgroundPaint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-    
-    // Glow effect paint
-    final glowPaint = Paint()
-      ..color = gradientColors[0].withOpacity(0.3)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = glowStrokeWidth
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8.0);
-    
-    // Progress gradient paint
-    final progressPaint = Paint()
-      ..shader = SweepGradient(
-        colors: gradientColors,
-        startAngle: -math.pi / 2,
-        endAngle: 3 * math.pi / 2,
-      ).createShader(Rect.fromCircle(center: center, radius: radius))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-    
-    // Draw background circle
-    canvas.drawCircle(center, radius, backgroundPaint);
-    
-    if (progress > 0) {
-      const startAngle = -math.pi / 2;
-      final sweepAngle = 2 * math.pi * progress;
-      
-      // Draw glow effect
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        startAngle,
-        sweepAngle,
-        false,
-        glowPaint,
-      );
-      
-      // Draw progress arc with gradient
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        startAngle,
-        sweepAngle,
-        false,
-        progressPaint,
-      );
-    }
-  }
-  
-  @override
-  bool shouldRepaint(CircularProgressPainter oldDelegate) {
-    return oldDelegate.progress != progress ||
-        oldDelegate.isStudySession != isStudySession ||
-        oldDelegate.timeColors != timeColors;
-  }
-}
 
-class _StatChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String tooltip;
-
-  const _StatChip({
-    required this.icon,
-    required this.label,
-    required this.tooltip,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return Tooltip(
-      message: tooltip,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _NavItem extends StatefulWidget {
   final IconData icon;
@@ -1409,12 +1080,12 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
                         size: widget.isSelected ? 28 : 24,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     AnimatedDefaultTextStyle(
                       duration: const Duration(milliseconds: 200),
                       style: TextStyle(
                         color: Colors.white.withOpacity(widget.isSelected ? 1.0 : 0.7),
-                        fontSize: widget.isSelected ? 12 : 10,
+                        fontSize: widget.isSelected ? 11 : 9,
                         fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
                       ),
                       child: Text(widget.label),

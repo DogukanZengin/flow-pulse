@@ -124,7 +124,7 @@ class _TimerSection extends StatelessWidget {
                 ),
             const SizedBox(height: 16),
             _TimerSlider(
-              title: 'Focus Duration',
+              title: 'Dive Duration',
               subtitle: '${timerProvider.focusDuration} minutes',
               value: timerProvider.focusDuration.toDouble(),
               min: 1,
@@ -136,7 +136,7 @@ class _TimerSection extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _TimerSlider(
-              title: 'Short Break',
+              title: 'Surface Rest',
               subtitle: '${timerProvider.breakDuration} minutes',
               value: timerProvider.breakDuration.toDouble(),
               min: 1,
@@ -148,7 +148,7 @@ class _TimerSection extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _TimerSlider(
-              title: 'Long Break',
+              title: 'Lab Analysis',
               subtitle: '${timerProvider.longBreakDuration} minutes',
               value: timerProvider.longBreakDuration.toDouble(),
               min: 5,
@@ -441,19 +441,19 @@ class _AutoStartSection extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             SwitchListTile(
-              title: const Text('Auto-start Breaks', style: TextStyle(color: Colors.white)),
-              subtitle: const Text('Automatically start break timer', style: TextStyle(color: Colors.white70)),
+              title: const Text('Auto-start Surface Rest', style: TextStyle(color: Colors.white)),
+              subtitle: const Text('Automatically start surface rest timer', style: TextStyle(color: Colors.white70)),
               value: timerProvider.autoStartBreaks,
               onChanged: (value) {
                 context.read<TimerProvider>().setAutoStartBreaks(value);
               },
             ),
             SwitchListTile(
-              title: const Text('Auto-start Focus', style: TextStyle(color: Colors.white)),
-              subtitle: const Text('Automatically start focus timer after breaks', style: TextStyle(color: Colors.white70)),
-              value: timerProvider.autoStartPomodoros,
+              title: const Text('Auto-start Research', style: TextStyle(color: Colors.white)),
+              subtitle: const Text('Automatically start research dives after surface rest', style: TextStyle(color: Colors.white70)),
+              value: timerProvider.autoStartSessions,
               onChanged: (value) {
-                context.read<TimerProvider>().setAutoStartPomodoros(value);
+                context.read<TimerProvider>().setAutoStartSessions(value);
               },
             ),
           ],
@@ -507,39 +507,39 @@ class _PresetSection extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _PresetButton(
-              title: 'Classic Pomodoro',
-              subtitle: '25 min focus • 5 min break',
+              title: 'Shallow Water Dive',
+              subtitle: '25 min dive • 5 min surface',
               onTap: () async {
-                await context.read<TimerProvider>().setClassicPomodoro();
+                await context.read<TimerProvider>().setShallowWaterDive();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Classic Pomodoro preset applied! ⏱️')),
+                    const SnackBar(content: Text('Shallow Water Dive preset applied! 🤿')),
                   );
                 }
               },
             ),
             const SizedBox(height: 8),
             _PresetButton(
-              title: 'Extended Focus',
-              subtitle: '45 min focus • 10 min break',
+              title: 'Deep Sea Expedition',
+              subtitle: '45 min dive • 10 min surface',
               onTap: () async {
-                await context.read<TimerProvider>().setExtendedFocus();
+                await context.read<TimerProvider>().setDeepSeaExpedition();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Extended Focus preset applied! 🎯')),
+                    const SnackBar(content: Text('Deep Sea Expedition preset applied! 🌊')),
                   );
                 }
               },
             ),
             const SizedBox(height: 8),
             _PresetButton(
-              title: 'Quick Sprints',
-              subtitle: '15 min focus • 3 min break',
+              title: 'Surface Exploration',
+              subtitle: '15 min explore • 3 min surface',
               onTap: () async {
-                await context.read<TimerProvider>().setQuickSprints();
+                await context.read<TimerProvider>().setSurfaceExploration();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Quick Sprints preset applied! ⚡')),
+                    const SnackBar(content: Text('Surface Exploration preset applied! 🏊')),
                   );
                 }
               },
