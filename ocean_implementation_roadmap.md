@@ -149,11 +149,11 @@ class Aquarium {
 **Focus: Discovery & Collection**
 
 **Tasks:**
-- [ ] Implement creature spawning based on session completion  
-- [ ] Create basic creature collection database
-- [ ] Design discovery celebration animations
-- [ ] Add ocean-themed activity log messages
-- [ ] Implement creature rarity system (Common 70%, Uncommon 20%, Rare 8%, Legendary 2%)
+- [x] Implement creature spawning based on session completion  
+- [x] Create basic creature collection database
+- [x] Design discovery celebration animations
+- [x] Add ocean-themed activity log messages
+- [x] Implement creature rarity system (Common 70%, Uncommon 20%, Rare 8%, Legendary 2%)
 
 **Services to Create:**
 - `lib/services/creature_service.dart` - Creature spawning and discovery
@@ -161,6 +161,15 @@ class Aquarium {
 - `lib/widgets/creature_discovery_animation.dart` - Celebration effects
 
 **Deliverable**: ✅ Users discover fish after completing sessions
+
+**✅ COMPLETED - Phase 2A Status:**
+- ✅ **CreatureService**: Complete discovery system with weighted rarity spawning
+- ✅ **Discovery Logic**: 30% base chance + coral bonuses, session duration bonuses
+- ✅ **Creature Collection**: Database methods for tracking discovered/undiscovered
+- ✅ **Discovery Animation**: Beautiful celebration UI with rarity-based effects
+- ✅ **Ocean Activity Integration**: Logging throughout timer lifecycle
+- ✅ **Debug Tools**: Instant testing capabilities for all features
+- ✅ **Rarity System**: Exact spawn rates implemented (70/20/8/2%)
 
 ### 🌊 Phase 2B: Aquarium Environment (Week 4)
 **Focus: Background & Ambiance**
