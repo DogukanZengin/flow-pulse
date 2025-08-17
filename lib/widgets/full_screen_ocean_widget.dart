@@ -5,7 +5,6 @@ import '../models/creature.dart';
 import '../models/coral.dart';
 import '../widgets/dive_computer_widget.dart';
 import '../widgets/research_progress_widget.dart';
-import '../widgets/equipment_indicator_widget.dart';
 import '../services/gamification_service.dart';
 import '../rendering/advanced_creature_renderer.dart';
 import '../rendering/biome_environment_renderer.dart';
@@ -45,8 +44,15 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
   late AnimationController _waveController;
   late AnimationController _bubbleController;
   late AnimationController _depthController;
+  late AnimationController _timerPulseController;
+  late Animation<double> _timerPulseAnimation;
+  late AnimationController _journalExpandController;
+  late Animation<double> _journalExpandAnimation;
   late List<AnimationController> _fishControllers;
   late List<Animation<Offset>> _fishAnimations;
+  
+  // State for journal expansion
+  bool _isJournalExpanded = false;
   
   // Continuous time tracking for smooth animations
   late DateTime _startTime;
@@ -77,12 +83,41 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
       vsync: this,
     );
 
+    // Timer pulse animation for visibility
+    _timerPulseController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
+    
+    _timerPulseAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.1,
+    ).animate(CurvedAnimation(
+      parent: _timerPulseController,
+      curve: Curves.easeInOut,
+    ));
+
+    // Journal expand animation
+    _journalExpandController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    
+    _journalExpandAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _journalExpandController,
+      curve: Curves.easeOutBack,
+    ));
+
     // Initialize creature animations
     _initializeFishAnimations();
 
     // Start depth progression if session is running
     if (widget.isRunning) {
       _depthController.forward();
+      _timerPulseController.repeat(reverse: true);
     }
   }
 
@@ -130,8 +165,11 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     // Update depth progression based on session state
     if (widget.isRunning && !oldWidget.isRunning) {
       _depthController.forward();
+      _timerPulseController.repeat(reverse: true);
     } else if (!widget.isRunning && oldWidget.isRunning) {
       _depthController.stop();
+      _timerPulseController.stop();
+      _timerPulseController.reset();
     }
   }
 
@@ -140,6 +178,8 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     _waveController.dispose();
     _bubbleController.dispose();
     _depthController.dispose();
+    _timerPulseController.dispose();
+    _journalExpandController.dispose();
     for (final controller in _fishControllers) {
       controller.dispose();
     }
@@ -260,8 +300,45 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
             // Bubbles from equipment
             _buildBubbles(screenSize),
             
-            // UI Overlay - Research Station Interface
-            _buildResearchStationUI(currentDepth, targetDepth),
+            // Prominent Timer Display at the top center
+            Positioned(
+              top: 80,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: _buildProminentTimer(),
+              ),
+            ),
+            
+            // Research Station UI Elements
+            Positioned(
+              top: 220,
+              left: 20,
+              right: 20,
+              child: Row(
+                children: [
+                  // Dive Computer
+                  DiveComputerWidget(
+                    currentDepthMeters: currentDepth,
+                    targetDepthMeters: targetDepth,
+                    oxygenTimeSeconds: widget.secondsRemaining,
+                    isDiving: widget.isRunning,
+                    diveStatus: _getDiveStatus(),
+                    depthProgress: widget.sessionProgress,
+                  ),
+                  
+                  const Spacer(),
+                  
+                  // Research Progress
+                  ResearchProgressWidget(
+                    speciesDiscovered: widget.visibleCreatures.length,
+                    totalSpeciesInCurrentBiome: 12, // TODO: Get from aquarium data
+                    researchPapersPublished: 3, // TODO: Get from gamification service
+                    certificationProgress: GamificationService.instance.getLevelProgress(),
+                  ),
+                ],
+              ),
+            ),
             
             // Central play/pause control with ocean theme
             _buildCentralControl(screenSize),
@@ -401,34 +478,113 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     );
   }
 
-  Widget _buildResearchStationUI(int currentDepth, int targetDepth) {
-    return Positioned(
-      top: 60,
-      left: 20,
-      right: 20,
-      child: Row(
-        children: [
-          // Dive Computer
-          DiveComputerWidget(
-            currentDepthMeters: currentDepth,
-            targetDepthMeters: targetDepth,
-            oxygenTimeSeconds: widget.secondsRemaining,
-            isDiving: widget.isRunning,
-            diveStatus: _getDiveStatus(),
-            depthProgress: widget.sessionProgress,
+  Widget _buildProminentTimer() {
+    final minutes = widget.secondsRemaining ~/ 60;
+    final seconds = widget.secondsRemaining % 60;
+    final timeString = '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    
+    // Determine urgency level for visual feedback
+    final urgencyColor = widget.secondsRemaining < 60 
+      ? Colors.redAccent 
+      : widget.secondsRemaining < 300 
+        ? Colors.orange 
+        : Colors.white;
+    
+    return AnimatedBuilder(
+      animation: _timerPulseAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: widget.isRunning ? _timerPulseAnimation.value : 1.0,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(25),
+              gradient: LinearGradient(
+                colors: [
+                  Colors.black.withValues(alpha: 0.5),
+                  Colors.black.withValues(alpha: 0.3),
+                ],
+              ),
+              border: Border.all(
+                color: urgencyColor.withValues(alpha: 0.6),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: urgencyColor.withValues(alpha: 0.3),
+                  blurRadius: 15,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Session type label
+                Text(
+                  widget.isStudySession ? 'DIVE SESSION' : 'SURFACE BREAK',
+                  style: TextStyle(
+                    color: urgencyColor.withValues(alpha: 0.9),
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                // Large timer display
+                Text(
+                  timeString,
+                  style: TextStyle(
+                    color: urgencyColor,
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'monospace',
+                    shadows: [
+                      Shadow(
+                        color: urgencyColor.withValues(alpha: 0.5),
+                        blurRadius: 10,
+                      ),
+                    ],
+                  ),
+                ),
+                // Progress bar
+                const SizedBox(height: 4),
+                Container(
+                  width: 150,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(3),
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: 1.0 - widget.sessionProgress,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(3),
+                        gradient: LinearGradient(
+                          colors: [
+                            urgencyColor,
+                            urgencyColor.withValues(alpha: 0.7),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: urgencyColor.withValues(alpha: 0.5),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          
-          const Spacer(),
-          
-          // Research Progress
-          ResearchProgressWidget(
-            speciesDiscovered: widget.visibleCreatures.length,
-            totalSpeciesInCurrentBiome: 12, // TODO: Get from aquarium data
-            researchPapersPublished: 3, // TODO: Get from gamification service
-            certificationProgress: GamificationService.instance.getLevelProgress(),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -476,91 +632,254 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
 
   Widget _buildResearchJournal() {
     return Positioned(
-      bottom: 80,
+      bottom: 100,
       right: 20,
-      child: Container(
-        width: 180,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: Colors.black.withValues(alpha: 0.7),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.3),
-            width: 1,
+      child: MouseRegion(
+        onEnter: (_) {
+          if (!_isJournalExpanded) {
+            setState(() {
+              _isJournalExpanded = true;
+            });
+            _journalExpandController.forward();
+          }
+        },
+        onExit: (_) {
+          if (_isJournalExpanded) {
+            setState(() {
+              _isJournalExpanded = false;
+            });
+            _journalExpandController.reverse();
+          }
+        },
+        child: GestureDetector(
+          onTap: () {
+            setState(() {
+              _isJournalExpanded = !_isJournalExpanded;
+            });
+            if (_isJournalExpanded) {
+              _journalExpandController.forward();
+            } else {
+              _journalExpandController.reverse();
+            }
+          },
+          child: AnimatedBuilder(
+            animation: _journalExpandAnimation,
+            builder: (context, child) {
+              return Container(
+                width: _isJournalExpanded ? 200 : 56,
+                height: _isJournalExpanded ? null : 56,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(_isJournalExpanded ? 16 : 28),
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF1A1A2E).withValues(alpha: 0.8),
+                      const Color(0xFF16213E).withValues(alpha: 0.8),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: Colors.amber.withValues(alpha: 0.5),
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.amber.withValues(alpha: 0.3),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: _isJournalExpanded
+                    ? _buildExpandedJournal()
+                    : _buildCollapsedJournal(),
+              );
+            },
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.book,
-                  color: Colors.amber,
-                  size: 16,
+      ),
+    );
+  }
+
+  Widget _buildCollapsedJournal() {
+    return Center(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          const Icon(
+            Icons.book,
+            color: Colors.amber,
+            size: 28,
+          ),
+          if (widget.visibleCreatures.isNotEmpty)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1),
                 ),
-                const SizedBox(width: 6),
-                const Text(
+                child: Center(
+                  child: Text(
+                    '${widget.visibleCreatures.length}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpandedJournal() {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.book,
+                color: Colors.amber,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
                   'Research Journal',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 12,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (widget.visibleCreatures.isNotEmpty) ...[
-              const Text(
-                'Recent Discovery:',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 10,
-                ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                widget.visibleCreatures.last.name,
-                style: const TextStyle(
-                  color: Colors.amber,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                'Depth: ${_getCurrentDepth()}m',
-                style: const TextStyle(
-                  color: Colors.white60,
-                  fontSize: 10,
-                ),
-              ),
-              Text(
-                'Behavior: Swimming',
-                style: const TextStyle(
-                  color: Colors.white60,
-                  fontSize: 10,
-                ),
-              ),
-            ] else ...[
-              const Text(
-                'No recent discoveries.',
-                style: TextStyle(
-                  color: Colors.white60,
-                  fontSize: 10,
-                ),
-              ),
-              const Text(
-                'Keep diving to find marine life!',
-                style: TextStyle(
-                  color: Colors.white60,
-                  fontSize: 10,
-                ),
+              Icon(
+                Icons.close,
+                color: Colors.white.withValues(alpha: 0.6),
+                size: 16,
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          if (widget.visibleCreatures.isNotEmpty) ...[
+            const Text(
+              'Recent Discovery:',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 11,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.black.withValues(alpha: 0.3),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.visibleCreatures.last.name,
+                    style: const TextStyle(
+                      color: Colors.amber,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.water,
+                        color: Colors.lightBlue.withValues(alpha: 0.8),
+                        size: 12,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Depth: ${_getCurrentDepth()}m',
+                        style: const TextStyle(
+                          color: Colors.white60,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.pets,
+                        color: Colors.green.withValues(alpha: 0.8),
+                        size: 12,
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        'Behavior: Swimming',
+                        style: TextStyle(
+                          color: Colors.white60,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Total Discoveries: ${widget.visibleCreatures.length}',
+              style: TextStyle(
+                color: Colors.amber.withValues(alpha: 0.8),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ] else ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.black.withValues(alpha: 0.2),
+              ),
+              child: const Column(
+                children: [
+                  Icon(
+                    Icons.search,
+                    color: Colors.white38,
+                    size: 32,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'No discoveries yet',
+                    style: TextStyle(
+                      color: Colors.white60,
+                      fontSize: 12,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Start diving to find marine life!',
+                    style: TextStyle(
+                      color: Colors.white38,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
