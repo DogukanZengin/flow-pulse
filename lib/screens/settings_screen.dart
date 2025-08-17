@@ -21,9 +21,12 @@ class SettingsScreen extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF6B5B95), // Deep Purple
-              Color(0xFF88B0D3), // Sky Blue
+              Color(0xFF1B4D72), // Deep Ocean Research
+              Color(0xFF2E86AB), // Research Station Blue
+              Color(0xFF48A38A), // Equipment Teal
+              Color(0xFF81C7D4), // Laboratory Light Blue
             ],
+            stops: [0.0, 0.3, 0.7, 1.0],
           ),
         ),
         child: Column(
@@ -31,12 +34,19 @@ class SettingsScreen extends StatelessWidget {
             AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0,
-              title: const Text(
-                'Settings',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.settings, color: Colors.white, size: 24),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Research Station Configuration',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
               centerTitle: true,
             ),
@@ -116,7 +126,7 @@ class _TimerSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Timer Settings',
+                  '🤿 Diving Equipment Settings',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -160,8 +170,8 @@ class _TimerSection extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _TimerSlider(
-              title: 'Sessions Until Long Break',
-              subtitle: '${timerProvider.sessionsUntilLongBreak} sessions',
+              title: 'Dives Until Lab Analysis',
+              subtitle: '${timerProvider.sessionsUntilLongBreak} expeditions',
               value: timerProvider.sessionsUntilLongBreak.toDouble(),
               min: 1,
               max: 10,

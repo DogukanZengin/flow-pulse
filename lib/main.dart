@@ -182,35 +182,35 @@ class _MainScreenState extends State<MainScreen> {
                 children: [
                   _NavItem(
                     icon: Icons.scuba_diving,
-                    label: 'Research',
+                    label: 'Dive',
                     index: 0,
                     isSelected: _currentIndex == 0,
                     onTap: () => _selectTab(0),
                   ),
                   _NavItem(
-                    icon: Icons.book,
-                    label: 'Journal',
+                    icon: Icons.science,
+                    label: 'Research',
                     index: 1,
                     isSelected: _currentIndex == 1,
                     onTap: () => _selectTab(1),
                   ),
                   _NavItem(
-                    icon: Icons.science,
-                    label: 'Data',
+                    icon: Icons.analytics,
+                    label: 'Data Log',
                     index: 2,
                     isSelected: _currentIndex == 2,
                     onTap: () => _selectTab(2),
                   ),
                   _NavItem(
-                    icon: Icons.waves,
-                    label: 'Ocean',
+                    icon: Icons.biotech,
+                    label: 'Lab',
                     index: 3,
                     isSelected: _currentIndex == 3,
                     onTap: () => _selectTab(3),
                   ),
                   _NavItem(
                     icon: Icons.settings,
-                    label: 'Settings',
+                    label: 'Station',
                     index: 4,
                     isSelected: _currentIndex == 4,
                     onTap: () => _selectTab(4),
@@ -911,12 +911,19 @@ class _TimerScreenState extends State<TimerScreen>
             AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0,
-              title: Text(
-                'FlowPulse',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.waves, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Marine Research Station',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
               centerTitle: true,
             ),

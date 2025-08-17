@@ -70,9 +70,12 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF6B5B95), // Deep Purple
-              Color(0xFF88B0D3), // Sky Blue
+              Color(0xFF0F4C75), // Deep Navy Blue
+              Color(0xFF3282B8), // Ocean Blue
+              Color(0xFF0FB9B1), // Turquoise
+              Color(0xFF4FC3F7), // Light Ocean Blue
             ],
+            stops: [0.0, 0.3, 0.7, 1.0],
           ),
         ),
         child: Column(
@@ -80,21 +83,33 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
             AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0,
-              title: const Text(
-                'Tasks',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+              title: Row(
+                children: [
+                  const Icon(Icons.science, color: Colors.white, size: 20),
+                  const SizedBox(width: 6),
+                  const Expanded(
+                    child: Text(
+                      'Research Notes',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
               actions: [
                 IconButton(
                   icon: const Icon(Icons.search, color: Colors.white),
                   onPressed: _showSearchDialog,
+                  tooltip: 'Search Research Notes',
                 ),
                 IconButton(
                   icon: const Icon(Icons.more_vert, color: Colors.white),
                   onPressed: _showMoreOptions,
+                  tooltip: 'Research Tools',
                 ),
               ],
             ),
@@ -103,11 +118,50 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
               indicatorColor: Colors.white,
               labelColor: Colors.white,
               unselectedLabelColor: Colors.white.withOpacity(0.7),
+              isScrollable: false,
+              labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+              unselectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.normal),
               tabs: [
-                Tab(text: 'Today (${_todayTasks.length})'),
-                Tab(text: 'Pending (${_pendingTasks.length})'),
-                Tab(text: 'Completed (${_completedTasks.length})'),
-                Tab(text: 'All (${_allTasks.length})'),
+                Tab(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.today, size: 16),
+                      const SizedBox(height: 1),
+                      Text('Today (${_todayTasks.length})', style: const TextStyle(fontSize: 9)),
+                    ],
+                  ),
+                ),
+                Tab(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.pending_actions, size: 16),
+                      const SizedBox(height: 1),
+                      Text('Planned (${_pendingTasks.length})', style: const TextStyle(fontSize: 9)),
+                    ],
+                  ),
+                ),
+                Tab(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_circle, size: 16),
+                      const SizedBox(height: 1),
+                      Text('Done (${_completedTasks.length})', style: const TextStyle(fontSize: 9)),
+                    ],
+                  ),
+                ),
+                Tab(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.waves, size: 16),
+                      const SizedBox(height: 1),
+                      Text('All (${_allTasks.length})', style: const TextStyle(fontSize: 9)),
+                    ],
+                  ),
+                ),
               ],
             ),
             Expanded(
@@ -174,20 +228,20 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.task_alt,
+              Icons.explore,
               size: 64,
               color: Colors.white.withOpacity(0.6),
             ),
             const SizedBox(height: 16),
             Text(
-              'No tasks yet',
+              'No research missions yet',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 color: Colors.white.withOpacity(0.8),
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Tap the + button to create your first task',
+              'Tap the + button to plan your first expedition',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Colors.white.withOpacity(0.7),
               ),
@@ -223,6 +277,8 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
   }
 
   Widget _buildSectionHeader(String title, Color color) {
+    final oceanTitle = title == 'Overdue' ? '🚨 Abandoned Expeditions' : 
+                      title == 'Due Today' ? '🎯 Today\'s Priority Missions' : title;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -230,7 +286,7 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
           Icon(Icons.circle, color: color, size: 8),
           const SizedBox(width: 8),
           Text(
-            title,
+            oceanTitle,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               color: color,
               fontWeight: FontWeight.bold,
@@ -325,9 +381,9 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
           onSelected: (value) => _handleTaskAction(task, value),
           itemBuilder: (context) => [
             if (!task.isCompleted) ...[
-              const PopupMenuItem(value: 'start', child: Text('Start Focus Session')),
-              const PopupMenuItem(value: 'edit', child: Text('Edit')),
-              const PopupMenuItem(value: 'complete', child: Text('Mark Complete')),
+              const PopupMenuItem(value: 'start', child: Text('🤿 Start Research Dive')),
+              const PopupMenuItem(value: 'edit', child: Text('📝 Edit Mission')),
+              const PopupMenuItem(value: 'complete', child: Text('✅ Mark Completed')),
             ],
             const PopupMenuItem(value: 'delete', child: Text('Delete')),
           ],
@@ -380,7 +436,7 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Task completed! 🎉')),
+          const SnackBar(content: Text('Research mission completed! 🎉🐠')),
         );
       }
     } catch (e) {
@@ -396,9 +452,9 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
     // This would integrate with the timer to start a focus session for this task
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Starting focus session for "${task.title}"'),
+        content: Text('🤿 Starting research dive for "${task.title}"'),
         action: SnackBarAction(
-          label: 'Start Timer',
+          label: 'Begin Dive',
           onPressed: () {
             // Navigate to timer screen with this task
             Navigator.of(context).pop();
@@ -416,8 +472,8 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Task'),
-        content: Text('Are you sure you want to delete "${task.title}"?'),
+        title: const Text('🗑️ Cancel Research Mission'),
+        content: Text('Are you sure you want to cancel the mission "${task.title}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -425,7 +481,7 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
+            child: const Text('Cancel Mission'),
           ),
         ],
       ),
@@ -437,7 +493,7 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
         await _loadTasks();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Task deleted')),
+            const SnackBar(content: Text('Research mission cancelled')),
           );
         }
       } catch (e) {
@@ -739,204 +795,306 @@ class _TaskDialogState extends State<TaskDialog> {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
+            constraints: const BoxConstraints(maxWidth: 380, maxHeight: 560),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF1E3A5F), // Deep Ocean Modal
+                  Color(0xFF2E5984), // Research Station Blue
+                  Color(0xFF3A7CA8), // Equipment Blue
+                  Color(0xFF4A90A4), // Laboratory Teal
+                ],
+                stops: [0.0, 0.3, 0.7, 1.0],
+              ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withOpacity(0.3),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 30,
+                  offset: const Offset(0, 15),
+                ),
+                BoxShadow(
+                  color: const Color(0xFF00B4D8).withOpacity(0.1),
+                  blurRadius: 40,
+                  offset: const Offset(0, 10),
                 ),
               ],
             ),
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.task == null ? 'New Task' : 'Edit Task',
+                  widget.task == null ? '🔬 New Mission' : '📝 Edit Mission',
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 18),
                 SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextField(
-                        controller: _titleController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: 'Title *',
-                          labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
-                          hintText: 'What needs to be done?',
-                          hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-                          ),
-                          focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
                           ),
                         ),
-                        textCapitalization: TextCapitalization.sentences,
+                        child: TextField(
+                          controller: _titleController,
+                          style: const TextStyle(color: Colors.white, fontSize: 16),
+                          decoration: InputDecoration(
+                            labelText: 'Mission Title *',
+                            labelStyle: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13),
+                            hintText: 'Research objective',
+                            hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                          ),
+                          textCapitalization: TextCapitalization.sentences,
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _descriptionController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: 'Description',
-                          labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
-                          hintText: 'Additional details...',
-                          hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-                          ),
-                          focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white),
+                      const SizedBox(height: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
                           ),
                         ),
-                        textCapitalization: TextCapitalization.sentences,
-                        maxLines: 3,
+                        child: TextField(
+                          controller: _descriptionController,
+                          style: const TextStyle(color: Colors.white, fontSize: 16),
+                          decoration: InputDecoration(
+                            labelText: 'Research Notes',
+                            labelStyle: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13),
+                            hintText: 'Details...',
+                            hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                          ),
+                          textCapitalization: TextCapitalization.sentences,
+                          maxLines: 3,
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<TaskPriority>(
-                        value: _priority,
-                        style: const TextStyle(color: Colors.white),
-                        dropdownColor: Colors.black.withOpacity(0.8),
-                        decoration: InputDecoration(
-                          labelText: 'Priority',
-                          labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-                          ),
-                          focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white),
+                      const SizedBox(height: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
                           ),
                         ),
-                        items: TaskPriority.values.map((priority) {
-                          return DropdownMenuItem(
-                            value: priority,
-                            child: Row(
-                              children: [
-                                Text(priority.emoji),
+                        child: DropdownButtonFormField<TaskPriority>(
+                          value: _priority,
+                          style: const TextStyle(color: Colors.white, fontSize: 16),
+                          dropdownColor: const Color(0xFF1E3A5F),
+                          decoration: InputDecoration(
+                            labelText: 'Priority',
+                            labelStyle: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                          ),
+                          items: TaskPriority.values.map((priority) {
+                            return DropdownMenuItem(
+                              value: priority,
+                              child: Row(
+                                children: [
+                                  Text(priority.emoji),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    priority.displayName,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) => setState(() => _priority = value!),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          title: const Text(
+                            'Mission Deadline',
+                            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                          ),
+                          subtitle: Text(
+                            _dueDate == null 
+                                ? 'No deadline set' 
+                                : DateFormat('MMM d, y').format(_dueDate!),
+                            style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.calendar_today,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  onPressed: _pickDueDate,
+                                ),
+                              ),
+                              if (_dueDate != null) ...[
                                 const SizedBox(width: 8),
-                                Text(
-                                  priority.displayName,
-                                  style: const TextStyle(color: Colors.white),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: IconButton(
+                                    icon: const Icon(
+                                      Icons.clear,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                    onPressed: () => setState(() => _dueDate = null),
+                                  ),
                                 ),
                               ],
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (value) => setState(() => _priority = value!),
+                            ],
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text(
-                          'Due Date',
-                          style: TextStyle(color: Colors.white),
+                      const SizedBox(height: 6),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
+                          ),
                         ),
-                        subtitle: Text(
-                          _dueDate == null 
-                              ? 'No due date' 
-                              : DateFormat('MMM d, y').format(_dueDate!),
-                          style: TextStyle(color: Colors.white.withOpacity(0.7)),
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
                           children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icons.calendar_today,
-                                color: Colors.white,
+                            const Expanded(
+                              child: Text(
+                                'Dive time (min):',
+                                style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
                               ),
-                              onPressed: _pickDueDate,
                             ),
-                            if (_dueDate != null)
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.clear,
-                                  color: Colors.white,
+                            Container(
+                              width: 80,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 1,
                                 ),
-                                onPressed: () => setState(() => _dueDate = null),
                               ),
+                              child: TextFormField(
+                                initialValue: _estimatedMinutes.toString(),
+                                style: const TextStyle(color: Colors.white, fontSize: 14),
+                                textAlign: TextAlign.center,
+                                decoration: const InputDecoration(
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                ),
+                                keyboardType: TextInputType.number,
+                                onChanged: (value) {
+                                  final minutes = int.tryParse(value) ?? 25;
+                                  setState(() => _estimatedMinutes = minutes.clamp(5, 240));
+                                },
+                              ),
+                            ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Expanded(
-                            child: Text(
-                              'Estimated time (minutes):',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 100,
-                            child: TextFormField(
-                              initialValue: _estimatedMinutes.toString(),
-                              style: const TextStyle(color: Colors.white),
-                              decoration: InputDecoration(
-                                suffix: Text(
-                                  'min',
-                                  style: TextStyle(color: Colors.white.withOpacity(0.7)),
-                                ),
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-                                ),
-                                focusedBorder: const UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white),
-                                ),
-                              ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (value) {
-                                final minutes = int.tryParse(value) ?? 25;
-                                setState(() => _estimatedMinutes = minutes.clamp(5, 240));
-                              },
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(
-                      onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white.withOpacity(0.8),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 1,
+                        ),
                       ),
-                      child: const Text('Cancel'),
+                      child: TextButton(
+                        onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white.withOpacity(0.9),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Cancel', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(25),
+                        borderRadius: BorderRadius.circular(12),
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF6B5B95), Color(0xFF88B0D3)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFF2E5984), // Ocean Blue
+                            Color(0xFF3A7CA8), // Deep Ocean
+                            Color(0xFF4A90A4), // Research Blue
+                          ],
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF6B5B95).withOpacity(0.4),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
+                            color: const Color(0xFF2E5984).withOpacity(0.4),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
+                          ),
+                          BoxShadow(
+                            color: Colors.white.withOpacity(0.1),
+                            blurRadius: 1,
+                            offset: const Offset(0, 1),
                           ),
                         ],
                       ),
@@ -947,23 +1105,24 @@ class _TaskDialogState extends State<TaskDialog> {
                           shadowColor: Colors.transparent,
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         child: _isLoading 
                             ? const SizedBox(
-                                width: 16,
-                                height: 16,
+                                width: 20,
+                                height: 20,
                                 child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                                  strokeWidth: 2.5,
                                   color: Colors.white,
                                 ),
                               )
                             : Text(
-                                widget.task == null ? 'Create' : 'Update',
+                                widget.task == null ? 'Plan Mission' : 'Update Mission',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
+                                  fontSize: 14,
                                 ),
                               ),
                       ),

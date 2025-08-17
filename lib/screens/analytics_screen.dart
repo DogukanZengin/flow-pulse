@@ -39,9 +39,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF6B5B95), // Deep Purple
-              Color(0xFF88B0D3), // Sky Blue
+              Color(0xFF1A365D), // Deep Ocean Blue
+              Color(0xFF2D5A87), // Mid Ocean Blue  
+              Color(0xFF3182CE), // Bright Ocean Blue
+              Color(0xFF00B4D8), // Tropical Water
             ],
+            stops: [0.0, 0.3, 0.7, 1.0],
           ),
         ),
         child: Column(
@@ -49,13 +52,28 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
             AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0,
-              title: const Text(
-                'Analytics',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+              title: Row(
+                children: [
+                  const Icon(Icons.science, color: Colors.white, size: 24),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Marine Research Data Log',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.file_download, color: Colors.white),
+                  onPressed: () {
+                    // Export data functionality
+                  },
+                  tooltip: 'Export Research Data',
+                ),
+              ],
             ),
             TabBar(
               controller: _tabController,
@@ -63,9 +81,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               labelColor: Colors.white,
               unselectedLabelColor: Colors.white.withOpacity(0.7),
               tabs: const [
-                Tab(text: 'Overview'),
-                Tab(text: 'Trends'),
-                Tab(text: 'Insights'),
+                Tab(icon: Icon(Icons.waves), text: 'Dive Performance'),
+                Tab(icon: Icon(Icons.trending_up), text: 'Discovery Trends'),
+                Tab(icon: Icon(Icons.lightbulb), text: 'Research Insights'),
               ],
             ),
             Expanded(
@@ -74,9 +92,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildOverviewTab(),
-                    _buildTrendsTab(),
-                    _buildInsightsTab(),
+                    _buildDivePerformanceTab(),
+                    _buildDiscoveryTrendsTab(),
+                    _buildResearchInsightsTab(),
                   ],
                 ),
               ),
@@ -87,7 +105,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     );
   }
 
-  Widget _buildOverviewTab() {
+  Widget _buildDivePerformanceTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -103,7 +121,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     );
   }
 
-  Widget _buildTrendsTab() {
+  Widget _buildDiscoveryTrendsTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -119,14 +137,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     );
   }
 
-  Widget _buildInsightsTab() {
+  Widget _buildResearchInsightsTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Productivity Insights',
+            '🔬 Research Lab Insights',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -177,7 +195,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Today\'s Performance',
+                      '🤿 Today\'s Expedition Performance',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -188,18 +206,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                       children: [
                         Expanded(
                           child: _buildStatCard(
-                            'Focus Time',
+                            'Dive Time',
                             '${data.totalFocusTime}m',
-                            Icons.timer,
+                            Icons.scuba_diving,
                             theme.colorScheme.primary,
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildStatCard(
-                            'Sessions',
+                            'Expeditions',
                             '${data.sessionsCompleted}',
-                            Icons.check_circle,
+                            Icons.explore,
                             Colors.green,
                           ),
                         ),
@@ -210,19 +228,19 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                       children: [
                         Expanded(
                           child: _buildStatCard(
-                            'Completion',
+                            'Success Rate',
                             '${(data.completionRate * 100).round()}%',
-                            Icons.trending_up,
+                            Icons.waves,
                             Colors.orange,
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildStatCard(
-                            'Streak',
+                            'Research Streak',
                             '${data.streak} days',
-                            Icons.local_fire_department,
-                            Colors.red,
+                            Icons.waves,
+                            Colors.blue,
                           ),
                         ),
                       ],
@@ -310,7 +328,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Weekly Focus Time',
+                      '📊 Weekly Dive Hours',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -416,7 +434,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Average Completion Rate',
+                      '🎯 Average Expedition Success Rate',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -469,7 +487,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Completion Rate',
+                                'Expedition Success Rate',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -489,7 +507,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Completed: ${(avgCompletionRate * 100).round()}%',
+                                    'Successful Dives: ${(avgCompletionRate * 100).round()}%',
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.white.withOpacity(0.8),
@@ -510,7 +528,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Incomplete: ${((1 - avgCompletionRate) * 100).round()}%',
+                                    'Aborted Dives: ${((1 - avgCompletionRate) * 100).round()}%',
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.white.withOpacity(0.8),
@@ -588,7 +606,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Monthly Trend',
+                  '📈 Monthly Research Trend',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -640,7 +658,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Hourly Productivity Pattern',
+                  '⏰ Daily Research Pattern',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -692,7 +710,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Weekly Productivity Pattern',
+                  '📅 Weekly Expedition Pattern',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -749,14 +767,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No insights yet',
+                  'No research insights yet',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Complete more focus sessions to get personalized insights',
+                  'Complete more research expeditions to get marine biology insights',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Colors.white.withOpacity(0.7),
