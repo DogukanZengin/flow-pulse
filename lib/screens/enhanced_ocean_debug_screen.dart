@@ -51,10 +51,17 @@ class _EnhancedOceanDebugScreenState extends State<EnhancedOceanDebugScreen>
   bool enableAdvancedLighting = true;
   Creature? selectedCreatureForRendering;
   late AnimationController _graphicsController;
+  
+  // Continuous time tracking for smooth debug animations
+  late DateTime _debugStartTime;
+  double get _debugContinuousTime => DateTime.now().difference(_debugStartTime).inMilliseconds / 1000.0;
 
   @override
   void initState() {
     super.initState();
+    
+    // Initialize continuous time for debug animations
+    _debugStartTime = DateTime.now();
     _tabController = TabController(length: 9, vsync: this); // Increased to 9 tabs for Phase 3
     _sessionController = AnimationController(
       duration: const Duration(seconds: 2),
@@ -1596,7 +1603,7 @@ class _EnhancedOceanDebugScreenState extends State<EnhancedOceanDebugScreen>
                             biome: selectedBiome,
                             depth: graphicsTestDepth,
                             sessionProgress: 0.6,
-                            animationValue: _graphicsController.value,
+                            animationValue: _debugContinuousTime,
                             enableParticles: enableParticleEffects,
                             enableLighting: enableAdvancedLighting,
                           ),
@@ -1686,7 +1693,7 @@ class _EnhancedOceanDebugScreenState extends State<EnhancedOceanDebugScreen>
                           return CustomPaint(
                             painter: AdvancedCreatureTestPainter(
                               creature: selectedCreatureForRendering!,
-                              animationValue: _graphicsController.value,
+                              animationValue: _debugContinuousTime,
                               depth: graphicsTestDepth,
                             ),
                             size: Size.infinite,

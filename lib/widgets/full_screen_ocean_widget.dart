@@ -47,10 +47,17 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
   late AnimationController _depthController;
   late List<AnimationController> _fishControllers;
   late List<Animation<Offset>> _fishAnimations;
+  
+  // Continuous time tracking for smooth animations
+  late DateTime _startTime;
+  double get _continuousTime => DateTime.now().difference(_startTime).inMilliseconds / 1000.0;
 
   @override
   void initState() {
     super.initState();
+    
+    // Initialize continuous time
+    _startTime = DateTime.now();
     
     // Water wave animation
     _waveController = AnimationController(
@@ -273,7 +280,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
       builder: (context, child) {
         return CustomPaint(
           painter: AdvancedBiomeEnvironmentPainter(
-            progress: _waveController.value,
+            progress: _continuousTime,
             biome: _getCurrentBiome(),
             depth: _getCurrentDepth().toDouble(),
             sessionProgress: widget.sessionProgress,

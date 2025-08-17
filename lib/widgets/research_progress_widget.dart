@@ -76,12 +76,19 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
         ? widget.speciesDiscovered / widget.totalSpeciesInCurrentBiome 
         : 0.0;
 
+    // Make responsive to screen width - balance with DiveComputer size
+    final screenWidth = MediaQuery.of(context).size.width;
+    final availableWidth = screenWidth - 40; // Account for left/right padding  
+    final diveComputerWidth = screenWidth * 0.45;
+    final maxWidth = availableWidth - diveComputerWidth - 16; // Space for Spacer
+    final widgetWidth = maxWidth.clamp(160.0, 200.0);
+
     return AnimatedBuilder(
       animation: _glowAnimation,
       builder: (context, child) {
         return Container(
-          width: 220,
-          height: 140,
+          width: widgetWidth,
+          height: MediaQuery.of(context).size.height * 0.18,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             gradient: LinearGradient(
@@ -105,7 +112,7 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -118,31 +125,34 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                       size: 16,
                     ),
                     const SizedBox(width: 6),
-                    const Text(
-                      'RESEARCH PROGRESS',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
+                    Expanded(
+                      child: Text(
+                        widgetWidth < 190 ? 'RESEARCH' : 'RESEARCH PROGRESS',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: widgetWidth < 190 ? 10 : 11,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: widgetWidth < 190 ? 0.6 : 1.0,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 
                 // Level and title
                 Text(
                   'Level $level: ${_getResearcherTitle()}',
                   style: TextStyle(
                     color: levelColor,
-                    fontSize: 14,
+                    fontSize: widgetWidth < 190 ? 12 : 13,
                     fontWeight: FontWeight.w600,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
                 
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 
                 // Species progress
                 Row(
@@ -158,7 +168,7 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                               fontSize: 12,
                             ),
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 4),
                           LinearProgressIndicator(
                             value: speciesProgress.clamp(0.0, 1.0),
                             backgroundColor: Colors.white.withValues(alpha: 0.1),
@@ -173,7 +183,7 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                   ],
                 ),
                 
-                const SizedBox(height: 3),
+                const SizedBox(height: 4),
                 
                 // Papers and certification
                 Row(
@@ -189,7 +199,7 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                               fontSize: 12,
                             ),
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 4),
                           Text(
                             'Next Cert: ${(widget.certificationProgress * 100).round()}%',
                             style: const TextStyle(
@@ -197,7 +207,7 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                               fontSize: 12,
                             ),
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 4),
                           LinearProgressIndicator(
                             value: widget.certificationProgress.clamp(0.0, 1.0),
                             backgroundColor: Colors.white.withValues(alpha: 0.1),

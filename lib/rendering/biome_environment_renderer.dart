@@ -4,6 +4,16 @@ import '../models/creature.dart';
 
 class BiomeEnvironmentRenderer {
   
+  // Helper function to create smooth continuous oscillation (for sine waves)
+  static double _getOscillation(double continuousTime, double frequency) {
+    return sin(continuousTime * frequency * 2 * pi);
+  }
+  
+  // Helper function for continuous linear motion (no resetting)
+  static double _getLinearFlow(double continuousTime, double speed) {
+    return continuousTime * speed;
+  }
+  
   static void paintBiomeEnvironment(Canvas canvas, Size size, BiomeType biome,
       double depth, double sessionProgress, double animationValue) {
     
@@ -103,18 +113,23 @@ class BiomeEnvironmentRenderer {
     
     if (causticsIntensity > 0) {
       for (int i = 0; i < 8; i++) {
-        final waveOffset = sin(animationValue * 2 + i * 0.5) * 20;
+        // animationValue is now continuous time in seconds
         final causticsPath = Path();
         
-        final startX = (i * size.width / 8) + waveOffset;
+        // Create gentle flowing motion like real ocean currents
+        final baseFlow = _getLinearFlow(animationValue, 1.5); // 1.5 pixels per second horizontal drift
+        final baseX = (i * size.width / 8) + (baseFlow % (size.width / 8));
+        final waveOffset = _getOscillation(animationValue, 0.15) * 20; // Much slower wave motion
+        
+        final startX = baseX + waveOffset;
         final startY = size.height * 0.2;
         final endY = size.height * 0.8;
         
         causticsPath.moveTo(startX, startY);
         causticsPath.quadraticBezierTo(
-          startX + sin(animationValue + i) * 30,
+          startX + _getOscillation(animationValue, 0.08) * 30, // Slower caustic undulation
           (startY + endY) / 2,
-          startX + sin(animationValue * 1.5 + i) * 15,
+          startX + _getOscillation(animationValue, 0.12) * 15,
           endY,
         );
         
@@ -146,12 +161,15 @@ class BiomeEnvironmentRenderer {
       // Create dancing light patterns
       for (int i = 0; i < 5; i++) {
         final lightBeam = Path();
-        final beamX = size.width * (i / 5) + sin(animationValue * 1.5 + i) * 40;
+        // Add gentle underwater light movement
+        final baseFlow = _getLinearFlow(animationValue, 0.8); // 0.8 pixels per second drift
+        final baseX = size.width * (i / 5) + (baseFlow % (size.width / 5));
+        final beamX = baseX + _getOscillation(animationValue, 0.1) * 40; // Slower light dancing
         
         lightBeam.moveTo(beamX, 0);
-        lightBeam.lineTo(beamX + sin(animationValue + i) * 50, size.height * 0.3);
-        lightBeam.lineTo(beamX - sin(animationValue * 0.8 + i) * 30, size.height * 0.6);
-        lightBeam.lineTo(beamX + sin(animationValue * 1.2 + i) * 20, size.height);
+        lightBeam.lineTo(beamX + _getOscillation(animationValue, 0.07) * 50, size.height * 0.3);
+        lightBeam.lineTo(beamX - _getOscillation(animationValue, 0.05) * 30, size.height * 0.6);
+        lightBeam.lineTo(beamX + _getOscillation(animationValue, 0.09) * 20, size.height);
         
         final beamGradient = LinearGradient(
           begin: Alignment.topCenter,
@@ -175,7 +193,7 @@ class BiomeEnvironmentRenderer {
 
   static void _paintArtificialLighting(Canvas canvas, Size size, double depth, double animationValue) {
     // Focused beam lighting for deep water exploration
-    final lightIntensity = 0.8 + sin(animationValue * 3) * 0.2; // Slight flickering
+    final lightIntensity = 0.8 + sin(_getOscillation(animationValue, 0.3)) * 0.2; // Gentle flickering
     
     // Main diving light beam
     final centerX = size.width / 2;
@@ -199,7 +217,7 @@ class BiomeEnvironmentRenderer {
     
     // Additional scattered light sources
     for (int i = 0; i < 3; i++) {
-      final lightX = size.width * (0.2 + i * 0.3) + sin(animationValue * 2 + i) * 30;
+      final lightX = size.width * (0.2 + i * 0.3) + sin(_getOscillation(animationValue, 0.2) + i) * 30;
       final lightY = size.height * (0.3 + i * 0.2);
       
       final spotGradient = RadialGradient(
@@ -223,15 +241,15 @@ class BiomeEnvironmentRenderer {
 
   static void _paintBioluminescentLighting(Canvas canvas, Size size, double depth, double animationValue) {
     // Mysterious bioluminescent effects
-    final bioIntensity = (sin(animationValue * 1.5) + 1) / 2;
+    final bioIntensity = (sin(_getOscillation(animationValue, 0.15)) + 1) / 2; // Very slow pulsing
     
     // Floating bioluminescent orbs
     for (int i = 0; i < 12; i++) {
-      final orbX = size.width * (i / 12) + sin(animationValue * 0.8 + i * 0.5) * 80;
-      final orbY = size.height * (0.2 + (i % 3) * 0.3) + cos(animationValue * 0.6 + i) * 60;
+      final orbX = size.width * (i / 12) + sin(_getOscillation(animationValue, 0.08) + i * 0.5) * 80; // Slow floating
+      final orbY = size.height * (0.2 + (i % 3) * 0.3) + cos(_getOscillation(animationValue, 0.06) + i) * 60;
       
-      final orbSize = 8 + sin(animationValue * 4 + i) * 4;
-      final orbAlpha = bioIntensity * (0.6 + sin(animationValue * 2 + i) * 0.4);
+      final orbSize = 8 + sin(_getOscillation(animationValue, 0.25) + i) * 4; // Slow size pulsing
+      final orbAlpha = bioIntensity * (0.6 + sin(_getOscillation(animationValue, 0.2) + i) * 0.4);
       
       final orbGradient = RadialGradient(
         colors: [
@@ -260,8 +278,8 @@ class BiomeEnvironmentRenderer {
       wispPath.moveTo(startX, startY);
       
       for (double t = 0; t <= 1; t += 0.1) {
-        final x = startX + sin(animationValue + i + t * 4) * 100 * t;
-        final y = startY - (size.height * 0.6 * t) + cos(animationValue * 1.2 + i + t * 3) * 40;
+        final x = startX + sin(_getOscillation(animationValue, 0.2) + i + t * 4) * 100 * t;
+        final y = startY - (size.height * 0.6 * t) + cos(_getOscillation(animationValue, 0.12) + i + t * 3) * 40;
         wispPath.lineTo(x, y);
       }
       
@@ -315,11 +333,11 @@ class BiomeEnvironmentRenderer {
     for (int i = 0; i < 8; i++) {
       final ripplePath = Path();
       final y = size.height * 0.8 + i * 20;
-      final waveOffset = sin(animationValue + i * 0.3) * 5;
+      final waveOffset = sin(_getOscillation(animationValue, 0.2) + i * 0.3) * 5;
       
       ripplePath.moveTo(0, y + waveOffset);
       for (double x = 0; x <= size.width; x += 20) {
-        final rippleY = y + sin(x / 30 + animationValue + i) * 3 + waveOffset;
+        final rippleY = y + sin(x / 30 + _getOscillation(animationValue, 0.2) + i) * 3 + waveOffset;
         ripplePath.lineTo(x, rippleY);
       }
       
@@ -421,9 +439,9 @@ class BiomeEnvironmentRenderer {
     final planktonPaint = Paint()..color = Colors.white.withValues(alpha: 0.6);
     
     for (int i = 0; i < 30; i++) {
-      final x = (size.width / 30 * i + sin(animationValue * 2 + i) * 50) % size.width;
-      final y = (size.height / 20 * (i % 20) + cos(animationValue * 1.5 + i) * 30) % size.height;
-      final particleSize = 1 + sin(animationValue * 3 + i) * 0.5;
+      final x = (size.width / 30 * i + sin(_getOscillation(animationValue, 0.15) + i) * 50) % size.width;
+      final y = (size.height / 20 * (i % 20) + cos(_getOscillation(animationValue, 0.12) + i) * 30) % size.height;
+      final particleSize = 1 + sin(_getOscillation(animationValue, 0.25) + i) * 0.5;
       
       canvas.drawCircle(Offset(x, y), particleSize, planktonPaint);
     }
@@ -433,9 +451,16 @@ class BiomeEnvironmentRenderer {
     final snowPaint = Paint()..color = Colors.white.withValues(alpha: 0.4);
     
     for (int i = 0; i < 40; i++) {
-      final x = (size.width * (i / 40) + sin(animationValue * 0.5 + i) * 20) % size.width;
-      final y = (animationValue * 100 + i * 50) % size.height;
-      final particleSize = 0.8 + sin(animationValue * 2 + i) * 0.3;
+      // Create truly continuous falling motion
+      final baseX = size.width * (i / 40);
+      final driftX = sin(_getOscillation(animationValue, 0.08) + i) * 20;
+      final x = (baseX + driftX + size.width) % size.width;
+      
+      // Slow gentle falling motion like real marine snow
+      final fallSpeed = _getLinearFlow(animationValue, 15); // 15 pixels per second - much slower
+      final startY = (i * size.height / 40) - size.height; // Start above screen
+      final y = (startY + fallSpeed) % (size.height + 100); // Buffer zone for smooth loop
+      final particleSize = 0.8 + sin(_getOscillation(animationValue, 0.2) + i) * 0.3;
       
       canvas.drawCircle(Offset(x, y), particleSize, snowPaint);
     }
@@ -445,9 +470,9 @@ class BiomeEnvironmentRenderer {
     final particlePaint = Paint()..color = Colors.blue.withValues(alpha: 0.3);
     
     for (int i = 0; i < 25; i++) {
-      final x = (size.width / 25 * i + sin(animationValue * 1.2 + i) * 60) % size.width;
-      final y = (size.height / 15 * (i % 15) + cos(animationValue + i) * 40) % size.height;
-      final particleSize = 1.2 + sin(animationValue * 2.5 + i) * 0.6;
+      final x = (size.width / 25 * i + sin(_getOscillation(animationValue, 0.12) + i) * 60) % size.width;
+      final y = (size.height / 15 * (i % 15) + cos(_getOscillation(animationValue, 0.5) + i) * 40) % size.height;
+      final particleSize = 1.2 + sin(_getOscillation(animationValue, 0.25) + i) * 0.6;
       
       canvas.drawCircle(Offset(x, y), particleSize, particlePaint);
     }
@@ -455,9 +480,9 @@ class BiomeEnvironmentRenderer {
 
   static void _paintBioluminescentParticles(Canvas canvas, Size size, double animationValue) {
     for (int i = 0; i < 20; i++) {
-      final x = (size.width / 20 * i + sin(animationValue * 0.8 + i) * 80) % size.width;
-      final y = (size.height / 12 * (i % 12) + cos(animationValue * 0.6 + i) * 50) % size.height;
-      final intensity = (sin(animationValue * 3 + i) + 1) / 2;
+      final x = (size.width / 20 * i + sin(_getOscillation(animationValue, 0.4) + i) * 80) % size.width;
+      final y = (size.height / 12 * (i % 12) + cos(_getOscillation(animationValue, 0.3) + i) * 50) % size.height;
+      final intensity = (sin(_getOscillation(animationValue, 0.3) + i) + 1) / 2;
       final particleSize = 1.5 + intensity * 1.5;
       
       final glowPaint = Paint()
@@ -474,7 +499,7 @@ class BiomeEnvironmentRenderer {
       final waveIntensity = 1 - (depth % 10);
       
       for (int i = 0; i < 3; i++) {
-        final waveY = size.height * (0.3 + i * 0.2) + sin(animationValue * 2 + i) * 20;
+        final waveY = size.height * (0.3 + i * 0.2) + sin(_getOscillation(animationValue, 0.2) + i) * 20;
         
         final wavePaint = Paint()
           ..color = Colors.white.withValues(alpha: waveIntensity * 0.2)
@@ -496,9 +521,9 @@ class BiomeEnvironmentRenderer {
     final growthFactor = progress * 2; // Grows during session
     
     for (int i = 0; i < 15; i++) {
-      final x = size.width * (i / 15) + sin(animationValue + i) * 10;
+      final x = size.width * (i / 15) + sin(_getOscillation(animationValue, 0.2) + i) * 10;
       final y = size.height * 0.9 - growthFactor * 20;
-      final polypSize = growthFactor * (3 + sin(animationValue * 2 + i) * 1);
+      final polypSize = growthFactor * (3 + sin(_getOscillation(animationValue, 0.2) + i) * 1);
       
       if (polypSize > 0) {
         canvas.drawCircle(Offset(x, y), polypSize, polypPaint);
@@ -515,14 +540,14 @@ class BiomeEnvironmentRenderer {
     final growthFactor = progress * 1.5;
     
     for (int i = 0; i < 8; i++) {
-      final baseX = size.width * (i / 8) + sin(animationValue * 0.5 + i) * 15;
+      final baseX = size.width * (i / 8) + sin(_getOscillation(animationValue, 0.25) + i) * 15;
       final baseY = size.height * 0.85;
       
       final branchPath = Path();
       branchPath.moveTo(baseX, baseY);
       
       for (int j = 1; j <= 5; j++) {
-        final branchX = baseX + sin(animationValue * 0.3 + i + j) * (j * 8 * growthFactor);
+        final branchX = baseX + sin(_getOscillation(animationValue, 0.15) + i + j) * (j * 8 * growthFactor);
         final branchY = baseY - (j * 15 * growthFactor);
         
         if (growthFactor > j * 0.2) {
@@ -544,7 +569,7 @@ class BiomeEnvironmentRenderer {
     for (int i = 0; i < 6; i++) {
       final baseX = size.width * (0.1 + i * 0.15);
       final baseY = size.height * 0.88;
-      final swayAmount = sin(animationValue * 2 + i * 0.5) * 20;
+      final swayAmount = sin(_getOscillation(animationValue, 0.2) + i * 0.5) * 20;
       
       final anemonePath = Path();
       anemonePath.moveTo(baseX, baseY);
@@ -560,7 +585,7 @@ class BiomeEnvironmentRenderer {
       // Tentacles
       for (int j = 0; j < 8; j++) {
         final tentacleAngle = (j / 8) * 2 * pi;
-        final tentacleLength = 15 + sin(animationValue * 3 + i + j) * 5;
+        final tentacleLength = 15 + sin(_getOscillation(animationValue, 0.3) + i + j) * 5;
         final tentacleEndX = baseX + swayAmount * 0.7 + cos(tentacleAngle) * tentacleLength;
         final tentacleEndY = baseY - 50 + sin(tentacleAngle) * tentacleLength;
         
@@ -580,7 +605,7 @@ class BiomeEnvironmentRenderer {
     for (int i = 0; i < 4; i++) {
       final centerX = size.width * (0.2 + i * 0.2);
       final centerY = size.height * 0.8;
-      final coralSize = growthFactor * (60 + sin(animationValue + i) * 10);
+      final coralSize = growthFactor * (60 + sin(_getOscillation(animationValue, 0.2) + i) * 10);
       
       if (coralSize > 10) {
         canvas.drawOval(
@@ -604,7 +629,7 @@ class BiomeEnvironmentRenderer {
     for (int i = 0; i < 12; i++) {
       final baseX = size.width * (i / 12);
       final baseY = size.height * 0.9;
-      final swayAmount = sin(animationValue * 1.5 + i) * 30;
+      final swayAmount = sin(_getOscillation(animationValue, 0.15) + i) * 30;
       
       final vegPath = Path();
       vegPath.moveTo(baseX, baseY);
@@ -625,8 +650,8 @@ class BiomeEnvironmentRenderer {
     for (int i = 0; i < 5; i++) {
       final rockX = size.width * (0.1 + i * 0.2);
       final rockY = size.height * 0.85;
-      final rockWidth = 40 + sin(animationValue * 0.2 + i) * 10;
-      final rockHeight = 60 + cos(animationValue * 0.3 + i) * 15;
+      final rockWidth = 40 + sin(_getOscillation(animationValue, 0.1) + i) * 10;
+      final rockHeight = 60 + cos(_getOscillation(animationValue, 0.15) + i) * 15;
       
       canvas.drawOval(
         Rect.fromCenter(
@@ -641,7 +666,7 @@ class BiomeEnvironmentRenderer {
 
   static void _paintAncientCorals(Canvas canvas, Size size, double progress, double animationValue) {
     final ancientPaint = Paint()..color = Colors.deepPurple.withValues(alpha: 0.4);
-    final mysticalGlow = (sin(animationValue * 2) + 1) / 2;
+    final mysticalGlow = (sin(_getOscillation(animationValue, 0.2)) + 1) / 2;
     
     for (int i = 0; i < 3; i++) {
       final centerX = size.width * (0.25 + i * 0.25);
@@ -665,7 +690,7 @@ class BiomeEnvironmentRenderer {
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke;
     
-    final mysteryIntensity = (sin(animationValue * 1.2) + 1) / 2;
+    final mysteryIntensity = (sin(_getOscillation(animationValue, 0.12)) + 1) / 2;
     
     for (int i = 0; i < 4; i++) {
       final structureX = size.width * (0.2 + i * 0.2);
