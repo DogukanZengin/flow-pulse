@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../services/audio_service.dart';
-import '../services/subscription_service.dart';
 import '../providers/theme_provider.dart';
 
 class PremiumAudioControls extends StatefulWidget {
@@ -20,7 +19,7 @@ class _PremiumAudioControlsState extends State<PremiumAudioControls> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final subscriptionService = SubscriptionService.instance;
+    // final subscriptionService = SubscriptionService.instance; // Removed subscription service
     
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -70,7 +69,7 @@ class _PremiumAudioControlsState extends State<PremiumAudioControls> {
                         const SizedBox(width: 8),
                         Switch(
                           value: _audioService.isMixingMode,
-                          onChanged: subscriptionService.isPremium ? (value) {
+                          onChanged: false ? (value) {
                             setState(() {
                               if (value) {
                                 _audioService.enableMixingMode();
@@ -123,7 +122,7 @@ class _PremiumAudioControlsState extends State<PremiumAudioControls> {
                 const SizedBox(height: 16),
                 
                 // Sound library
-                if (!subscriptionService.isPremium)
+                if (!false)
                   _buildPremiumUpgradePrompt(context)
                 else
                   _buildSoundLibrary(context, themeProvider),
@@ -391,14 +390,8 @@ class _PremiumAudioControlsState extends State<PremiumAudioControls> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(SubscriptionService.instance.premiumBenefitsText),
+            const Text('Premium audio features have been removed from this version.'),
             const SizedBox(height: 16),
-            Text(
-              SubscriptionService.instance.pricingText,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           ],
         ),
         actions: [
@@ -408,8 +401,7 @@ class _PremiumAudioControlsState extends State<PremiumAudioControls> {
           ),
           ElevatedButton(
             onPressed: () async {
-              // For demo, we'll just toggle premium status
-              await SubscriptionService.instance.togglePremiumForDemo();
+              // Premium functionality removed
               Navigator.pop(context);
               setState(() {});
             },

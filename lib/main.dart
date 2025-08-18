@@ -14,13 +14,9 @@ import 'models/session.dart';
 import 'widgets/celebration_dialog.dart';
 import 'widgets/particle_system.dart';
 import 'widgets/underwater_environment.dart';
-import 'screens/ambient_mode_screen.dart';
 import 'services/ui_sound_service.dart';
-import 'services/time_based_theme_service.dart';
 import 'services/gamification_service.dart';
 import 'services/notification_service.dart';
-import 'services/quick_actions_service.dart';
-import 'services/deep_linking_service.dart';
 import 'services/live_activities_service.dart';
 import 'widgets/full_screen_ocean_widget.dart';
 import 'models/aquarium.dart';
@@ -44,8 +40,6 @@ void main() async {
   // Mobile-only services
   if (!kIsWeb) {
     await NotificationService().initialize();
-    await QuickActionsService().initialize();
-    await DeepLinkingService().initialize();
     await LiveActivitiesService().initialize();
   }
   
@@ -104,51 +98,10 @@ class _MainScreenState extends State<MainScreen> {
       const SettingsScreen(),
     ];
     
-    // Set up quick actions and deep linking callbacks
-    _setupQuickActions();
-    _setupDeepLinking();
+    // Quick actions and deep linking removed
   }
   
-  void _setupQuickActions() {
-    QuickActionsService().setActionCallback((action) {
-      _handleAction(action);
-    });
-  }
   
-  void _setupDeepLinking() {
-    DeepLinkingService().setLinkCallback((action) {
-      _handleAction(action);
-    });
-  }
-  
-  void _handleAction(String action) {
-    switch (action) {
-      case 'start_focus':
-        setState(() => _currentIndex = 0);
-        _timerKey.currentState?.startFocusSession();
-        break;
-      case 'start_break':
-        setState(() => _currentIndex = 0);
-        _timerKey.currentState?.startBreakSession();
-        break;
-      case 'pause_timer':
-        _timerKey.currentState?.pauseTimer();
-        break;
-      case 'resume_timer':
-        _timerKey.currentState?.resumeTimer();
-        break;
-      case 'reset_timer':
-        _timerKey.currentState?.resetTimer();
-        break;
-      case 'view_stats':
-        setState(() => _currentIndex = 2);
-        break;
-      case 'ambient_mode':
-        setState(() => _currentIndex = 0);
-        _timerKey.currentState?.enterAmbientMode();
-        break;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -477,11 +430,6 @@ class _TimerScreenState extends State<TimerScreen>
       isStudySession: _isStudySession,
     );
     
-    // Update quick actions
-    QuickActionsService().updateShortcuts(
-      isTimerRunning: true,
-      isStudySession: _isStudySession,
-    );
     
     // Start Live Activity (iOS)
     final timerProvider = context.read<TimerProvider>();
@@ -546,11 +494,6 @@ class _TimerScreenState extends State<TimerScreen>
       isRunning: false,
     );
     
-    // Update quick actions
-    QuickActionsService().updateShortcuts(
-      isTimerRunning: false,
-      isStudySession: _isStudySession,
-    );
     
     // Update Live Activity to paused state
     final timerProvider = context.read<TimerProvider>();
@@ -599,11 +542,6 @@ class _TimerScreenState extends State<TimerScreen>
       _progressAnimationController.reset();
     });
     
-    // Update quick actions
-    QuickActionsService().updateShortcuts(
-      isTimerRunning: false,
-      isStudySession: _isStudySession,
-    );
   }
 
   bool _shouldUseLongBreak() {
@@ -732,11 +670,6 @@ class _TimerScreenState extends State<TimerScreen>
       }
     });
     
-    // Update quick actions for new session
-    QuickActionsService().updateShortcuts(
-      isTimerRunning: false,
-      isStudySession: _isStudySession,
-    );
     
     // Complete Live Activity
     LiveActivitiesService().completeTimerActivity(
@@ -857,21 +790,6 @@ class _TimerScreenState extends State<TimerScreen>
     }
   }
   
-  void _enterAmbientMode() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => AmbientModeScreen(
-          isRunning: _isRunning,
-          isStudySession: _isStudySession,
-          secondsRemaining: _secondsRemaining,
-          progress: 1 - (_secondsRemaining / (context.read<TimerProvider>().focusDuration * 60)),
-          sessionTitle: _getSessionTitle(),
-          onTap: _toggleTimer,
-          onBack: () => Navigator.of(context).pop(),
-        ),
-      ),
-    );
-  }
   
   String _formatTime(int seconds) {
     final minutes = seconds ~/ 60;
@@ -928,9 +846,6 @@ class _TimerScreenState extends State<TimerScreen>
     _resetTimer();
   }
   
-  void enterAmbientMode() {
-    _enterAmbientMode();
-  }
   
   // Session switching methods
   void _switchToWorkSession() {
@@ -969,7 +884,15 @@ class _TimerScreenState extends State<TimerScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final timerProvider = context.watch<TimerProvider>();
-    final timeColors = TimeBasedThemeService.instance.getTimeBasedColors(_isStudySession);
+    // Use consistent ocean theme colors
+    final oceanGradientColors = _isStudySession 
+      ? [const Color(0xFF1B4D72), const Color(0xFF2E86AB)] // Deep ocean focus
+      : [const Color(0xFF48A38A), const Color(0xFF81C7D4)]; // Light ocean break
+    final oceanParticleColors = [
+      Colors.blue.shade200,
+      Colors.cyan.shade200, 
+      Colors.teal.shade200,
+    ];
     
     final totalSeconds = _isStudySession 
         ? timerProvider.focusDuration * 60 
@@ -984,7 +907,7 @@ class _TimerScreenState extends State<TimerScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: timeColors.primaryGradient,
+            colors: oceanGradientColors,
           ),
         ),
         child: Stack(
@@ -1009,7 +932,7 @@ class _TimerScreenState extends State<TimerScreen>
                     isRunning: _isRunning,
                     isStudySession: _isStudySession,
                     screenSize: MediaQuery.of(context).size,
-                    timeBasedColors: timeColors.particleColors,
+                    timeBasedColors: oceanParticleColors,
                   ),
                 ),
               ),
@@ -1486,161 +1409,6 @@ class _ElasticPlayButtonState extends State<_ElasticPlayButton>
   }
 }
 
-// Compact XP Bar widget for positioning above timer
-class _CompactXPBar extends StatefulWidget {
-  final int currentXP;
-  final int currentLevel;
-  final double progress;
-  
-  const _CompactXPBar({
-    required this.currentXP,
-    required this.currentLevel,
-    required this.progress,
-  });
-  
-  @override
-  State<_CompactXPBar> createState() => _CompactXPBarState();
-}
-
-class _CompactXPBarState extends State<_CompactXPBar>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-  
-  @override
-  void initState() {
-    super.initState();
-    
-    _glowController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat(reverse: true);
-    
-    _glowAnimation = Tween<double>(
-      begin: 0.5,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _glowController,
-      curve: Curves.easeInOut,
-    ));
-  }
-  
-  @override
-  void dispose() {
-    _glowController.dispose();
-    super.dispose();
-  }
-  
-  Color _getLevelColor() {
-    if (widget.currentLevel >= 25) return Colors.purple;
-    if (widget.currentLevel >= 20) return Colors.indigo;
-    if (widget.currentLevel >= 15) return Colors.blue;
-    if (widget.currentLevel >= 10) return Colors.teal;
-    if (widget.currentLevel >= 5) return Colors.green;
-    return Colors.lightBlue;
-  }
-  
-  @override
-  Widget build(BuildContext context) {
-    final levelColor = _getLevelColor();
-    
-    return AnimatedBuilder(
-      animation: _glowAnimation,
-      builder: (context, child) {
-        return Container(
-          width: 140,
-          height: 32,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            color: Colors.white.withOpacity(0.1),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: levelColor.withOpacity(0.3 * _glowAnimation.value),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              // Progress fill
-              Positioned.fill(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: LinearProgressIndicator(
-                    value: widget.progress,
-                    backgroundColor: Colors.transparent,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      levelColor.withOpacity(0.8),
-                    ),
-                  ),
-                ),
-              ),
-              
-              // Content
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Level badge - blended with background
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: levelColor.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
-                          width: 0.5,
-                        ),
-                      ),
-                      child: Text(
-                        'LV${widget.currentLevel}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          shadows: [
-                            Shadow(
-                              offset: Offset(0, 1),
-                              blurRadius: 2,
-                              color: Colors.black54,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    
-                    // XP text
-                    Text(
-                      '${GamificationService.instance.getCurrentLevelXP()}/${GamificationService.instance.getXPForNextLevel()}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        shadows: [
-                          Shadow(
-                            offset: Offset(0, 1),
-                            blurRadius: 2,
-                            color: Colors.black38,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
 
 // Compact Streak Bar widget to match the level bar style
 class _CompactStreakBar extends StatefulWidget {

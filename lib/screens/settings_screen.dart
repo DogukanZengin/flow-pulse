@@ -4,8 +4,6 @@ import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../providers/theme_provider.dart';
 import '../providers/timer_provider.dart';
-import '../services/subscription_service.dart';
-import '../services/background_service.dart';
 import '../widgets/premium_audio_controls.dart';
 import '../widgets/breathing_exercise.dart';
 
@@ -672,7 +670,7 @@ class _PremiumSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final subscriptionService = SubscriptionService.instance;
+    // final subscriptionService = SubscriptionService.instance; // Removed subscription service
     
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -706,26 +704,26 @@ class _PremiumSection extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      subscriptionService.isPremium ? Icons.star : Icons.star_border,
+                      false ? Icons.star : Icons.star_border,
                       color: Colors.amber,
                       size: 28,
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      subscriptionService.isPremium ? 'Premium Active' : 'Free Plan',
+                      false ? 'Premium Active' : 'Free Plan',
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: subscriptionService.isPremium ? Colors.amber : Colors.white,
+                        color: false ? Colors.amber : Colors.white,
                       ),
                     ),
                   ],
                 ),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    await subscriptionService.togglePremiumForDemo();
+                    // Premium functionality removed
                   },
                   icon: const Icon(Icons.science),
-                  label: Text(subscriptionService.isPremium ? 'Disable Premium' : 'Enable Premium'),
+                  label: Text(false ? 'Disable Premium' : 'Enable Premium'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.purple,
                     foregroundColor: Colors.white,
@@ -734,7 +732,7 @@ class _PremiumSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            if (!subscriptionService.isPremium) ...[
+            if (!false) ...[
               Text(
                 'Unlock Premium Features:',
                 style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -792,7 +790,7 @@ class _BreathingSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final subscriptionService = SubscriptionService.instance;
+    // final subscriptionService = SubscriptionService.instance; // Removed subscription service
     
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -830,7 +828,7 @@ class _BreathingSection extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-                if (!subscriptionService.isPremium)
+                if (!false)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
@@ -849,7 +847,7 @@ class _BreathingSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            if (!subscriptionService.isPremium) ...[
+            if (!false) ...[
               Container(
                 height: 120,
                 decoration: BoxDecoration(
