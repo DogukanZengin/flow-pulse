@@ -54,6 +54,9 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
   // State for journal expansion
   bool _isJournalExpanded = false;
   
+  // State for dive computer hover
+  bool _isDiveComputerHovered = false;
+  
   // Continuous time tracking for smooth animations
   late DateTime _startTime;
   double get _continuousTime => DateTime.now().difference(_startTime).inMilliseconds / 1000.0;
@@ -310,35 +313,43 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
               ),
             ),
             
-            // Research Station UI Elements
+            // Research Station UI Elements (with smooth transitions for distraction-free mode)
             Positioned(
               top: 220,
               left: 20,
               right: 20,
-              child: Row(
-                children: [
-                  // Dive Computer
-                  DiveComputerWidget(
-                    currentDepthMeters: currentDepth,
-                    targetDepthMeters: targetDepth,
-                    oxygenTimeSeconds: widget.secondsRemaining,
-                    isDiving: widget.isRunning,
-                    diveStatus: _getDiveStatus(),
-                    depthProgress: widget.sessionProgress,
-                  ),
-                  
-                  const Spacer(),
-                  
-                  // Research Progress
-                  ResearchProgressWidget(
-                    speciesDiscovered: widget.visibleCreatures.length,
-                    totalSpeciesInCurrentBiome: 12, // TODO: Get from aquarium data
-                    researchPapersPublished: 3, // TODO: Get from gamification service
-                    certificationProgress: GamificationService.instance.getLevelProgress(),
-                  ),
-                ],
+              child: AnimatedOpacity(
+                opacity: _isActiveStudySession() ? 0.0 : 1.0,
+                duration: const Duration(milliseconds: 500),
+                child: Row(
+                  children: [
+                    // Dive Computer
+                    DiveComputerWidget(
+                      currentDepthMeters: currentDepth,
+                      targetDepthMeters: targetDepth,
+                      oxygenTimeSeconds: widget.secondsRemaining,
+                      isDiving: widget.isRunning,
+                      diveStatus: _getDiveStatus(),
+                      depthProgress: widget.sessionProgress,
+                    ),
+                    
+                    const Spacer(),
+                    
+                    // Research Progress - hidden during study sessions
+                    ResearchProgressWidget(
+                      speciesDiscovered: widget.visibleCreatures.length,
+                      totalSpeciesInCurrentBiome: 12, // TODO: Get from aquarium data
+                      researchPapersPublished: 3, // TODO: Get from gamification service
+                      certificationProgress: GamificationService.instance.getLevelProgress(),
+                    ),
+                  ],
+                ),
               ),
             ),
+            
+            // Floating Dive Computer during active study sessions (with smooth entrance)
+            if (_isActiveStudySession())
+              _buildFloatingDiveComputer(currentDepth.toDouble(), targetDepth.toDouble()),
             
             // Central play/pause control with ocean theme
             _buildCentralControl(screenSize),
@@ -879,6 +890,153 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  /// Determines if current session is an active study session (focus session that is running)
+  bool _isActiveStudySession() {
+    return widget.isRunning && widget.isStudySession;
+  }
+
+  /// Builds a floating dive computer button for distraction-free study mode
+  Widget _buildFloatingDiveComputer(double currentDepth, double targetDepth) {
+    return Positioned(
+      bottom: 100, // Aligned with Research Journal button
+      left: 20,
+      child: AnimatedScale(
+        scale: widget.isRunning ? 1.1 : 1.0,
+        duration: const Duration(milliseconds: 300),
+        child: GestureDetector(
+          onTap: () {
+            // Absorb tap events to prevent session pause
+          },
+          child: MouseRegion(
+            onEnter: (_) {
+              setState(() {
+                _isDiveComputerHovered = true;
+              });
+            },
+            onExit: (_) {
+              setState(() {
+                _isDiveComputerHovered = false;
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutBack,
+              width: _isDiveComputerHovered ? 200 : 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.blue.shade900.withValues(alpha: 0.9), // Ocean theme
+                borderRadius: BorderRadius.circular(_isDiveComputerHovered ? 16 : 28),
+                border: Border.all(
+                  color: Colors.cyan.withValues(alpha: 0.8),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.cyan.withValues(alpha: 0.4),
+                    blurRadius: 12,
+                    spreadRadius: 3,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: _isDiveComputerHovered 
+                ? _buildExpandedDiveInfo(currentDepth, targetDepth)
+                : _buildCompactDiveButton(currentDepth),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the compact dive computer button (non-hovered state)
+  Widget _buildCompactDiveButton(double currentDepth) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.speed,
+          color: Colors.cyan,
+          size: 20,
+        ),
+        const SizedBox(height: 2),
+        Text(
+          '${currentDepth.toInt()}m',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 9,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          _getDiveStatus().substring(0, 3),
+          style: TextStyle(
+            color: Colors.cyan,
+            fontSize: 7,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Builds the expanded dive computer info (hovered state)
+  Widget _buildExpandedDiveInfo(double currentDepth, double targetDepth) {
+    final minutes = widget.secondsRemaining ~/ 60;
+    final seconds = widget.secondsRemaining % 60;
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        children: [
+          // Icon
+          Icon(
+            Icons.speed,
+            color: Colors.cyan,
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          // Expanded info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Depth: ${currentDepth.toInt()}m → ${targetDepth.toInt()}m',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'O₂: ${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+                  style: TextStyle(
+                    color: Colors.cyan,
+                    fontSize: 8,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  _getDiveStatus(),
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 7,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
