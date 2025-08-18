@@ -145,9 +145,10 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // Header
                   Row(
@@ -162,15 +163,15 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                         'DIVE COMPUTER',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 12,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
+                          letterSpacing: 1.0,
                         ),
                       ),
                     ],
                   ),
                   
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   
                   // Depth information
                   Row(
@@ -212,7 +213,7 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                     ],
                   ),
                   
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   
                   // Oxygen time
                   Row(

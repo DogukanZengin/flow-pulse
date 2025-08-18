@@ -67,6 +67,7 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           _buildHeader(),
           const SizedBox(height: 16),
@@ -118,15 +119,17 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
   Widget _buildEquipmentGrid() {
     final equipmentData = _getEquipmentData();
     
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 1,
-      ),
+    return SizedBox(
+      height: 200, // Constrain height to prevent overflow
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const AlwaysScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 4,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+          childAspectRatio: 1,
+        ),
       itemCount: equipmentData.length,
       itemBuilder: (context, index) {
         final equipment = equipmentData[index];
@@ -192,6 +195,7 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
           },
         );
       },
+      ),
     );
   }
 

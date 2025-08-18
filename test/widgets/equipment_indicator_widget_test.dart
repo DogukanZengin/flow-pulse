@@ -306,23 +306,30 @@ void main() {
         Widget buildWidget(int level) {
           return MaterialApp(
             home: Scaffold(
-              body: EquipmentIndicatorWidget(
-                key: key,
-                userLevel: level,
-                unlockedEquipment: [],
-                showCertifications: true,
+              body: SizedBox(
+                width: 400,
+                height: 600,
+                child: EquipmentIndicatorWidget(
+                  key: key,
+                  userLevel: level,
+                  unlockedEquipment: [],
+                  showCertifications: true,
+                ),
               ),
             ),
           );
         }
 
         await tester.pumpWidget(buildWidget(10));
+        await tester.pump();
         expect(find.text('Level 10 • 0 items'), findsOneWidget);
 
         await tester.pumpWidget(buildWidget(25));
+        await tester.pump();
         expect(find.text('Level 25 • 0 items'), findsOneWidget);
 
         await tester.pumpWidget(buildWidget(50));
+        await tester.pump();
         expect(find.text('Level 50 • 0 items'), findsOneWidget);
       });
     });
