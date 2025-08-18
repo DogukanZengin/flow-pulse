@@ -370,7 +370,7 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                         Expanded(
                           child: _buildMetricItem(
                             'Efficiency',
-                            '${_metrics!.researchEfficiency.toStringAsFixed(1)}',
+                            _metrics!.researchEfficiency.toStringAsFixed(1),
                             Icons.speed,
                             Colors.orange,
                           ),
@@ -641,7 +641,7 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
                   
                   _buildDetailedMetric(
                     'Research Efficiency',
-                    '${_metrics!.researchEfficiency.toStringAsFixed(2)}',
+                    _metrics!.researchEfficiency.toStringAsFixed(2),
                     'Weighted discoveries per hour',
                     Icons.speed,
                     Colors.orange,
@@ -649,7 +649,7 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
                   
                   _buildDetailedMetric(
                     'Discoveries per Session',
-                    '${_metrics!.discoveriesPerSession.toStringAsFixed(2)}',
+                    _metrics!.discoveriesPerSession.toStringAsFixed(2),
                     'Average species found per expedition',
                     Icons.schedule,
                     Colors.blue,

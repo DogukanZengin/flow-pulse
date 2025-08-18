@@ -30,8 +30,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -79,7 +77,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               controller: _tabController,
               indicatorColor: Colors.white,
               labelColor: Colors.white,
-              unselectedLabelColor: Colors.white.withOpacity(0.7),
+              unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
               tabs: const [
                 Tab(icon: Icon(Icons.waves), text: 'Dive Performance'),
                 Tab(icon: Icon(Icons.trending_up), text: 'Discovery Trends'),
@@ -177,15 +175,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -259,10 +257,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -282,7 +280,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
             label,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -310,15 +308,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -377,7 +375,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                               barWidth: 3,
                               belowBarData: BarAreaData(
                                 show: true,
-                                color: theme.colorScheme.primary.withOpacity(0.1),
+                                color: theme.colorScheme.primary.withValues(alpha: 0.1),
                               ),
                               dotData: const FlDotData(show: false),
                             ),
@@ -416,15 +414,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -456,21 +454,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                 sections: [
                                   PieChartSectionData(
                                     value: avgCompletionRate * 100,
-                                    color: Colors.green.withOpacity(0.8),
+                                    color: Colors.green.withValues(alpha: 0.8),
                                     title: '',
                                     radius: 35,
                                     borderSide: BorderSide(
-                                      color: Colors.white.withOpacity(0.3),
+                                      color: Colors.white.withValues(alpha: 0.3),
                                       width: 1,
                                     ),
                                   ),
                                   PieChartSectionData(
                                     value: (1 - avgCompletionRate) * 100,
-                                    color: Colors.white.withOpacity(0.1),
+                                    color: Colors.white.withValues(alpha: 0.1),
                                     title: '',
                                     radius: 35,
                                     borderSide: BorderSide(
-                                      color: Colors.white.withOpacity(0.2),
+                                      color: Colors.white.withValues(alpha: 0.2),
                                       width: 1,
                                     ),
                                   ),
@@ -491,7 +489,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withValues(alpha: 0.9),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -501,7 +499,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                     width: 12,
                                     height: 12,
                                     decoration: BoxDecoration(
-                                      color: Colors.green.withOpacity(0.8),
+                                      color: Colors.green.withValues(alpha: 0.8),
                                       borderRadius: BorderRadius.circular(2),
                                     ),
                                   ),
@@ -510,7 +508,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                     'Successful Dives: ${(avgCompletionRate * 100).round()}%',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.white.withOpacity(0.8),
+                                      color: Colors.white.withValues(alpha: 0.8),
                                     ),
                                   ),
                                 ],
@@ -522,7 +520,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                     width: 12,
                                     height: 12,
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.3),
+                                      color: Colors.white.withValues(alpha: 0.3),
                                       borderRadius: BorderRadius.circular(2),
                                     ),
                                   ),
@@ -531,7 +529,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                     'Aborted Dives: ${((1 - avgCompletionRate) * 100).round()}%',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.white.withOpacity(0.8),
+                                      color: Colors.white.withValues(alpha: 0.8),
                                     ),
                                   ),
                                 ],
@@ -540,10 +538,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: Colors.white.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: Colors.white.withOpacity(0.2),
+                                    color: Colors.white.withValues(alpha: 0.2),
                                     width: 1,
                                   ),
                                 ),
@@ -558,7 +556,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: Colors.white.withValues(alpha: 0.9),
                                   ),
                                 ),
                               ),
@@ -588,15 +586,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -640,15 +638,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -692,15 +690,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -744,15 +742,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -777,7 +775,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   'Complete more research expeditions to get marine biology insights',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -796,11 +794,4 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     );
   }
 
-  Future<List<AnalyticsData>> _getLastMonthData() async {
-    final now = DateTime.now();
-    return await _analyticsService.getAnalyticsData(
-      startDate: now.subtract(const Duration(days: 30)),
-      endDate: now,
-    );
-  }
 }

@@ -21,17 +21,12 @@ class UISoundService {
 
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _soundEnabled = true;
-  double _volume = 0.3; // Subtle volume for UI sounds
 
   // Enable/disable UI sounds
   void setSoundEnabled(bool enabled) {
     _soundEnabled = enabled;
   }
 
-  // Set volume for UI sounds (0.0 to 1.0)
-  void setVolume(double volume) {
-    _volume = volume.clamp(0.0, 1.0);
-  }
 
   // Play UI sound with haptic feedback
   Future<void> playSound(UISound sound) async {
@@ -65,7 +60,6 @@ class UISoundService {
       
     } catch (e) {
       // Silently fail if sound can't be played
-      print('UI Sound error: $e');
     }
   }
 

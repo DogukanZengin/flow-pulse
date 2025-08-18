@@ -45,7 +45,6 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
   
   // Surface wildlife that appears during breaks
   final List<SurfaceWildlife> _surfaceWildlife = [];
-  final Random _random = Random();
   
   // Activity tracking to prevent exploitation
   final Set<String> _completedActivitiesThisBreak = {};
@@ -307,240 +306,6 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
     );
   }
   
-  Widget _buildDeckHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(179), // 0.7 opacity to show background
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(26), // 0.1 opacity
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.wb_sunny, color: Colors.orange, size: 28),
-          const SizedBox(width: 12),
-          Column(
-            children: [
-              Text(
-                '🌞 Research Vessel Deck - Break Time 🌊',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue[800],
-                ),
-              ),
-              Text(
-                'Peaceful surface activities for restoration',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.blue[600],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildEquipmentStation() {
-    return _buildDeckCard(
-      title: '🔧 Equipment Station',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildEquipmentItem('🤿 Dive Gear', 'Excellent', Colors.green),
-          _buildEquipmentItem('📷 Camera', 'Clean', Colors.blue),
-          _buildEquipmentItem('🔬 Tools', 'Ready', Colors.teal),
-          const SizedBox(height: 16),
-          _buildActivityButton(
-            '🔧 Maintain Gear',
-            'Equipment maintenance boosts next dive performance',
-            () => _completeActivity('equipment_maintenance'),
-            activityType: 'equipment_maintenance',
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildObservationDeck() {
-    return _buildDeckCard(
-      title: '🔭 Ocean Wildlife Observatory',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildWildlifeObservation('🐬 Dolphins', 'Pod spotted'),
-          _buildWildlifeObservation('🐦 Seabirds', 'Flying overhead'),
-          _buildWildlifeObservation('🐋 Whale song', 'Distant calls'),
-          _buildWildlifeObservation('🌊 Wave patterns', 'Calm seas'),
-          const SizedBox(height: 16),
-          _buildActivityButton(
-            '📝 Log Observations',
-            'Wildlife observations provide research insights',
-            () => _completeActivity('wildlife_observation'),
-            activityType: 'wildlife_observation',
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildResearchJournal() {
-    return _buildDeckCard(
-      title: '📖 Research Journal',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Today's Discoveries:",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[800],
-            ),
-          ),
-          const SizedBox(height: 8),
-          ...widget.recentDiscoveries.take(3).map(
-            (creature) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Text(
-                '🐠 ${creature.name} (new!)',
-                style: const TextStyle(fontSize: 14),
-              ),
-            ),
-          ),
-          if (widget.recentDiscoveries.isEmpty)
-            const Text(
-              'No discoveries yet - dive deeper!',
-              style: TextStyle(
-                fontSize: 14,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          const SizedBox(height: 16),
-          _buildActivityButton(
-            '📖 Review Progress',
-            'Organize discoveries and earn research XP',
-            () => _completeActivity('journal_review'),
-            activityType: 'journal_review',
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildWeatherStation() {
-    return _buildDeckCard(
-      title: '🌤️ Weather Station',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildWeatherInfo('☀️ Sunny', '78°F'),
-          _buildWeatherInfo('🌊 Waves', '1-2ft'),
-          _buildWeatherInfo('💨 Wind', 'Light breeze'),
-          _buildWeatherInfo('🌅 Sunset', '7:30 PM'),
-          const SizedBox(height: 16),
-          _buildActivityButton(
-            '🌤️ Check Forecast',
-            'Weather data affects dive conditions',
-            () => _completeActivity('weather_monitoring'),
-            activityType: 'weather_monitoring',
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildBreakControls() {
-    final minutes = widget.secondsRemaining ~/ 60;
-    final seconds = widget.secondsRemaining % 60;
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(204), // 0.8 opacity to show background
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(38), // 0.15 opacity
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Break Timer: ${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')} remaining',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[800],
-            ),
-          ),
-          Row(
-            children: [
-              _buildControlButton(
-                '☕ Extend Break',
-                Colors.orange,
-                () => _extendBreak(),
-              ),
-              const SizedBox(width: 12),
-              _buildControlButton(
-                widget.isRunning ? '⏸️ Pause' : '🤿 Resume Dive',
-                widget.isRunning ? Colors.orange : Colors.blue,
-                widget.onTap,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildDeckCard({
-    required String title,
-    required Widget child,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(179), // 0.7 opacity to show background
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(20), // 0.08 opacity
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[800],
-            ),
-          ),
-          const SizedBox(height: 12),
-          child,
-        ],
-      ),
-    );
-  }
-  
   Widget _buildEquipmentItem(String name, String status, Color statusColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -551,7 +316,7 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.2),
+              color: statusColor.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -607,81 +372,7 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
       ),
     );
   }
-  
-  Widget _buildActivityButton(String title, String description, VoidCallback onTap, {String? activityType}) {
-    final isDisabled = !_areActivitiesAllowed() || 
-                      (activityType != null && _isActivityCompletedThisBreak(activityType));
-    final isCompleted = activityType != null && _isActivityCompletedThisBreak(activityType);
-    
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: isDisabled ? null : onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isCompleted 
-              ? Colors.green[400] // Green for completed
-              : isDisabled 
-                  ? Colors.grey[300] // Light grey for not available
-                  : Colors.blue[600], // Blue for available
-          foregroundColor: isDisabled ? Colors.grey[600] : Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          elevation: isDisabled ? 0 : 2,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              isCompleted ? '$title ✅' : title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              isCompleted 
-                ? 'Completed this break!' 
-                : !_areActivitiesAllowed() 
-                    ? 'Available during break sessions'
-                    : description,
-              style: TextStyle(
-                fontSize: 10,
-                color: isDisabled 
-                    ? Colors.grey[600]!.withAlpha(204) // 0.8 opacity
-                    : Colors.white.withAlpha(230), // 0.9 opacity
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildControlButton(String text, Color color, VoidCallback onTap) {
-    return ElevatedButton(
-      onPressed: onTap,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-        ),
-      ),
-    );
-  }
-  
+
   void _completeActivity(String activityType) {
     // This method should only be called when activities are allowed
     // Button disabling prevents invalid calls, but adding safety check
@@ -733,17 +424,6 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
       default:
         return '✅ Activity completed! Break rewards earned';
     }
-  }
-  
-  void _extendBreak() {
-    // Could implement break extension logic here
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('☕ Break extended! Taking time for proper rest'),
-        backgroundColor: Colors.orange,
-        duration: Duration(seconds: 2),
-      ),
-    );
   }
 
   // Break timer display - the core Pomodoro timer functionality
@@ -1019,44 +699,6 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
     );
   }
   
-  Widget _buildCompactBreakControls() {
-    final minutes = widget.secondsRemaining ~/ 60;
-    final seconds = widget.secondsRemaining % 60;
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(179), // 0.7 opacity to show background
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(26), // 0.1 opacity
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue[800],
-              ),
-            ),
-          ),
-          _buildCompactControlButton(
-            widget.isRunning ? '⏸️' : '🤿',
-            widget.isRunning ? Colors.orange : Colors.blue,
-            widget.onTap,
-          ),
-        ],
-      ),
-    );
-  }
   
   Widget _buildCompactCard({
     required String title,
@@ -1128,21 +770,6 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
     );
   }
   
-  Widget _buildCompactControlButton(String text, Color color, VoidCallback onTap) {
-    return ElevatedButton(
-      onPressed: onTap,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        textStyle: const TextStyle(fontSize: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      child: Text(text),
-    );
-  }
 }
 
 /// Custom painter for animated ocean waves at the bottom
@@ -1158,7 +785,7 @@ class WavesPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          Colors.blue[300]!.withOpacity(0.8),
+          Colors.blue[300]!.withValues(alpha: 0.8),
           Colors.blue[600]!,
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))

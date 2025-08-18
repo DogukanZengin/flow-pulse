@@ -117,7 +117,7 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
               controller: _tabController,
               indicatorColor: Colors.white,
               labelColor: Colors.white,
-              unselectedLabelColor: Colors.white.withOpacity(0.7),
+              unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
               isScrollable: false,
               labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
               unselectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.normal),
@@ -192,15 +192,15 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.25),
+                color: Colors.white.withValues(alpha: 0.25),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -230,20 +230,20 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
             Icon(
               Icons.explore,
               size: 64,
-              color: Colors.white.withOpacity(0.6),
+              color: Colors.white.withValues(alpha: 0.6),
             ),
             const SizedBox(height: 16),
             Text(
               'No research missions yet',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Tap the + button to plan your first expedition',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -300,7 +300,6 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
   }
 
   Widget _buildTaskCard(Task task) {
-    final theme = Theme.of(context);
     final isOverdue = task.isOverdue;
     final isDueToday = task.isDueToday;
 
@@ -404,7 +403,7 @@ class _TasksScreenState extends State<TasksScreen> with SingleTickerProviderStat
     } else if (difference == 1) {
       return 'Tomorrow';
     } else if (difference <= 7) {
-      return '${difference} days';
+      return '$difference days';
     } else {
       return DateFormat('MMM d').format(dueDate);
     }
@@ -810,17 +809,17 @@ class _TaskDialogState extends State<TaskDialog> {
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   blurRadius: 30,
                   offset: const Offset(0, 15),
                 ),
                 BoxShadow(
-                  color: const Color(0xFF00B4D8).withOpacity(0.1),
+                  color: const Color(0xFF00B4D8).withValues(alpha: 0.1),
                   blurRadius: 40,
                   offset: const Offset(0, 10),
                 ),
@@ -846,10 +845,10 @@ class _TaskDialogState extends State<TaskDialog> {
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             width: 1,
                           ),
                         ),
@@ -858,9 +857,9 @@ class _TaskDialogState extends State<TaskDialog> {
                           style: const TextStyle(color: Colors.white, fontSize: 16),
                           decoration: InputDecoration(
                             labelText: 'Mission Title *',
-                            labelStyle: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13),
+                            labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13),
                             hintText: 'Research objective',
-                            hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
@@ -872,10 +871,10 @@ class _TaskDialogState extends State<TaskDialog> {
                       const SizedBox(height: 12),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             width: 1,
                           ),
                         ),
@@ -884,9 +883,9 @@ class _TaskDialogState extends State<TaskDialog> {
                           style: const TextStyle(color: Colors.white, fontSize: 16),
                           decoration: InputDecoration(
                             labelText: 'Research Notes',
-                            labelStyle: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13),
+                            labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13),
                             hintText: 'Details...',
-                            hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
@@ -899,10 +898,10 @@ class _TaskDialogState extends State<TaskDialog> {
                       const SizedBox(height: 12),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             width: 1,
                           ),
                         ),
@@ -912,7 +911,7 @@ class _TaskDialogState extends State<TaskDialog> {
                           dropdownColor: const Color(0xFF1E3A5F),
                           decoration: InputDecoration(
                             labelText: 'Priority',
-                            labelStyle: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13),
+                            labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
@@ -939,10 +938,10 @@ class _TaskDialogState extends State<TaskDialog> {
                       const SizedBox(height: 12),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             width: 1,
                           ),
                         ),
@@ -956,14 +955,14 @@ class _TaskDialogState extends State<TaskDialog> {
                             _dueDate == null 
                                 ? 'No deadline set' 
                                 : DateFormat('MMM d, y').format(_dueDate!),
-                            style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
+                            style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14),
                           ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Container(
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: Colors.white.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: IconButton(
@@ -979,7 +978,7 @@ class _TaskDialogState extends State<TaskDialog> {
                                 const SizedBox(width: 8),
                                 Container(
                                   decoration: BoxDecoration(
-                                    color: Colors.red.withOpacity(0.2),
+                                    color: Colors.red.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: IconButton(
@@ -999,10 +998,10 @@ class _TaskDialogState extends State<TaskDialog> {
                       const SizedBox(height: 6),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             width: 1,
                           ),
                         ),
@@ -1018,10 +1017,10 @@ class _TaskDialogState extends State<TaskDialog> {
                             Container(
                               width: 80,
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.1),
+                                color: Colors.white.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.3),
+                                  color: Colors.white.withValues(alpha: 0.3),
                                   width: 1,
                                 ),
                               ),
@@ -1056,14 +1055,14 @@ class _TaskDialogState extends State<TaskDialog> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
                       child: TextButton(
                         onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
                         style: TextButton.styleFrom(
-                          foregroundColor: Colors.white.withOpacity(0.9),
+                          foregroundColor: Colors.white.withValues(alpha: 0.9),
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -1087,12 +1086,12 @@ class _TaskDialogState extends State<TaskDialog> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF2E5984).withOpacity(0.4),
+                            color: const Color(0xFF2E5984).withValues(alpha: 0.4),
                             blurRadius: 15,
                             offset: const Offset(0, 8),
                           ),
                           BoxShadow(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                             blurRadius: 1,
                             offset: const Offset(0, 1),
                           ),

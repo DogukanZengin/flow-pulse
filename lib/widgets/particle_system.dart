@@ -66,7 +66,7 @@ class _ParticleSystemState extends State<ParticleSystem>
   Color _getParticleColor() {
     // Use time-based colors if available
     if (widget.timeBasedColors != null && widget.timeBasedColors!.isNotEmpty) {
-      final colors = [...widget.timeBasedColors!, Colors.white.withOpacity(0.6)];
+      final colors = [...widget.timeBasedColors!, Colors.white.withValues(alpha: 0.6)];
       return colors[_random.nextInt(colors.length)];
     }
     
@@ -77,7 +77,7 @@ class _ParticleSystemState extends State<ParticleSystem>
         Colors.purple.shade200,
         Colors.blue.shade200,
         Colors.indigo.shade200,
-        Colors.white.withOpacity(0.6),
+        Colors.white.withValues(alpha: 0.6),
       ];
       return colors[_random.nextInt(colors.length)];
     } else {
@@ -86,7 +86,7 @@ class _ParticleSystemState extends State<ParticleSystem>
         Colors.orange.shade200,
         Colors.yellow.shade200,
         Colors.pink.shade200,
-        Colors.white.withOpacity(0.6),
+        Colors.white.withValues(alpha: 0.6),
       ];
       return colors[_random.nextInt(colors.length)];
     }
@@ -193,7 +193,7 @@ class ParticlePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (var particle in particles) {
       final paint = Paint()
-        ..color = particle.color.withOpacity(particle.currentOpacity)
+        ..color = particle.color.withValues(alpha: particle.currentOpacity)
         ..style = PaintingStyle.fill
         ..maskFilter = MaskFilter.blur(
           BlurStyle.normal, 
@@ -209,7 +209,7 @@ class ParticlePainter extends CustomPainter {
       // Add glow effect for larger particles
       if (particle.size > 3) {
         final glowPaint = Paint()
-          ..color = particle.color.withOpacity(particle.currentOpacity * 0.3)
+          ..color = particle.color.withValues(alpha: particle.currentOpacity * 0.3)
           ..style = PaintingStyle.fill
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8.0);
         

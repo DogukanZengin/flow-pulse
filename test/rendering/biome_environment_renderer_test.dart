@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flow_pulse/rendering/biome_environment_renderer.dart';
@@ -310,7 +311,7 @@ void main() {
   });
 }
 
-class TestBiomeEnvironmentPainter {
+class TestBiomeEnvironmentPainter extends CustomPainter {
   final BiomeType biome;
   final double depth;
   final double sessionProgress;
@@ -323,8 +324,23 @@ class TestBiomeEnvironmentPainter {
     required this.animationValue,
   });
 
+  @override
+  void paint(Canvas canvas, Size size) {
+    BiomeEnvironmentRenderer.paintBiomeEnvironment(
+      canvas,
+      size,
+      biome,
+      depth,
+      sessionProgress,
+      animationValue,
+    );
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
+
   void testPaint(Size size) {
-    final recorder = PictureRecorder();
+    final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
     
     BiomeEnvironmentRenderer.paintBiomeEnvironment(

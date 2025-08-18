@@ -171,12 +171,12 @@ class _CreatureDiscoveryAnimationState extends State<CreatureDiscoveryAnimation>
                           ),
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: _rarityColor.withOpacity(0.8),
+                            color: _rarityColor.withValues(alpha: 0.8),
                             width: 3,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: _rarityColor.withOpacity(0.5),
+                              color: _rarityColor.withValues(alpha: 0.5),
                               blurRadius: 30,
                               spreadRadius: 5,
                             ),
@@ -219,7 +219,7 @@ class _CreatureDiscoveryAnimationState extends State<CreatureDiscoveryAnimation>
                                 shape: BoxShape.circle,
                                 gradient: RadialGradient(
                                   colors: [
-                                    _rarityColor.withOpacity(0.3),
+                                    _rarityColor.withValues(alpha: 0.3),
                                     Colors.transparent,
                                   ],
                                 ),
@@ -247,7 +247,7 @@ class _CreatureDiscoveryAnimationState extends State<CreatureDiscoveryAnimation>
                               style: TextStyle(
                                 fontSize: 14,
                                 fontStyle: FontStyle.italic,
-                                color: Colors.white.withOpacity(0.7),
+                                color: Colors.white.withValues(alpha: 0.7),
                               ),
                             ),
                             
@@ -260,7 +260,7 @@ class _CreatureDiscoveryAnimationState extends State<CreatureDiscoveryAnimation>
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: _rarityColor.withOpacity(0.2),
+                                color: _rarityColor.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: _rarityColor,
@@ -315,7 +315,7 @@ class _CreatureDiscoveryAnimationState extends State<CreatureDiscoveryAnimation>
                               'Found in: ${widget.creature.habitat.displayName}',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.white.withOpacity(0.6),
+                                color: Colors.white.withValues(alpha: 0.6),
                               ),
                             ),
                           ],
@@ -365,7 +365,7 @@ class _CreatureDiscoveryAnimationState extends State<CreatureDiscoveryAnimation>
           size: MediaQuery.of(context).size,
           painter: BubblesPainter(
             animationValue: _bubbleController.value,
-            color: _rarityColor.withOpacity(0.3),
+            color: _rarityColor.withValues(alpha: 0.3),
           ),
         );
       },
@@ -512,7 +512,7 @@ class SparklesPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withOpacity(0.8)
+      ..color = color.withValues(alpha: 0.8)
       ..style = PaintingStyle.fill;
     
     // Draw sparkles in a circular pattern

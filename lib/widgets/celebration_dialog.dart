@@ -121,15 +121,15 @@ class _CelebrationDialogState extends State<CelebrationDialog>
                         width: 320,
                         padding: const EdgeInsets.all(32),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
+                          color: Colors.white.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
+                            color: Colors.white.withValues(alpha: 0.3),
                             width: 2,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withValues(alpha: 0.2),
                               blurRadius: 30,
                               offset: const Offset(0, 10),
                             ),
@@ -158,7 +158,7 @@ class _CelebrationDialogState extends State<CelebrationDialog>
                                         BoxShadow(
                                           color: (widget.isStudySession 
                                               ? const Color(0xFF6B5B95) 
-                                              : const Color(0xFFFF6B6B)).withOpacity(0.4),
+                                              : const Color(0xFFFF6B6B)).withValues(alpha: 0.4),
                                           blurRadius: 20,
                                           offset: const Offset(0, 8),
                                         ),
@@ -196,7 +196,7 @@ class _CelebrationDialogState extends State<CelebrationDialog>
                                   : 'Great work! Take a break 🎉',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.white.withOpacity(0.9),
+                                color: Colors.white.withValues(alpha: 0.9),
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -208,10 +208,10 @@ class _CelebrationDialogState extends State<CelebrationDialog>
                               Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: Colors.white.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
-                                    color: Colors.white.withOpacity(0.2),
+                                    color: Colors.white.withValues(alpha: 0.2),
                                   ),
                                 ),
                                 child: Column(
@@ -291,7 +291,7 @@ class _CelebrationDialogState extends State<CelebrationDialog>
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                             decoration: BoxDecoration(
-                                              color: Colors.green.withOpacity(0.2),
+                                              color: Colors.green.withValues(alpha: 0.2),
                                               borderRadius: BorderRadius.circular(12),
                                               border: Border.all(color: Colors.green),
                                             ),
@@ -321,13 +321,13 @@ class _CelebrationDialogState extends State<CelebrationDialog>
                                   widget.onDismiss();
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white.withOpacity(0.2),
+                                  backgroundColor: Colors.white.withValues(alpha: 0.2),
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     side: BorderSide(
-                                      color: Colors.white.withOpacity(0.3),
+                                      color: Colors.white.withValues(alpha: 0.3),
                                       width: 1,
                                     ),
                                   ),
@@ -388,7 +388,7 @@ class ConfettiPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (final particle in particles) {
       final paint = Paint()
-        ..color = particle.color.withOpacity(animationValue * 0.8)
+        ..color = particle.color.withValues(alpha: animationValue * 0.8)
         ..style = PaintingStyle.fill;
 
       final x = particle.x * size.width;

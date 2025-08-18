@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../../lib/models/aquarium.dart';
-import '../../lib/models/creature.dart';
-import '../../lib/models/coral.dart';
+import 'package:flow_pulse/models/aquarium.dart';
+import 'package:flow_pulse/models/creature.dart';
+import 'package:flow_pulse/models/coral.dart';
 
 void main() {
   group('Aquarium Model Tests', () {

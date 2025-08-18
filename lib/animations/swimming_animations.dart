@@ -143,7 +143,7 @@ class SwimmingCreaturePainter extends CustomPainter {
     tailPath.lineTo(tailBase.dx, tailBase.dy);
     tailPath.close();
     
-    paint.color = baseColor.withAlpha((baseColor.alpha * 0.8).round());
+    paint.color = baseColor.withValues(alpha: baseColor.a * 0.8);
     canvas.drawPath(tailPath, paint);
     
     // Draw fins
@@ -202,7 +202,7 @@ class SwimmingCreaturePainter extends CustomPainter {
   
   void _drawFins(Canvas canvas, Size size, Color baseColor) {
     final finPaint = Paint()
-      ..color = baseColor.withAlpha((baseColor.alpha * 0.6).round())
+      ..color = baseColor.withValues(alpha: baseColor.a * 0.6)
       ..style = PaintingStyle.fill;
     
     // Top fin

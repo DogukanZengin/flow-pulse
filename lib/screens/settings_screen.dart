@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
-import '../providers/theme_provider.dart';
 import '../providers/timer_provider.dart';
-import '../widgets/premium_audio_controls.dart';
-import '../widgets/breathing_exercise.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -61,18 +58,6 @@ class SettingsScreen extends StatelessWidget {
           // Core timer settings
           const _TimerSection(),
           const SizedBox(height: 24),
-          
-          // Theme and background settings (premium features)
-          const _ThemeSection(),
-          const SizedBox(height: 24),
-          
-          // Audio settings (premium mixing)
-          const PremiumAudioControls(),
-          const SizedBox(height: 24),
-          
-          // Breathing exercises (premium)
-                    const _BreathingSection(),
-                    const SizedBox(height: 24),
                     
                     // Original settings
                     const _AutoStartSection(),
@@ -106,15 +91,15 @@ class _TimerSection extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -243,168 +228,6 @@ class _TimerSlider extends StatelessWidget {
   }
 }
 
-class _ThemeSection extends StatelessWidget {
-  const _ThemeSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final themeProvider = context.watch<ThemeProvider>();
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Appearance',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 16),
-            SwitchListTile(
-              title: const Text('Dark Mode', style: TextStyle(color: Colors.white)),
-              subtitle: const Text('Use dark theme', style: TextStyle(color: Colors.white70)),
-              value: themeProvider.isDarkMode,
-              onChanged: (value) {
-                context.read<ThemeProvider>().toggleDarkMode();
-              },
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Theme Color',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              children: AppTheme.values.map((appTheme) {
-                final isSelected = themeProvider.currentTheme == appTheme;
-                return GestureDetector(
-                  onTap: () {
-                    context.read<ThemeProvider>().setTheme(appTheme);
-                  },
-                  child: Container(
-                    width: 60,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: _getThemeColor(appTheme),
-                      borderRadius: BorderRadius.circular(8),
-                      border: isSelected
-                          ? Border.all(color: theme.colorScheme.primary, width: 3)
-                          : null,
-                    ),
-                    child: isSelected
-                        ? Icon(
-                            Icons.check,
-                            color: theme.colorScheme.onPrimary,
-                            size: 20,
-                          )
-                        : null,
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              themeProvider.getThemeName(themeProvider.currentTheme),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.white70,
-              ),
-            ),
-          ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Color _getThemeColor(AppTheme appTheme) {
-    switch (appTheme) {
-      case AppTheme.indigo:
-        return const Color(0xFF3F51B5);
-      case AppTheme.ocean:
-        return const Color(0xFF0277BD);
-      case AppTheme.forest:
-        return const Color(0xFF2E7D32);
-      case AppTheme.sunset:
-        return const Color(0xFFD84315);
-      case AppTheme.lavender:
-        return const Color(0xFF7B1FA2);
-      case AppTheme.charcoal:
-        return const Color(0xFF455A64);
-      case AppTheme.midnight:
-        return const Color(0xFF1A237E);
-      case AppTheme.cosmicPulse:
-        return const Color(0xFF6A1B9A);
-      case AppTheme.auroralBloom:
-        return const Color(0xFF00BCD4);
-      case AppTheme.liquidGold:
-        return const Color(0xFFFF8F00);
-      case AppTheme.neonNights:
-        return const Color(0xFF00E676);
-      case AppTheme.crystalCave:
-        return const Color(0xFF9C27B0);
-      case AppTheme.volcanoFire:
-        return const Color(0xFFD32F2F);
-      case AppTheme.deepSpace:
-        return const Color(0xFF1A237E);
-      case AppTheme.sakuraBloom:
-        return const Color(0xFFE91E63);
-      case AppTheme.electroMist:
-        return const Color(0xFF00BCD4);
-      case AppTheme.prismShift:
-        return const Color(0xFF9C27B0);
-      case AppTheme.galaxySwirl:
-        return const Color(0xFF3F51B5);
-      case AppTheme.emeraldFlow:
-        return const Color(0xFF2E7D32);
-      case AppTheme.rubyGlow:
-        return const Color(0xFFD32F2F);
-      case AppTheme.sapphireWave:
-        return const Color(0xFF0277BD);
-      case AppTheme.opalShimmer:
-        return const Color(0xFF9C27B0);
-      case AppTheme.diamondDust:
-        return const Color(0xFF78909C);
-      case AppTheme.copperFlame:
-        return const Color(0xFFD84315);
-      case AppTheme.steelStorm:
-        return const Color(0xFF455A64);
-      case AppTheme.goldRush:
-        return const Color(0xFFFF8F00);
-      case AppTheme.silverMoon:
-        return const Color(0xFF78909C);
-    }
-  }
-}
 
 class _AutoStartSection extends StatelessWidget {
   const _AutoStartSection();
@@ -423,15 +246,15 @@ class _AutoStartSection extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -489,15 +312,15 @@ class _PresetSection extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -630,9 +453,9 @@ class _PresetButtonState extends State<_PresetButton> with SingleTickerProviderS
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   width: 1,
                 ),
                 borderRadius: BorderRadius.circular(12),
@@ -681,15 +504,15 @@ class _PremiumSection extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -704,16 +527,16 @@ class _PremiumSection extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      false ? Icons.star : Icons.star_border,
+                      Icons.star_border,
                       color: Colors.amber,
                       size: 28,
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      false ? 'Premium Active' : 'Free Plan',
+                      'Free Plan',
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: false ? Colors.amber : Colors.white,
+                        color: Colors.white,
                       ),
                     ),
                   ],
@@ -723,7 +546,7 @@ class _PremiumSection extends StatelessWidget {
                     // Premium functionality removed
                   },
                   icon: const Icon(Icons.science),
-                  label: Text(false ? 'Disable Premium' : 'Enable Premium'),
+                  label: Text('Enable Premium'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.purple,
                     foregroundColor: Colors.white,
@@ -732,34 +555,18 @@ class _PremiumSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            if (!false) ...[
-              Text(
-                'Unlock Premium Features:',
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              _buildFeatureList([
-                '25+ premium ambient sounds',
-                'Advanced sound mixing & layering',
-                'Premium animated themes',
-                'Custom backgrounds',
-                'Breathing exercises',
-                'Enhanced achievements',
-              ]),
-            ] else ...[
-              Text(
-                'Thank you for supporting FlowPulse Premium!',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: Colors.amber,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Enjoy unlimited access to all premium features.',
-                style: theme.textTheme.bodyMedium,
-              ),
-            ],
+            Text(
+              'Unlock Premium Features:',
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            _buildFeatureList([
+              '25+ premium ambient sounds',
+              'Advanced sound mixing & layering',
+              'Premium animated themes',
+              'Custom backgrounds',
+              'Enhanced achievements',
+            ]),
           ],
             ),
           ),
@@ -784,123 +591,3 @@ class _PremiumSection extends StatelessWidget {
   }
 }
 
-class _BreathingSection extends StatelessWidget {
-  const _BreathingSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    // final subscriptionService = SubscriptionService.instance; // Removed subscription service
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Breathing Exercises',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                if (!false)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.amber,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'PREMIUM',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (!false) ...[
-              Container(
-                height: 120,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.white.withOpacity(0.1),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
-                    width: 1,
-                  ),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.air,
-                        size: 32,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Guided Breathing Exercises',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Premium feature',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ] else ...[
-              BreathingExercise(
-                primaryColor: theme.colorScheme.primary,
-                secondaryColor: theme.colorScheme.secondary,
-                inhaleSeconds: 4,
-                holdSeconds: 4,
-                exhaleSeconds: 4,
-                pauseSeconds: 4,
-              ),
-            ],
-          ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

@@ -1,10 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
-import '../../lib/services/ocean_setup_service.dart';
-import '../../lib/services/database_service.dart';
-import '../../lib/models/creature.dart';
-import '../../lib/models/aquarium.dart';
+import 'package:flow_pulse/services/ocean_setup_service.dart';
+import 'package:flow_pulse/services/database_service.dart';
+import 'package:flow_pulse/models/creature.dart';
+import 'package:flow_pulse/models/aquarium.dart';
 
 // Generate mocks - Note: OceanSetupService has static methods, so we test them directly
 @GenerateMocks([DatabaseService])

@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'dart:ui';
-import 'providers/theme_provider.dart';
 import 'providers/timer_provider.dart';
 import 'screens/settings_screen.dart';
 import 'screens/analytics_screen.dart';
@@ -51,25 +50,14 @@ class FlowPulseApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (context) => ThemeProvider()..loadTheme(),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => TimerProvider()..loadSettings(),
-        ),
-      ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
-          return MaterialApp(
-            title: 'FlowPulse',
-            theme: themeProvider.lightTheme,
-            darkTheme: themeProvider.darkTheme,
-            themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            home: const MainScreen(),
-          );
-        },
+    return ChangeNotifierProvider(
+      create: (context) => TimerProvider()..loadSettings(),
+      child: MaterialApp(
+        title: 'FlowPulse',
+        theme: ThemeData.light(useMaterial3: true),
+        darkTheme: ThemeData.dark(useMaterial3: true),
+        themeMode: ThemeMode.system, // Follow system theme
+        home: const MainScreen(),
       ),
     );
   }
@@ -120,15 +108,15 @@ class _MainScreenState extends State<MainScreen> {
             child: Container(
               height: 68,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: Colors.white.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(25),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   width: 1.0,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -206,7 +194,6 @@ class _TimerScreenState extends State<TimerScreen>
   int _secondsRemaining = 0;
   int _completedSessions = 0;
   DateTime? _sessionStartTime;
-  Map<String, dynamic>? _todayStats;
   
   // Ocean system state
   Aquarium? _aquarium;
@@ -216,7 +203,7 @@ class _TimerScreenState extends State<TimerScreen>
   // Break system state
   bool _showingTransition = false;
   bool _isOnSurface = false; // true when in break mode on vessel deck
-  List<String> _completedBreakActivities = [];
+  final List<String> _completedBreakActivities = [];
   
   @override
   void initState() {
@@ -265,12 +252,7 @@ class _TimerScreenState extends State<TimerScreen>
   }
 
   Future<void> _loadTodayStats() async {
-    final stats = await DatabaseService.getStatistics();
-    if (mounted) {
-      setState(() {
-        _todayStats = stats;
-      });
-    }
+    await DatabaseService.getStatistics();
   }
   
   Future<void> _initializeOceanAudio() async {
@@ -716,7 +698,7 @@ class _TimerScreenState extends State<TimerScreen>
     showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.7),
+      barrierColor: Colors.black.withValues(alpha: 0.7),
       builder: (context) => CelebrationDialog(
         isStudySession: _isStudySession,
         reward: reward,
@@ -1228,12 +1210,12 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 decoration: BoxDecoration(
                   color: widget.isSelected 
-                      ? Colors.white.withOpacity(0.3) 
+                      ? Colors.white.withValues(alpha: 0.3) 
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: widget.isSelected ? [
                     BoxShadow(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -1246,7 +1228,7 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
                       duration: const Duration(milliseconds: 200),
                       child: Icon(
                         widget.icon,
-                        color: Colors.white.withOpacity(widget.isSelected ? 1.0 : 0.7),
+                        color: Colors.white.withValues(alpha: widget.isSelected ? 1.0 : 0.7),
                         size: widget.isSelected ? 28 : 24,
                       ),
                     ),
@@ -1254,7 +1236,7 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
                     AnimatedDefaultTextStyle(
                       duration: const Duration(milliseconds: 200),
                       style: TextStyle(
-                        color: Colors.white.withOpacity(widget.isSelected ? 1.0 : 0.7),
+                        color: Colors.white.withValues(alpha: widget.isSelected ? 1.0 : 0.7),
                         fontSize: widget.isSelected ? 11 : 9,
                         fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
                       ),
@@ -1481,14 +1463,14 @@ class _CompactStreakBarState extends State<_CompactStreakBar>
           height: 32,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             border: Border.all(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: streakColor.withOpacity(0.3 * _glowAnimation.value),
+                color: streakColor.withValues(alpha: 0.3 * _glowAnimation.value),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -1503,10 +1485,10 @@ class _CompactStreakBarState extends State<_CompactStreakBar>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: streakColor.withOpacity(0.3),
+                    color: streakColor.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       width: 0.5,
                     ),
                   ),

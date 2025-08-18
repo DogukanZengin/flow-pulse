@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import '../../lib/widgets/species_discovery_overlay.dart';
-import '../../lib/models/creature.dart';
+import 'package:flow_pulse/widgets/species_discovery_overlay.dart';
+import 'package:flow_pulse/models/creature.dart';
 
 void main() {
   group('Species Discovery Overlay Tests', () {
@@ -26,15 +26,12 @@ void main() {
 
     group('SpeciesDiscoveryOverlay Widget', () {
       testWidgets('should render discovery overlay with creature information', (WidgetTester tester) async {
-        bool dismissCalled = false;
-        bool addToJournalCalled = false;
-
         await tester.pumpWidget(
           MaterialApp(
             home: SpeciesDiscoveryOverlay(
               discoveredCreature: testCreature,
-              onDismiss: () => dismissCalled = true,
-              onAddToJournal: () => addToJournalCalled = true,
+              onDismiss: () {},
+              onAddToJournal: () {},
             ),
           ),
         );

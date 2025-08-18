@@ -48,7 +48,6 @@ class NotificationService {
     if (!kIsWeb) {
       await Workmanager().initialize(
         callbackDispatcher,
-        isInDebugMode: kDebugMode,
       );
     }
     

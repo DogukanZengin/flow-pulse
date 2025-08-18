@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../../lib/models/coral.dart';
-import '../../lib/models/creature.dart';
+import 'package:flow_pulse/models/coral.dart';
+import 'package:flow_pulse/models/creature.dart';
 
 void main() {
   group('Coral Model Tests', () {

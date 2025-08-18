@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:flutter/foundation.dart';
 import '../models/task.dart';
@@ -476,7 +475,7 @@ class TaskService {
   static Future<void> linkTaskToSession(String taskId, int sessionId) async {
     // This would require extending the session table to include task_id
     // For now, we'll store it as a reference in the task
-    final db = await database;
+    await database;
     // Implementation would depend on how you want to structure the relationship
   }
 

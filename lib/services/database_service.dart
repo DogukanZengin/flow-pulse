@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:flutter/foundation.dart';
 import '../models/session.dart';

@@ -1,12 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
-import '../../lib/services/ocean_activity_service.dart';
-import '../../lib/services/database_service.dart';
-import '../../lib/models/ocean_activity.dart';
-import '../../lib/models/session.dart';
-import '../../lib/models/creature.dart';
-import '../../lib/models/coral.dart';
+import 'package:flow_pulse/services/ocean_activity_service.dart';
+import 'package:flow_pulse/services/database_service.dart';
+import 'package:flow_pulse/models/ocean_activity.dart';
+import 'package:flow_pulse/models/session.dart';
+import 'package:flow_pulse/models/creature.dart';
+import 'package:flow_pulse/models/coral.dart';
 
 // Generate mocks - Note: OceanActivityService has static methods
 @GenerateMocks([DatabaseService])

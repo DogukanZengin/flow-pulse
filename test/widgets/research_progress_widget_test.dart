@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:flow_pulse/widgets/research_progress_widget.dart';
 import 'package:flow_pulse/providers/timer_provider.dart';
-import 'package:flow_pulse/providers/theme_provider.dart';
 import 'package:flow_pulse/services/gamification_service.dart';
 
 void main() {
@@ -16,11 +15,8 @@ void main() {
     testWidgets('should display research progress information correctly', (WidgetTester tester) async {
       // Build the widget with providers
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => ThemeProvider()),
-            ChangeNotifierProvider(create: (_) => TimerProvider()),
-          ],
+        ChangeNotifierProvider(
+          create: (_) => TimerProvider(),
           child: MaterialApp(
             home: Scaffold(
               body: ResearchProgressWidget(
@@ -48,11 +44,8 @@ void main() {
     testWidgets('should show correct researcher title for different levels', (WidgetTester tester) async {
       // Build widget for low level
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => ThemeProvider()),
-            ChangeNotifierProvider(create: (_) => TimerProvider()),
-          ],
+        ChangeNotifierProvider(
+          create: (_) => TimerProvider(),
           child: MaterialApp(
             home: Scaffold(
               body: ResearchProgressWidget(
@@ -76,11 +69,8 @@ void main() {
     testWidgets('should handle empty species discovery', (WidgetTester tester) async {
       // Build widget with no discoveries
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => ThemeProvider()),
-            ChangeNotifierProvider(create: (_) => TimerProvider()),
-          ],
+        ChangeNotifierProvider(
+          create: (_) => TimerProvider(),
           child: MaterialApp(
             home: Scaffold(
               body: ResearchProgressWidget(
@@ -106,11 +96,8 @@ void main() {
     testWidgets('should display progress bars correctly', (WidgetTester tester) async {
       // Build widget with partial progress
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => ThemeProvider()),
-            ChangeNotifierProvider(create: (_) => TimerProvider()),
-          ],
+        ChangeNotifierProvider(
+          create: (_) => TimerProvider(),
           child: MaterialApp(
             home: Scaffold(
               body: ResearchProgressWidget(

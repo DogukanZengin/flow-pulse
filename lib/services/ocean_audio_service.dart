@@ -1,8 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
-import '../models/aquarium.dart';
 import '../models/coral.dart';
 import '../models/creature.dart'; // BiomeType is defined here
-import 'audio_service.dart';
 
 class OceanAudioService {
   static OceanAudioService? _instance;
@@ -10,7 +8,6 @@ class OceanAudioService {
   
   OceanAudioService._();
   
-  final AudioService _audioService = AudioService.instance;
   final AudioPlayer _ambientPlayer = AudioPlayer();
   final AudioPlayer _effectsPlayer = AudioPlayer();
   
@@ -19,13 +16,7 @@ class OceanAudioService {
   double _ambientVolume = 0.3;
   double _effectsVolume = 0.5;
   
-  // Ocean-specific sound mappings
-  final Map<BiomeType, SoundType> _biomeAmbientSounds = {
-    BiomeType.shallowWaters: SoundType.gentleWaves,
-    BiomeType.coralGarden: SoundType.ocean,
-    BiomeType.deepOcean: SoundType.oceanStorm,
-    BiomeType.abyssalZone: SoundType.spaceDrone, // Deep mysterious sound
-  };
+  // All biomes use ocean.mp3 for simplicity
   
   // Initialize ocean audio for a biome
   Future<void> initializeBiomeAudio(BiomeType biome) async {
@@ -40,27 +31,8 @@ class OceanAudioService {
     try {
       await _ambientPlayer.stop();
       
-      // Get the appropriate sound for the biome
-      final soundType = _biomeAmbientSounds[biome] ?? SoundType.ocean;
-      
-      // For web and demo, use available ocean sound
+      // All biomes use ocean.mp3
       String assetPath = 'sounds/ocean.mp3';
-      
-      // Use available ocean sound for all biomes for now
-      switch (biome) {
-        case BiomeType.shallowWaters:
-          assetPath = 'sounds/ocean.mp3';
-          break;
-        case BiomeType.coralGarden:
-          assetPath = 'sounds/ocean.mp3';
-          break;
-        case BiomeType.deepOcean:
-          assetPath = 'sounds/ocean.mp3';
-          break;
-        case BiomeType.abyssalZone:
-          assetPath = 'sounds/ocean.mp3';
-          break;
-      }
       
       // Fallback to ocean sound if specific sound not available
       try {

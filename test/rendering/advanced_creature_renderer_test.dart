@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flow_pulse/rendering/advanced_creature_renderer.dart';
@@ -189,8 +190,8 @@ void main() {
           final color = testPainter.getCreatureColorForTesting(creature);
           
           // Color should not be null and should have some alpha
-          expect(color.alpha, greaterThan(0));
-          expect(color.opacity, greaterThan(0.0));
+          expect((color.a * 255.0).round() & 0xff, greaterThan(0));
+          expect(color.a, greaterThan(0.0));
         }
       });
     });
@@ -220,7 +221,7 @@ void main() {
 }
 
 // Test wrapper for AdvancedCreatureRenderer
-class TestAdvancedCreaturePainter {
+class TestAdvancedCreaturePainter extends CustomPainter {
   final Creature creature;
   final double animationValue;
   final double depth;
@@ -231,9 +232,23 @@ class TestAdvancedCreaturePainter {
     required this.depth,
   });
 
+  @override
+  void paint(Canvas canvas, Size size) {
+    AdvancedCreatureRenderer.paintCreature(
+      canvas,
+      size,
+      creature,
+      animationValue,
+      depth,
+    );
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
+
   void testPaint(Size size) {
     // Create a test canvas
-    final recorder = PictureRecorder();
+    final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
     
     // Call the renderer

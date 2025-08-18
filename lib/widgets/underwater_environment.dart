@@ -325,8 +325,8 @@ class UnderwaterPainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.white.withOpacity(rayOpacity),
-            Colors.white.withOpacity(0),
+            Colors.white.withValues(alpha: rayOpacity),
+            Colors.white.withValues(alpha: 0),
           ],
         ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15);
@@ -339,7 +339,7 @@ class UnderwaterPainter extends CustomPainter {
     final paint = Paint()
       ..color = biome == BiomeType.abyssalZone 
           ? const Color(0xFF0A0A1A)
-          : const Color(0xFF1A4A6A).withOpacity(0.3)
+          : const Color(0xFF1A4A6A).withValues(alpha: 0.3)
       ..style = PaintingStyle.fill;
     
     // Draw distant rock formations
@@ -361,9 +361,9 @@ class UnderwaterPainter extends CustomPainter {
     if (biome == BiomeType.abyssalZone || biome == BiomeType.deepOcean) return;
     
     final kelpColors = [
-      const Color(0xFF2D5016).withOpacity(0.6),
-      const Color(0xFF3A6B1E).withOpacity(0.5),
-      const Color(0xFF4A7C2E).withOpacity(0.4),
+      const Color(0xFF2D5016).withValues(alpha: 0.6),
+      const Color(0xFF3A6B1E).withValues(alpha: 0.5),
+      const Color(0xFF4A7C2E).withValues(alpha: 0.4),
     ];
     
     final swayValues = [kelp1Value, kelp2Value, kelp3Value];
@@ -423,7 +423,7 @@ class UnderwaterPainter extends CustomPainter {
     
     // Add kelp leaves
     final leafPaint = Paint()
-      ..color = color.withOpacity(0.7)
+      ..color = color.withValues(alpha: 0.7)
       ..style = PaintingStyle.fill;
     
     for (int i = 1; i <= 4; i++) {
@@ -446,8 +446,8 @@ class UnderwaterPainter extends CustomPainter {
     final particleCount = biome == BiomeType.abyssalZone ? 30 : 50;
     final particlePaint = Paint()
       ..color = biome == BiomeType.abyssalZone
-          ? Colors.cyanAccent.withOpacity(0.3) // Bioluminescent plankton
-          : Colors.white.withOpacity(0.2)
+          ? Colors.cyanAccent.withValues(alpha: 0.3) // Bioluminescent plankton
+          : Colors.white.withValues(alpha: 0.2)
       ..style = PaintingStyle.fill;
     
     for (int i = 0; i < particleCount; i++) {
@@ -462,7 +462,7 @@ class UnderwaterPainter extends CustomPainter {
       // Draw glow for bioluminescent particles
       if (biome == BiomeType.abyssalZone) {
         final glowPaint = Paint()
-          ..color = Colors.cyanAccent.withOpacity(0.1)
+          ..color = Colors.cyanAccent.withValues(alpha: 0.1)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
         canvas.drawCircle(Offset(x, y), particleSize * 3, glowPaint);
       }
@@ -474,7 +474,7 @@ class UnderwaterPainter extends CustomPainter {
   void _drawForegroundElements(Canvas canvas, Size size, double parallaxSpeed) {
     // Draw coral silhouettes in foreground
     final coralPaint = Paint()
-      ..color = const Color(0xFF0A2A4A).withOpacity(0.4)
+      ..color = const Color(0xFF0A2A4A).withValues(alpha: 0.4)
       ..style = PaintingStyle.fill;
     
     // Left coral formation
@@ -520,7 +520,7 @@ class UnderwaterPainter extends CustomPainter {
     if (biome == BiomeType.deepOcean || biome == BiomeType.abyssalZone) return;
     
     final causticPaint = Paint()
-      ..color = Colors.white.withOpacity(0.03 * timeOfDay)
+      ..color = Colors.white.withValues(alpha: 0.03 * timeOfDay)
       ..style = PaintingStyle.fill
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
     
@@ -540,11 +540,10 @@ class UnderwaterPainter extends CustomPainter {
     
     // Draw simple fish silhouettes swimming in background
     final fishPaint = Paint()
-      ..color = const Color(0xFF1A3A5A).withOpacity(0.3)
+      ..color = const Color(0xFF1A3A5A).withValues(alpha: 0.3)
       ..style = PaintingStyle.fill;
     
     for (int i = 0; i < math.min(5, visibleCreatures!.length); i++) {
-      final creature = visibleCreatures![i];
       final x = size.width * (0.1 + i * 0.2) + math.sin(waveValue + i) * 50;
       final y = size.height * (0.3 + (i % 3) * 0.15);
       

@@ -1,4 +1,3 @@
-import 'dart:math';
 import '../models/session.dart';
 import 'database_service.dart';
 
@@ -61,7 +60,7 @@ class AnalyticsService {
   AnalyticsService._internal();
 
   // Cache for performance
-  Map<String, AnalyticsData> _dailyCache = {};
+  final Map<String, AnalyticsData> _dailyCache = {};
   DateTime? _cacheDate;
 
   /// Get analytics data for a specific date range
@@ -130,8 +129,12 @@ class AnalyticsService {
     final dailyFocus = <int, double>{};
 
     // Initialize maps
-    for (int i = 0; i < 24; i++) hourlyFocus[i] = 0.0;
-    for (int i = 1; i <= 7; i++) dailyFocus[i] = 0.0;
+    for (int i = 0; i < 24; i++) {
+      hourlyFocus[i] = 0.0;
+    }
+    for (int i = 1; i <= 7; i++) {
+      dailyFocus[i] = 0.0;
+    }
 
     // Process sessions
     for (final session in sessions) {
@@ -313,7 +316,7 @@ class AnalyticsService {
 
   String _formatHour(int hour) {
     if (hour == 0) return "12 AM";
-    if (hour < 12) return "${hour} AM";
+    if (hour < 12) return "$hour AM";
     if (hour == 12) return "12 PM";
     return "${hour - 12} PM";
   }

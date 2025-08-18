@@ -3,9 +3,6 @@ import '../models/aquarium.dart';
 import '../models/creature.dart';
 import '../models/coral.dart';
 import '../models/ocean_activity.dart';
-import '../services/ocean_setup_service.dart';
-import '../services/ocean_activity_service.dart';
-import '../services/database_service.dart';
 import '../widgets/creature_discovery_animation.dart';
 import 'dart:math' as math;
 
@@ -698,9 +695,9 @@ class _OceanDebugScreenState extends State<OceanDebugScreen> with SingleTickerPr
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -755,10 +752,10 @@ class _OceanDebugScreenState extends State<OceanDebugScreen> with SingleTickerPr
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(isDiscovered ? 0.1 : 0.05),
+        color: Colors.white.withValues(alpha: isDiscovered ? 0.1 : 0.05),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: creature.rarity.color.withOpacity(0.5),
+          color: creature.rarity.color.withValues(alpha: 0.5),
           width: 1,
         ),
       ),
@@ -768,7 +765,7 @@ class _OceanDebugScreenState extends State<OceanDebugScreen> with SingleTickerPr
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: creature.rarity.color.withOpacity(0.2),
+              color: creature.rarity.color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Center(
@@ -815,7 +812,7 @@ class _OceanDebugScreenState extends State<OceanDebugScreen> with SingleTickerPr
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -824,7 +821,7 @@ class _OceanDebugScreenState extends State<OceanDebugScreen> with SingleTickerPr
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: coral.type.color.withOpacity(0.3),
+              color: coral.type.color.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Center(
@@ -859,7 +856,7 @@ class _OceanDebugScreenState extends State<OceanDebugScreen> with SingleTickerPr
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -895,9 +892,9 @@ class _OceanDebugScreenState extends State<OceanDebugScreen> with SingleTickerPr
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: activity.priority.uiColor.withOpacity(0.3)),
+        border: Border.all(color: activity.priority.uiColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [

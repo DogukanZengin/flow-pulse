@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../../lib/services/marine_biology_career_service.dart';
-import '../../lib/models/creature.dart';
+import 'package:flow_pulse/services/marine_biology_career_service.dart';
+import 'package:flow_pulse/models/creature.dart';
 
 void main() {
   group('Marine Biology Career Service Tests', () {

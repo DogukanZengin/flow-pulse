@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../../lib/data/comprehensive_species_database.dart';
-import '../../lib/models/creature.dart';
+import 'package:flow_pulse/data/comprehensive_species_database.dart';
+import 'package:flow_pulse/models/creature.dart';
 
 void main() {
   group('Comprehensive Species Database Tests', () {

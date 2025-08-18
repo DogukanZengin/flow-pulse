@@ -82,11 +82,6 @@ class LiveActivitiesService {
     // Live Activities end all would go here
   }
   
-  String _formatTime(int seconds) {
-    final minutes = seconds ~/ 60;
-    final remainingSeconds = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
-  }
   
   bool get isSupported => _isSupported;
   bool get hasActiveActivity => _currentActivityId != null;
