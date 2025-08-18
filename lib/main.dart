@@ -30,12 +30,16 @@ import 'services/creature_service.dart';
 import 'widgets/creature_discovery_animation.dart';
 import 'services/ocean_activity_service.dart';
 import 'services/ocean_audio_service.dart';
+import 'services/break_rewards_service.dart';
+import 'widgets/research_vessel_deck_widget.dart';
+import 'widgets/surface_transition_animation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize core services
   await GamificationService.instance.initialize();
+  await BreakRewardsService().initialize();
   
   // Mobile-only services
   if (!kIsWeb) {
@@ -255,6 +259,11 @@ class _TimerScreenState extends State<TimerScreen>
   Aquarium? _aquarium;
   List<Creature> _visibleCreatures = [];
   List<Coral> _visibleCorals = [];
+  
+  // Break system state
+  bool _showingTransition = false;
+  bool _isOnSurface = false; // true when in break mode on vessel deck
+  List<String> _completedBreakActivities = [];
   
   @override
   void initState() {
@@ -686,17 +695,41 @@ class _TimerScreenState extends State<TimerScreen>
       );
     }
     
+    // Show transition animation before changing session
     setState(() {
-      _isRunning = false;
-      if (wasStudySession) {
-        _completedSessions++;
+      _showingTransition = true;
+    });
+    
+    // Start transition animation
+    _showTransitionAnimation(wasStudySession, () {
+      setState(() {
+        _showingTransition = false;
+        _isRunning = false;
+        if (wasStudySession) {
+          _completedSessions++;
+          _isOnSurface = true; // Go to surface for break
+        } else {
+          _isOnSurface = false; // Return underwater for work
+        }
+        _isStudySession = !_isStudySession;
+        _secondsRemaining = _isStudySession 
+            ? timerProvider.focusDuration * 60 
+            : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
+        _progressAnimationController.reset();
+        _sessionStartTime = null;
+        _completedBreakActivities.clear(); // Reset break activities
+      });
+      
+      // Auto-start next session if enabled
+      if ((wasStudySession && timerProvider.autoStartBreaks) || 
+          (!wasStudySession && timerProvider.autoStartSessions)) {
+        // Wait a moment for the UI to update, then auto-start
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted && !_isRunning) {
+            _startTimer();
+          }
+        });
       }
-      _isStudySession = !_isStudySession;
-      _secondsRemaining = _isStudySession 
-          ? timerProvider.focusDuration * 60 
-          : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
-      _progressAnimationController.reset();
-      _sessionStartTime = null;
     });
     
     // Update quick actions for new session
@@ -783,6 +816,47 @@ class _TimerScreenState extends State<TimerScreen>
     );
   }
   
+  void _showTransitionAnimation(bool wasStudySession, VoidCallback onComplete) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.transparent,
+      builder: (context) => SurfaceTransitionAnimation(
+        isAscending: wasStudySession, // Ascending after study, descending after break
+        duration: const Duration(seconds: 3),
+        onComplete: () {
+          Navigator.of(context).pop();
+          onComplete();
+        },
+      ),
+    );
+  }
+  
+  void _onBreakActivityComplete(String activityType) async {
+    if (!_completedBreakActivities.contains(activityType)) {
+      _completedBreakActivities.add(activityType);
+      
+      // Award activity rewards
+      final timerProvider = context.read<TimerProvider>();
+      final breakDuration = _shouldUseLongBreak() 
+          ? timerProvider.longBreakDuration 
+          : timerProvider.breakDuration;
+      
+      final reward = await BreakRewardsService().completeActivity(activityType, breakDuration);
+      
+      // Show activity reward feedback
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(reward.message),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+  
   void _enterAmbientMode() {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -809,7 +883,7 @@ class _TimerScreenState extends State<TimerScreen>
     if (_isStudySession) {
       return 'Research Dive';
     } else {
-      return _shouldUseLongBreak() ? 'Lab Analysis' : 'Surface Rest';
+      return _shouldUseLongBreak() ? 'Extended Surface Rest' : 'Vessel Deck Break';
     }
   }
   
@@ -856,6 +930,39 @@ class _TimerScreenState extends State<TimerScreen>
   
   void enterAmbientMode() {
     _enterAmbientMode();
+  }
+  
+  // Session switching methods
+  void _switchToWorkSession() {
+    if (!_isStudySession && !_isRunning) {
+      final timerProvider = context.read<TimerProvider>();
+      setState(() {
+        _isStudySession = true;
+        _isOnSurface = false; // Go underwater for work
+        _secondsRemaining = timerProvider.focusDuration * 60;
+        _completedBreakActivities.clear();
+      });
+      
+      // Play transition sound
+      UISoundService.instance.navigationSwitch();
+    }
+  }
+  
+  void _switchToBreakSession() {
+    if (_isStudySession && !_isRunning) {
+      final timerProvider = context.read<TimerProvider>();
+      setState(() {
+        _isStudySession = false;
+        _isOnSurface = true; // Go to surface for break
+        _secondsRemaining = _shouldUseLongBreak() 
+            ? timerProvider.longBreakDuration * 60 
+            : timerProvider.breakDuration * 60;
+        _completedBreakActivities.clear();
+      });
+      
+      // Play transition sound
+      UISoundService.instance.navigationSwitch();
+    }
   }
   
   @override
@@ -908,59 +1015,190 @@ class _TimerScreenState extends State<TimerScreen>
               ),
             Column(
           children: [
-            AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.waves, color: Colors.white, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Marine Research Station',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+            // Compact responsive header
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Compact title
+                    Text(
+                      'Marine Research',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
-                ],
+                    
+                    const SizedBox(height: 8),
+                    
+                    // Compact session type selector
+                    Container(
+                      height: 40, // Fixed height to prevent overflow
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(26),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withAlpha(51),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          // Work session button
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => _switchToWorkSession(),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: _isStudySession 
+                                      ? Colors.white.withAlpha(51)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.scuba_diving,
+                                      color: Colors.white.withAlpha(_isStudySession ? 255 : 179),
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        'Dive',
+                                        style: TextStyle(
+                                          color: Colors.white.withAlpha(_isStudySession ? 255 : 179),
+                                          fontWeight: _isStudySession ? FontWeight.bold : FontWeight.normal,
+                                          fontSize: 12,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          
+                          // Break session button
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => _switchToBreakSession(),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: !_isStudySession 
+                                      ? Colors.white.withAlpha(51)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.deck,
+                                      color: Colors.white.withAlpha(!_isStudySession ? 255 : 179),
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        'Break',
+                                        style: TextStyle(
+                                          color: Colors.white.withAlpha(!_isStudySession ? 255 : 179),
+                                          fontWeight: !_isStudySession ? FontWeight.bold : FontWeight.normal,
+                                          fontSize: 12,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              centerTitle: true,
             ),
-            // Full-screen marine biology research station
+            // Full-screen marine biology research station or research vessel deck
             Expanded(
-              child: _aquarium != null
-                  ? FullScreenOceanWidget(
-                      aquarium: _aquarium!,
-                      sessionProgress: 1.0 - progress, // Invert for depth progression
-                      isRunning: _isRunning,
-                      isStudySession: _isStudySession,
-                      visibleCreatures: _visibleCreatures,
-                      visibleCorals: _visibleCorals,
-                      secondsRemaining: _secondsRemaining,
-                      totalSessionSeconds: totalSeconds,
-                      onTap: _toggleTimer,
-                    )
-                  : Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Color(0xFF87CEEB),
-                            Color(0xFF00A6D6),
-                            Color(0xFF006994),
-                          ],
-                        ),
-                      ),
-                      child: const Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+              child: _showingTransition 
+                  ? Container() // Transition animation will overlay
+                  : _isOnSurface && !_isStudySession
+                      ? (_aquarium != null 
+                          ? ResearchVesselDeckWidget(
+                              aquarium: _aquarium!,
+                              secondsRemaining: _secondsRemaining,
+                              totalBreakSeconds: totalSeconds,
+                              isRunning: _isRunning,
+                              recentDiscoveries: _visibleCreatures.where((c) => c.isDiscovered).toList(),
+                              onTap: _toggleTimer,
+                              onActivityComplete: _onBreakActivityComplete,
+                            )
+                          : Container(
+                              width: double.infinity,
+                              height: double.infinity,
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Color(0xFF87CEEB),
+                                    Color(0xFFFFF8DC),
+                                    Color(0xFF00BFFF),
+                                  ],
+                                ),
+                              ),
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ))
+                      : (_aquarium != null
+                          ? FullScreenOceanWidget(
+                              aquarium: _aquarium!,
+                              sessionProgress: 1.0 - progress, // Invert for depth progression
+                              isRunning: _isRunning,
+                              isStudySession: _isStudySession,
+                              visibleCreatures: _visibleCreatures,
+                              visibleCorals: _visibleCorals,
+                              secondsRemaining: _secondsRemaining,
+                              totalSessionSeconds: totalSeconds,
+                              onTap: _toggleTimer,
+                            )
+                          : Container(
+                              width: double.infinity,
+                              height: double.infinity,
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Color(0xFF87CEEB),
+                                    Color(0xFF00A6D6),
+                                    Color(0xFF006994),
+                                  ],
+                                ),
+                              ),
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            )),
             ),
           ],
         ),

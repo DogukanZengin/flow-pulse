@@ -4,10 +4,13 @@ import '../models/creature.dart';
 import '../data/comprehensive_species_database.dart';
 import '../services/marine_biology_career_service.dart';
 import '../services/creature_service.dart';
+import '../services/break_rewards_service.dart';
 import '../widgets/species_discovery_overlay.dart';
 import '../widgets/enhanced_research_journal.dart';
 import '../widgets/marine_biology_career_widget.dart';
 import '../widgets/equipment_indicator_widget.dart';
+import '../widgets/research_vessel_deck_widget.dart';
+import '../widgets/surface_transition_animation.dart';
 import '../rendering/advanced_creature_renderer.dart';
 import '../rendering/biome_environment_renderer.dart';
 import 'dart:math' as math;
@@ -55,6 +58,19 @@ class _EnhancedOceanDebugScreenState extends State<EnhancedOceanDebugScreen>
   // Continuous time tracking for smooth debug animations
   late DateTime _debugStartTime;
   double get _debugContinuousTime => DateTime.now().difference(_debugStartTime).inMilliseconds / 1000.0;
+  
+  // Break Session Testing State
+  bool isOnSurface = false;
+  bool showTransition = false;
+  int breakStreak = 0;
+  List<String> completedBreakActivities = [];
+  Map<String, int> breakActivityCounts = {
+    'equipment_maintenance': 0,
+    'wildlife_observation': 0,
+    'journal_review': 0,
+    'weather_monitoring': 0,
+  };
+  int totalBreakTimeMinutes = 0;
 
   @override
   void initState() {
@@ -62,7 +78,7 @@ class _EnhancedOceanDebugScreenState extends State<EnhancedOceanDebugScreen>
     
     // Initialize continuous time for debug animations
     _debugStartTime = DateTime.now();
-    _tabController = TabController(length: 9, vsync: this); // Increased to 9 tabs for Phase 3
+    _tabController = TabController(length: 10, vsync: this); // Increased to 10 tabs (added break session tab)
     _sessionController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
@@ -176,6 +192,7 @@ class _EnhancedOceanDebugScreenState extends State<EnhancedOceanDebugScreen>
             Tab(icon: Icon(Icons.menu_book), text: 'Research Journal'),
             Tab(icon: Icon(Icons.school), text: 'Career'),
             Tab(icon: Icon(Icons.water_drop), text: 'Session Sim'),
+            Tab(icon: Icon(Icons.deck), text: 'Break Session'),
             Tab(icon: Icon(Icons.palette), text: 'Graphics Test'),
             Tab(icon: Icon(Icons.build_circle), text: 'Equipment'),
             Tab(icon: Icon(Icons.play_arrow), text: 'Actions'),
@@ -205,6 +222,7 @@ class _EnhancedOceanDebugScreenState extends State<EnhancedOceanDebugScreen>
                   _buildResearchJournalTab(),
                   _buildCareerProgressionTab(),
                   _buildSessionSimulatorTab(),
+                  _buildBreakSessionTab(),
                   _buildGraphicsTestTab(),
                   _buildEquipmentTab(),
                   _buildActionsTab(),
@@ -981,6 +999,392 @@ class _EnhancedOceanDebugScreenState extends State<EnhancedOceanDebugScreen>
         ],
       ),
     );
+  }
+
+  Widget _buildBreakSessionTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildInfoCard(
+            title: '🏖️ Break Session Testing',
+            icon: Icons.deck,
+            child: Column(
+              children: [
+                const Text(
+                  'Test the new research vessel deck break experience with transition animations and rewards',
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                
+                // Current state indicators
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isOnSurface ? Colors.orange.withAlpha(51) : Colors.blue.withAlpha(51),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isOnSurface ? Colors.orange : Colors.blue,
+                            width: 2,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              isOnSurface ? Icons.wb_sunny : Icons.water_drop,
+                              color: isOnSurface ? Colors.orange : Colors.blue,
+                              size: 24,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              isOnSurface ? 'On Surface' : 'Underwater',
+                              style: TextStyle(
+                                color: isOnSurface ? Colors.orange : Colors.blue,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withAlpha(51),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.green, width: 2),
+                        ),
+                        child: Column(
+                          children: [
+                            const Icon(Icons.whatshot, color: Colors.green, size: 24),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Streak: $breakStreak',
+                              style: const TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Environment toggle buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _testTransition(true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        icon: const Icon(Icons.arrow_upward),
+                        label: const Text('Ascend to Surface'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _testTransition(false),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        icon: const Icon(Icons.arrow_downward),
+                        label: const Text('Dive Underwater'),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Quick surface toggle (no animation)
+                ElevatedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      isOnSurface = !isOnSurface;
+                    });
+                    _updateStatus('Environment toggled to ${isOnSurface ? "surface" : "underwater"}');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.purple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  icon: Icon(isOnSurface ? Icons.water_drop : Icons.deck),
+                  label: Text('Quick Toggle to ${isOnSurface ? "Underwater" : "Surface"}'),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Break Activities Testing
+          _buildInfoCard(
+            title: '🎯 Break Activities Testing',
+            icon: Icons.psychology,
+            child: Column(
+              children: [
+                const Text(
+                  'Test break activities and rewards system',
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                const SizedBox(height: 16),
+                
+                // Activity buttons
+                ...breakActivityCounts.entries.map((entry) {
+                  final activityType = entry.key;
+                  final count = entry.value;
+                  final isCompleted = completedBreakActivities.contains(activityType);
+                  
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: isCompleted ? null : () => _testBreakActivity(activityType),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isCompleted ? Colors.green : Colors.blue,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: Colors.green.withAlpha(128),
+                          disabledForegroundColor: Colors.white70,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(_getActivityTitle(activityType)),
+                            Row(
+                              children: [
+                                if (isCompleted) const Icon(Icons.check, size: 16),
+                                const SizedBox(width: 4),
+                                Text('$count times'),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+                
+                const SizedBox(height: 16),
+                
+                // Reset activities button
+                ElevatedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      completedBreakActivities.clear();
+                    });
+                    _updateStatus('Break activities reset');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Reset Activities'),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Break Rewards Service Testing
+          _buildInfoCard(
+            title: '🎁 Break Rewards Service',
+            icon: Icons.card_giftcard,
+            child: Column(
+              children: [
+                const Text(
+                  'Test break rewards service integration',
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                const SizedBox(height: 16),
+                
+                // Service info
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withAlpha(51),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Break Streak: $breakStreak days',
+                        style: const TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                      Text(
+                        'Total Break Time: ${totalBreakTimeMinutes}min',
+                        style: const TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        BreakRewardsService().getStreakBonusDescription(),
+                        style: const TextStyle(color: Colors.cyan, fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Test buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final reward = await BreakRewardsService().completeBreakSession(
+                            5, // 5 minute break
+                            completedBreakActivities.toList(),
+                          );
+                          setState(() {
+                            breakStreak = BreakRewardsService().currentBreakStreak;
+                            totalBreakTimeMinutes = BreakRewardsService().totalBreakTimeMinutes;
+                          });
+                          _updateStatus('Break session completed! XP: ${reward.totalXP}, Quality: ${reward.qualityDescription}');
+                        },
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                        child: const Text('Complete Break Session'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          await BreakRewardsService().resetBreakData();
+                          setState(() {
+                            breakStreak = 0;
+                            totalBreakTimeMinutes = 0;
+                            completedBreakActivities.clear();
+                            breakActivityCounts.forEach((key, value) {
+                              breakActivityCounts[key] = 0;
+                            });
+                          });
+                          _updateStatus('Break rewards data reset');
+                        },
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        child: const Text('Reset Data'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Live Preview
+          if (isOnSurface) _buildBreakSessionPreview(),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildBreakSessionPreview() {
+    if (aquarium == null) return const SizedBox.shrink();
+    
+    return _buildInfoCard(
+      title: '🚢 Live Break Session Preview',
+      icon: Icons.preview,
+      child: Container(
+        height: 300,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white.withAlpha(51)),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: ResearchVesselDeckWidget(
+            aquarium: aquarium!,
+            secondsRemaining: 300, // 5 minutes remaining
+            totalBreakSeconds: 300,
+            isRunning: true,
+            recentDiscoveries: discoveredCreatures.take(3).toList(),
+            onTap: () => _updateStatus('Break timer tapped'),
+            onActivityComplete: (activity) => _testBreakActivity(activity),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _testTransition(bool isAscending) {
+    setState(() {
+      showTransition = true;
+    });
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.transparent,
+      builder: (context) => SurfaceTransitionAnimation(
+        isAscending: isAscending,
+        duration: const Duration(seconds: 3),
+        onComplete: () {
+          Navigator.of(context).pop();
+          setState(() {
+            showTransition = false;
+            isOnSurface = isAscending;
+          });
+          _updateStatus('Transition animation completed - now ${isOnSurface ? "on surface" : "underwater"}');
+        },
+      ),
+    );
+  }
+  
+  void _testBreakActivity(String activityType) async {
+    final reward = await BreakRewardsService().completeActivity(activityType, 5);
+    
+    setState(() {
+      if (!completedBreakActivities.contains(activityType)) {
+        completedBreakActivities.add(activityType);
+      }
+      breakActivityCounts[activityType] = (breakActivityCounts[activityType] ?? 0) + 1;
+      breakStreak = BreakRewardsService().currentBreakStreak;
+      totalBreakTimeMinutes = BreakRewardsService().totalBreakTimeMinutes;
+    });
+    
+    _updateStatus('Activity completed: ${_getActivityTitle(activityType)} - ${reward.message}');
+  }
+  
+  String _getActivityTitle(String activityType) {
+    switch (activityType) {
+      case 'equipment_maintenance': return '🔧 Equipment Maintenance';
+      case 'wildlife_observation': return '🐬 Wildlife Observation';
+      case 'journal_review': return '📖 Journal Review';
+      case 'weather_monitoring': return '🌤️ Weather Monitoring';
+      default: return activityType;
+    }
+  }
+  
+  void _updateStatus(String message) {
+    setState(() {
+      statusMessage = message;
+    });
   }
 
   Widget _buildActionsTab() {
