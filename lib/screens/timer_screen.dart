@@ -383,6 +383,9 @@ class TimerScreenState extends State<TimerScreen>
                                       secondsRemaining: _timerController.secondsRemaining,
                                       totalSessionSeconds: totalSeconds,
                                       onTap: _toggleTimer,
+                                      // Pass ValueNotifiers for efficient timer updates
+                                      secondsRemainingNotifier: _timerController.secondsRemainingNotifier,
+                                      isRunningNotifier: _timerController.isRunningNotifier,
                                     )
                                   : Container(
                                       width: double.infinity,

@@ -5,6 +5,7 @@ import '../models/creature.dart';
 import '../models/coral.dart';
 import '../widgets/dive_computer_widget.dart';
 import '../widgets/research_progress_widget.dart';
+import '../widgets/timer_display.dart';
 import '../services/gamification_service.dart';
 import '../rendering/advanced_creature_renderer.dart';
 import '../rendering/biome_environment_renderer.dart';
@@ -21,6 +22,10 @@ class FullScreenOceanWidget extends StatefulWidget {
   final int secondsRemaining;
   final int totalSessionSeconds;
   final VoidCallback onTap;
+  
+  // Optional ValueNotifiers for efficient updates
+  final ValueNotifier<int>? secondsRemainingNotifier;
+  final ValueNotifier<bool>? isRunningNotifier;
 
   const FullScreenOceanWidget({
     super.key,
@@ -33,6 +38,8 @@ class FullScreenOceanWidget extends StatefulWidget {
     required this.secondsRemaining,
     required this.totalSessionSeconds,
     required this.onTap,
+    this.secondsRemainingNotifier,
+    this.isRunningNotifier,
   });
 
   @override
@@ -327,6 +334,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                     DiveComputerWidget(
                       currentDepthMeters: currentDepth,
                       targetDepthMeters: targetDepth,
+                      oxygenTimeNotifier: widget.secondsRemainingNotifier,
                       oxygenTimeSeconds: widget.secondsRemaining,
                       isDiving: widget.isRunning,
                       diveStatus: _getDiveStatus(),
@@ -561,36 +569,43 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                 ),
                 // Progress bar
                 const SizedBox(height: 4),
-                Container(
-                  width: 150,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(3),
-                    color: Colors.white.withValues(alpha: 0.2),
-                  ),
-                  child: FractionallySizedBox(
-                    alignment: Alignment.centerLeft,
-                    widthFactor: 1.0 - widget.sessionProgress,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(3),
-                        gradient: LinearGradient(
-                          colors: [
-                            urgencyColor,
-                            urgencyColor.withValues(alpha: 0.7),
-                          ],
+                widget.secondsRemainingNotifier != null
+                    ? TimerProgressBar(
+                        secondsRemainingNotifier: widget.secondsRemainingNotifier!,
+                        totalSeconds: widget.totalSessionSeconds,
+                        width: 150,
+                        height: 3,
+                      )
+                    : Container(
+                        width: 150,
+                        height: 3,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(3),
+                          color: Colors.white.withValues(alpha: 0.2),
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: urgencyColor.withValues(alpha: 0.5),
-                            blurRadius: 8,
-                            spreadRadius: 1,
+                        child: FractionallySizedBox(
+                          alignment: Alignment.centerLeft,
+                          widthFactor: 1.0 - widget.sessionProgress,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(3),
+                              gradient: LinearGradient(
+                                colors: [
+                                  urgencyColor,
+                                  urgencyColor.withValues(alpha: 0.7),
+                                ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: urgencyColor.withValues(alpha: 0.5),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),

@@ -21,6 +21,11 @@ class TimerController extends ChangeNotifier {
   int _completedSessions = 0;
   DateTime? _sessionStartTime;
   
+  // ValueNotifiers for efficient timer updates
+  final ValueNotifier<int> _secondsRemainingNotifier = ValueNotifier(0);
+  final ValueNotifier<bool> _isRunningNotifier = ValueNotifier(false);
+  final ValueNotifier<bool> _isStudySessionNotifier = ValueNotifier(true);
+  
   // Getters
   bool get isRunning => _isRunning;
   bool get isStudySession => _isStudySession;
@@ -28,15 +33,24 @@ class TimerController extends ChangeNotifier {
   int get completedSessions => _completedSessions;
   DateTime? get sessionStartTime => _sessionStartTime;
   
+  // ValueNotifier getters for efficient timer updates
+  ValueNotifier<int> get secondsRemainingNotifier => _secondsRemainingNotifier;
+  ValueNotifier<bool> get isRunningNotifier => _isRunningNotifier;
+  ValueNotifier<bool> get isStudySessionNotifier => _isStudySessionNotifier;
+  
   final TimerProvider _timerProvider;
   final Aquarium? _aquarium;
   
   TimerController(this._timerProvider, this._aquarium) {
     _initializeTimer();
+    _secondsRemainingNotifier.value = _secondsRemaining;
+    _isRunningNotifier.value = _isRunning;
+    _isStudySessionNotifier.value = _isStudySession;
   }
   
   void _initializeTimer() {
     _secondsRemaining = _timerProvider.focusDuration * 60;
+    _secondsRemainingNotifier.value = _secondsRemaining;
     notifyListeners();
   }
   
@@ -45,6 +59,7 @@ class TimerController extends ChangeNotifier {
       _secondsRemaining = _isStudySession 
           ? _timerProvider.focusDuration * 60
           : (_shouldUseLongBreak() ? _timerProvider.longBreakDuration * 60 : _timerProvider.breakDuration * 60);
+      _secondsRemainingNotifier.value = _secondsRemaining;
       notifyListeners();
     }
   }
@@ -55,6 +70,7 @@ class TimerController extends ChangeNotifier {
   
   void toggleTimer() {
     _isRunning = !_isRunning;
+    _isRunningNotifier.value = _isRunning;
     if (_isRunning) {
       _startTimer();
       UISoundService.instance.timerStart();
@@ -112,6 +128,7 @@ class TimerController extends ChangeNotifier {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {
         _secondsRemaining--;
+        _secondsRemainingNotifier.value = _secondsRemaining;
         
         // Update notification every 30 seconds to avoid spam
         if (_secondsRemaining % 30 == 0) {
@@ -192,10 +209,12 @@ class TimerController extends ChangeNotifier {
     
     _timer?.cancel();
     _isRunning = false;
+    _isRunningNotifier.value = _isRunning;
     _sessionStartTime = null;
     _secondsRemaining = _isStudySession 
         ? _timerProvider.focusDuration * 60 
         : (_shouldUseLongBreak() ? _timerProvider.longBreakDuration * 60 : _timerProvider.breakDuration * 60);
+    _secondsRemainingNotifier.value = _secondsRemaining;
     
     notifyListeners();
   }
@@ -242,13 +261,16 @@ class TimerController extends ChangeNotifier {
     }
     
     _isRunning = false;
+    _isRunningNotifier.value = _isRunning;
     if (wasStudySession) {
       _completedSessions++;
     }
     _isStudySession = !_isStudySession;
+    _isStudySessionNotifier.value = _isStudySession;
     _secondsRemaining = _isStudySession 
         ? _timerProvider.focusDuration * 60 
         : (_shouldUseLongBreak() ? _timerProvider.longBreakDuration * 60 : _timerProvider.breakDuration * 60);
+    _secondsRemainingNotifier.value = _secondsRemaining;
     _sessionStartTime = null;
     
     // Complete Live Activity
@@ -290,7 +312,9 @@ class TimerController extends ChangeNotifier {
   void switchToWorkSession() {
     if (!_isStudySession && !_isRunning) {
       _isStudySession = true;
+      _isStudySessionNotifier.value = _isStudySession;
       _secondsRemaining = _timerProvider.focusDuration * 60;
+      _secondsRemainingNotifier.value = _secondsRemaining;
       
       // Play transition sound
       UISoundService.instance.navigationSwitch();
@@ -301,9 +325,11 @@ class TimerController extends ChangeNotifier {
   void switchToBreakSession() {
     if (_isStudySession && !_isRunning) {
       _isStudySession = false;
+      _isStudySessionNotifier.value = _isStudySession;
       _secondsRemaining = _shouldUseLongBreak() 
           ? _timerProvider.longBreakDuration * 60 
           : _timerProvider.breakDuration * 60;
+      _secondsRemainingNotifier.value = _secondsRemaining;
       
       // Play transition sound
       UISoundService.instance.navigationSwitch();
@@ -360,6 +386,9 @@ class TimerController extends ChangeNotifier {
   @override
   void dispose() {
     _timer?.cancel();
+    _secondsRemainingNotifier.dispose();
+    _isRunningNotifier.dispose();
+    _isStudySessionNotifier.dispose();
     super.dispose();
   }
 }

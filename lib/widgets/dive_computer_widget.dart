@@ -6,7 +6,8 @@ import 'dart:math' as math;
 class DiveComputerWidget extends StatefulWidget {
   final int currentDepthMeters;
   final int targetDepthMeters;
-  final int oxygenTimeSeconds;
+  final ValueNotifier<int>? oxygenTimeNotifier; // New efficient parameter
+  final int oxygenTimeSeconds; // Keep for backwards compatibility
   final bool isDiving;
   final String diveStatus;
   final double depthProgress; // 0.0 to 1.0
@@ -15,6 +16,7 @@ class DiveComputerWidget extends StatefulWidget {
     super.key,
     required this.currentDepthMeters,
     required this.targetDepthMeters,
+    this.oxygenTimeNotifier,
     required this.oxygenTimeSeconds,
     required this.isDiving,
     required this.diveStatus,
@@ -224,14 +226,28 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                         size: 14,
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        'O₂ Time: ${_formatTime(widget.oxygenTimeSeconds)}',
-                        style: TextStyle(
-                          color: widget.oxygenTimeSeconds < 300 ? Colors.orange : Colors.lightBlue,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      widget.oxygenTimeNotifier != null
+                          ? ValueListenableBuilder<int>(
+                              valueListenable: widget.oxygenTimeNotifier!,
+                              builder: (context, oxygenTime, child) {
+                                return Text(
+                                  'O₂ Time: ${_formatTime(oxygenTime)}',
+                                  style: TextStyle(
+                                    color: oxygenTime < 300 ? Colors.orange : Colors.lightBlue,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                );
+                              },
+                            )
+                          : Text(
+                              'O₂ Time: ${_formatTime(widget.oxygenTimeSeconds)}',
+                              style: TextStyle(
+                                color: widget.oxygenTimeSeconds < 300 ? Colors.orange : Colors.lightBlue,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                     ],
                   ),
                   
