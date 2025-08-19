@@ -658,7 +658,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
 
   Widget _buildResearchJournal() {
     return Positioned(
-      bottom: 100,
+      bottom: 20,
       right: 20,
       child: MouseRegion(
         onEnter: (_) {
@@ -918,7 +918,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
   /// Builds a floating dive computer button for distraction-free study mode
   Widget _buildFloatingDiveComputer(double currentDepth, double targetDepth) {
     return Positioned(
-      bottom: 100, // Aligned with Research Journal button
+      bottom: 20, // Moved closer to navigation bar
       left: 20,
       child: AnimatedScale(
         scale: widget.isRunning ? 1.1 : 1.0,

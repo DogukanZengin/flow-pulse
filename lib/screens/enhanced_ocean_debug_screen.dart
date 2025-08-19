@@ -10,7 +10,7 @@ import '../widgets/enhanced_research_journal.dart';
 import '../widgets/marine_biology_career_widget.dart';
 import '../widgets/equipment_indicator_widget.dart';
 import '../widgets/research_vessel_deck_widget.dart';
-import '../widgets/surface_transition_animation.dart';
+import '../animations/surface_transition_animation.dart';
 import '../rendering/advanced_creature_renderer.dart';
 import '../rendering/biome_environment_renderer.dart';
 import 'dart:math' as math;

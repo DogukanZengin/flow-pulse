@@ -239,98 +239,136 @@ class TimerScreenState extends State<TimerScreen>
                             
                             const SizedBox(height: 8),
                             
-                            // Compact session type selector
+                            // iOS-style session type selector
                             Container(
-                              height: 40, // Fixed height to prevent overflow
-                              padding: const EdgeInsets.all(2),
+                              height: 44, // Standard iOS touch target height
                               decoration: BoxDecoration(
-                                color: Colors.white.withAlpha(26),
-                                borderRadius: BorderRadius.circular(20),
+                                color: const Color(0xFF1B4D72).withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: Colors.white.withAlpha(51),
+                                  color: const Color(0xFF5DADE2).withValues(alpha: 0.4),
                                   width: 1,
                                 ),
-                              ),
-                              child: Row(
-                                children: [
-                                  // Work session button
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () => _switchToWorkSession(),
-                                      child: AnimatedContainer(
-                                        duration: const Duration(milliseconds: 200),
-                                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                                        decoration: BoxDecoration(
-                                          color: _timerController.isStudySession 
-                                              ? Colors.white.withAlpha(51)
-                                              : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(18),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.scuba_diving,
-                                              color: Colors.white.withAlpha(_timerController.isStudySession ? 255 : 179),
-                                              size: 14,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Flexible(
-                                              child: Text(
-                                                'Dive',
-                                                style: TextStyle(
-                                                  color: Colors.white.withAlpha(_timerController.isStudySession ? 255 : 179),
-                                                  fontWeight: _timerController.isStudySession ? FontWeight.bold : FontWeight.normal,
-                                                  fontSize: 12,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  
-                                  // Break session button
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () => _switchToBreakSession(),
-                                      child: AnimatedContainer(
-                                        duration: const Duration(milliseconds: 200),
-                                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                                        decoration: BoxDecoration(
-                                          color: !_timerController.isStudySession 
-                                              ? Colors.white.withAlpha(51)
-                                              : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(18),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.deck,
-                                              color: Colors.white.withAlpha(!_timerController.isStudySession ? 255 : 179),
-                                              size: 14,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Flexible(
-                                              child: Text(
-                                                'Break',
-                                                style: TextStyle(
-                                                  color: Colors.white.withAlpha(!_timerController.isStudySession ? 255 : 179),
-                                                  fontWeight: !_timerController.isStudySession ? FontWeight.bold : FontWeight.normal,
-                                                  fontSize: 12,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
                                   ),
                                 ],
+                              ),
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final tabWidth = (constraints.maxWidth - 4) / 2;
+                                  return Stack(
+                                    children: [
+                                      // Sliding indicator background
+                                      AnimatedPositioned(
+                                        duration: const Duration(milliseconds: 250),
+                                        curve: Curves.easeInOut,
+                                        left: _timerController.isStudySession ? 2 : 2 + tabWidth,
+                                        top: 2,
+                                        bottom: 2,
+                                        width: tabWidth,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: [
+                                                const Color(0xFF5DADE2).withValues(alpha: 0.9),
+                                                const Color(0xFF87CEEB).withValues(alpha: 0.8),
+                                              ],
+                                            ),
+                                            borderRadius: BorderRadius.circular(10),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xFF5DADE2).withValues(alpha: 0.3),
+                                                blurRadius: 6,
+                                                spreadRadius: 1,
+                                                offset: const Offset(0, 1),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                  // Tab buttons
+                                  Row(
+                                    children: [
+                                      // Dive session button
+                                      Expanded(
+                                        child: GestureDetector(
+                                          onTap: () => _switchToWorkSession(),
+                                          child: SizedBox(
+                                            height: 44,
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  Icons.scuba_diving,
+                                                  color: _timerController.isStudySession 
+                                                      ? const Color(0xFF1B4D72)
+                                                      : Colors.white.withValues(alpha: 0.8),
+                                                  size: 18,
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  'Dive',
+                                                  style: TextStyle(
+                                                    color: _timerController.isStudySession 
+                                                        ? const Color(0xFF1B4D72)
+                                                        : Colors.white.withValues(alpha: 0.8),
+                                                    fontWeight: _timerController.isStudySession 
+                                                        ? FontWeight.w600 
+                                                        : FontWeight.w500,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      
+                                      // Break session button
+                                      Expanded(
+                                        child: GestureDetector(
+                                          onTap: () => _switchToBreakSession(),
+                                          child: SizedBox(
+                                            height: 44,
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  Icons.deck,
+                                                  color: !_timerController.isStudySession 
+                                                      ? const Color(0xFF1B4D72)
+                                                      : Colors.white.withValues(alpha: 0.8),
+                                                  size: 18,
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  'Break',
+                                                  style: TextStyle(
+                                                    color: !_timerController.isStudySession 
+                                                        ? const Color(0xFF1B4D72)
+                                                        : Colors.white.withValues(alpha: 0.8),
+                                                    fontWeight: !_timerController.isStudySession 
+                                                        ? FontWeight.w600 
+                                                        : FontWeight.w500,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                    ],
+                                  );
+                                },
                               ),
                             ),
                           ],

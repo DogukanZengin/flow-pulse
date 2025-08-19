@@ -33,6 +33,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF4A8FA0), // Match navigation bar bottom color
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
