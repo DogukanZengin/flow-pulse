@@ -26,17 +26,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     return _isNarrowScreen ? baseSize + 2 : baseSize;
   }
   
-  EdgeInsets _getResponsiveMargin() {
-    return EdgeInsets.all(_isNarrowScreen ? 12 : 16);
-  }
-  
   double _getResponsiveSpacing() {
     return _isNarrowScreen ? 16 : 24;
-  }
-  
-  double _getSafeBottomMargin() {
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-    return bottomPadding + (_isNarrowScreen ? 90 : 120);
   }
 
   @override
@@ -68,72 +59,139 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
             stops: [0.0, 0.3, 0.7, 1.0],
           ),
         ),
-        child: Column(
-          children: [
-            AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              title: Row(
-                children: [
-                  const Icon(Icons.science, color: Colors.white, size: 24),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Marine Research Data Log',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                Container(
-                  constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
-                  child: IconButton(
-                    icon: const Icon(Icons.file_download, color: Colors.white),
-                    onPressed: () {
-                      // Export data functionality
-                    },
-                    tooltip: 'Export Research Data',
-                    iconSize: 24,
-                  ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Compact Mobile Header - matching Career Tab style
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width * 0.04,
+                  vertical: 12,
                 ),
-              ],
-            ),
-            TabBar(
-              controller: _tabController,
-              indicatorColor: Colors.white,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
-              tabs: [
-                Tab(
-                  icon: const Icon(Icons.waves), 
-                  text: _isNarrowScreen ? 'Performance' : 'Dive Performance'
-                ),
-                Tab(
-                  icon: const Icon(Icons.trending_up), 
-                  text: _isNarrowScreen ? 'Trends' : 'Discovery Trends'
-                ),
-                Tab(
-                  icon: const Icon(Icons.lightbulb), 
-                  text: _isNarrowScreen ? 'Insights' : 'Research Insights'
-                ),
-              ],
-            ),
-            Expanded(
-              child: Container(
-                margin: EdgeInsets.only(bottom: _getSafeBottomMargin()), // Responsive space for floating nav
-                child: TabBarView(
-                  controller: _tabController,
+                child: Row(
                   children: [
-                    _buildDivePerformanceTab(),
-                    _buildDiscoveryTrendsTab(),
-                    _buildResearchInsightsTab(),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Colors.teal, Colors.cyan],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.analytics,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Marine Research Data Log',
+                            style: TextStyle(
+                              fontSize: MediaQuery.of(context).size.width < 400 ? 16 : 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            'Expedition Analytics & Performance',
+                            style: TextStyle(
+                              fontSize: MediaQuery.of(context).size.width < 400 ? 11 : 12,
+                              color: Colors.cyan,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Export Action Button
+                    Container(
+                      constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+                      child: IconButton(
+                        icon: const Icon(Icons.file_download, color: Colors.white),
+                        onPressed: () {
+                          // Export data functionality
+                        },
+                        tooltip: 'Export Research Data',
+                        iconSize: 20,
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ),
-          ],
+              
+              // Clean Tab Bar - matching Career Tab style
+              Container(
+                margin: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width * 0.04,
+                ),
+                height: 48,
+                child: TabBar(
+                  controller: _tabController,
+                  indicatorColor: Colors.cyan,
+                  indicatorWeight: 3,
+                  indicatorPadding: const EdgeInsets.symmetric(horizontal: 8),
+                  dividerColor: Colors.transparent,
+                  labelColor: Colors.cyan,
+                  unselectedLabelColor: Colors.white60,
+                  labelStyle: TextStyle(
+                    fontSize: MediaQuery.of(context).size.width < 400 ? 11 : 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  unselectedLabelStyle: TextStyle(
+                    fontSize: MediaQuery.of(context).size.width < 400 ? 10 : 11,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                  tabAlignment: TabAlignment.fill,
+                  tabs: [
+                    Tab(
+                      icon: Icon(Icons.scuba_diving, 
+                        size: MediaQuery.of(context).size.width < 400 ? 18 : 20),
+                      text: MediaQuery.of(context).size.width < 400 ? 'Performance' : 'Dive Performance',
+                      height: 48,
+                    ),
+                    Tab(
+                      icon: Icon(Icons.trending_up, 
+                        size: MediaQuery.of(context).size.width < 400 ? 18 : 20),
+                      text: MediaQuery.of(context).size.width < 400 ? 'Trends' : 'Discovery Trends',
+                      height: 48,
+                    ),
+                    Tab(
+                      icon: Icon(Icons.lightbulb, 
+                        size: MediaQuery.of(context).size.width < 400 ? 18 : 20),
+                      text: MediaQuery.of(context).size.width < 400 ? 'Insights' : 'Research Insights',
+                      height: 48,
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 12),
+              // Tab Content
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).padding.bottom,
+                    left: MediaQuery.of(context).size.width * 0.02,
+                    right: MediaQuery.of(context).size.width * 0.02,
+                  ),
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildDivePerformanceTab(),
+                      _buildDiscoveryTrendsTab(),
+                      _buildResearchInsightsTab(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -141,7 +199,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   Widget _buildDivePerformanceTab() {
     return SingleChildScrollView(
-      padding: _getResponsiveMargin(),
+      padding: EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width * 0.04,
+        vertical: 8,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -159,7 +220,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   Widget _buildDiscoveryTrendsTab() {
     return SingleChildScrollView(
-      padding: _getResponsiveMargin(),
+      padding: EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width * 0.04,
+        vertical: 8,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -175,19 +239,47 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   Widget _buildResearchInsightsTab() {
     return SingleChildScrollView(
-      padding: _getResponsiveMargin(),
+      padding: EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width * 0.04,
+        vertical: 8,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '🔬 Research Lab Insights',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              fontSize: _getResponsiveFontSize(20),
+          // Research Insights Overview Card - matching Career Tab style
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.purple.withValues(alpha: 0.2),
+                  Colors.indigo.withValues(alpha: 0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.purple.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.lightbulb, color: Colors.purple, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Research Lab Insights',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
-          SizedBox(height: _getResponsiveSpacing() * 0.7),
           _buildInsightsList(),
         ],
       ),
@@ -203,90 +295,87 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
         }
 
         final data = snapshot.data!;
-        final theme = Theme.of(context);
 
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _isNarrowScreen ? '🤿 Today\'s Performance' : '🤿 Today\'s Expedition Performance',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontSize: _getResponsiveFontSize(20),
-                      ),
-                    ),
-                    SizedBox(height: _getResponsiveSpacing() * 0.7),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            'Dive Time',
-                            '${data.totalFocusTime}m',
-                            Icons.scuba_diving,
-                            theme.colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildStatCard(
-                            'Expeditions',
-                            '${data.sessionsCompleted}',
-                            Icons.explore,
-                            Colors.green,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            'Success Rate',
-                            '${(data.completionRate * 100).round()}%',
-                            Icons.waves,
-                            Colors.orange,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildStatCard(
-                            'Research Streak',
-                            '${data.streak} days',
-                            Icons.waves,
-                            Colors.blue,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.cyan.withValues(alpha: 0.2),
+                Colors.blue.withValues(alpha: 0.1),
+              ],
             ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.cyan.withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.scuba_diving, color: Colors.cyan, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    _isNarrowScreen ? 'Today\'s Performance' : 'Today\'s Expedition Performance',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      'Dive Time',
+                      '${data.totalFocusTime}m',
+                      Icons.access_time,
+                      Colors.cyan,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      'Expeditions',
+                      '${data.sessionsCompleted}',
+                      Icons.explore,
+                      Colors.green,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      'Success Rate',
+                      '${(data.completionRate * 100).round()}%',
+                      Icons.check_circle,
+                      Colors.orange,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      'Research Streak',
+                      '${data.streak} days',
+                      Icons.local_fire_department,
+                      Colors.amber,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         );
       },
@@ -1072,13 +1161,21 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
         : null;
     
     return Container(
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.orange.withValues(alpha: 0.2),
+            Colors.red.withValues(alpha: 0.1),
+          ],
+        ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
-          width: 1.5,
+          color: Colors.orange.withValues(alpha: 0.3),
+          width: 1,
         ),
       ),
       child: Column(
@@ -1086,14 +1183,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
         children: [
           Row(
             children: [
-              Icon(Icons.local_fire_department, color: currentTier.color, size: 28),
-              const SizedBox(width: 12),
-              const Text(
+              Icon(Icons.local_fire_department, color: Colors.orange, size: 20),
+              const SizedBox(width: 8),
+              Text(
                 'Research Streak Rewards',
                 style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
                   color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
