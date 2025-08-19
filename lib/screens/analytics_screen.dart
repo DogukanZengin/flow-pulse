@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'dart:ui';
 import '../services/analytics_service.dart';
 import '../widgets/streak_rewards_display_widget.dart';
+import '../widgets/seasonal_events_display_widget.dart';
 import '../services/streak_rewards_service.dart';
 import '../services/gamification_service.dart';
 
@@ -211,6 +212,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           _buildTodayStats(),
           SizedBox(height: _getResponsiveSpacing()),
           _buildStreakRewardsSection(),
+          SizedBox(height: _getResponsiveSpacing()),
+          // Phase 5: Seasonal Events Display
+          const SeasonalEventsDisplayWidget(),
           SizedBox(height: _getResponsiveSpacing()),
           _buildWeeklyChart(),
           SizedBox(height: _getResponsiveSpacing()),

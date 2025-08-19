@@ -168,6 +168,83 @@ class OceanAudioService {
     _currentBiome = null;
   }
   
+  // Phase 5: Play seasonal event sounds
+  Future<void> playSeasonalEventSound(String eventType) async {
+    switch (eventType) {
+      case 'migration':
+        await playOceanEffect(OceanSoundEffect.migrationSounds);
+        break;
+      case 'breeding':
+      case 'coral_spawning':
+        await playOceanEffect(OceanSoundEffect.breedingSounds);
+        break;
+      case 'bloom':
+      case 'plankton':
+        await playOceanEffect(OceanSoundEffect.planktonBloom);
+        break;
+      case 'predatorActivity':
+      case 'shark':
+        await playOceanEffect(OceanSoundEffect.predatorAlert);
+        break;
+      case 'bioluminescence':
+        await playOceanEffect(OceanSoundEffect.bioluminescence);
+        break;
+      case 'mystery':
+        await playOceanEffect(OceanSoundEffect.mysteryEncounter);
+        break;
+      default:
+        // General event sound
+        await playOceanEffect(OceanSoundEffect.whaleSong);
+        break;
+    }
+  }
+  
+  // Enhanced creature discovery sound with rarity-based effects
+  Future<void> playCreatureDiscoverySound(String creatureRarity) async {
+    double volume = _effectsVolume;
+    
+    // Adjust volume and play different variations based on rarity
+    switch (creatureRarity.toLowerCase()) {
+      case 'common':
+        volume *= 0.7; // Quieter for common discoveries
+        break;
+      case 'uncommon':
+        volume *= 0.85; // Slightly louder
+        break;
+      case 'rare':
+        volume *= 1.0; // Full volume
+        break;
+      case 'legendary':
+        volume *= 1.2; // Extra loud for legendary finds
+        // Play twice for legendary creatures
+        await playOceanEffect(OceanSoundEffect.creatureDiscover);
+        await Future.delayed(const Duration(milliseconds: 500));
+        break;
+    }
+    
+    // Store original volume
+    final originalVolume = _effectsVolume;
+    _effectsVolume = volume;
+    
+    await playOceanEffect(OceanSoundEffect.creatureDiscover);
+    
+    // Restore original volume
+    _effectsVolume = originalVolume;
+  }
+  
+  // Depth-based ambient adjustment - Phase 5 Enhancement
+  void updateAmbientForDepthAndSeason(double depth, bool hasSeasonalEvent) {
+    // Base depth adjustment
+    updateDepthVolume(depth);
+    
+    // Seasonal event ambient enhancement
+    if (hasSeasonalEvent) {
+      // Slightly increase ambient richness during seasonal events
+      final adjustedVolume = _ambientVolume * 1.1;
+      _ambientPlayer.setVolume(adjustedVolume.clamp(0.0, 1.0));
+    }
+  }
+  
   // Dispose of audio players
   void dispose() {
     _ambientPlayer.dispose();
@@ -183,6 +260,13 @@ enum OceanSoundEffect {
   pearlCollect,
   splash,
   whaleSong,
+  // Phase 5: Seasonal Event Sounds
+  migrationSounds,
+  breedingSounds,
+  planktonBloom,
+  predatorAlert,
+  bioluminescence,
+  mysteryEncounter,
 }
 
 // Session-specific ocean sounds

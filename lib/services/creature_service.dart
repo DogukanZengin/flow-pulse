@@ -4,6 +4,7 @@ import '../models/coral.dart';
 import '../models/aquarium.dart';
 import '../models/ocean_activity.dart';
 import 'database_service.dart';
+import 'seasonal_events_service.dart';
 
 class CreatureService {
   static final Random _random = Random();
@@ -57,8 +58,13 @@ class CreatureService {
     // Apply depth-based discovery bonuses according to Master Plan
     discoveryChance = applyDepthBasedDiscoveryRates(discoveryChance, sessionDurationMinutes, sessionDepth);
     
-    // Cap discovery chance at 80%
-    discoveryChance = discoveryChance.clamp(0.0, 0.8);
+    // Apply seasonal events bonuses - Phase 5 Enhancement
+    final currentBiome = getBiomeFromDepth(sessionDepth);
+    final seasonalBonus = SeasonalEventsService.instance.getSeasonalDiscoveryBonus(currentBiome);
+    discoveryChance *= seasonalBonus;
+    
+    // Cap discovery chance at 90% (increased due to seasonal events)
+    discoveryChance = discoveryChance.clamp(0.0, 0.9);
     
     // Roll for discovery
     if (_random.nextDouble() > discoveryChance) {
