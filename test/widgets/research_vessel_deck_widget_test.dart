@@ -12,11 +12,20 @@ void main() {
     setUp(() {
       testAquarium = Aquarium(
         id: 'test',
-        name: 'Test Aquarium',
+        currentBiome: BiomeType.shallowWaters,
         inhabitants: [],
         corals: [],
-        level: 5,
-        experience: 100,
+        pearlWallet: const PearlWallet(pearls: 100, crystals: 0),
+        createdAt: DateTime.now(),
+        lastActiveAt: DateTime.now(),
+        settings: const AquariumSettings(),
+        stats: const AquariumStats(
+          totalCreaturesDiscovered: 0,
+          totalCoralsGrown: 0,
+          totalFocusTime: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+        ),
       );
       testCreatures = [];
     });
@@ -59,11 +68,7 @@ void main() {
       expect(find.text('Weather Monitoring'), findsOneWidget);
     });
 
-    testWidgets('should handle break timer controls correctly', (WidgetTester tester) async {
-      bool endBreakCalled = false;
-      bool pauseBreakCalled = false;
-      bool resumeBreakCalled = false;
-
+    testWidgets('should handle break timer display correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -71,14 +76,14 @@ void main() {
               width: 500,
               height: 600,
               child: ResearchVesselDeckWidget(
-                breakTimeRemaining: const Duration(minutes: 3, seconds: 15),
-                isBreakActive: true,
-                onEndBreak: () => endBreakCalled = true,
-                onPauseBreak: () => pauseBreakCalled = true,
-                onResumeBreak: () => resumeBreakCalled = true,
-                onStartBreak: () {},
-                isPaused: false,
-                showExtendButton: true,
+                aquarium: testAquarium,
+                secondsRemaining: 195, // 3 minutes 15 seconds
+                totalBreakSeconds: 300, // 5 minutes total
+                isRunning: true,
+                recentDiscoveries: testCreatures,
+                onTap: () {},
+                isActualBreakSession: true,
+                followsWorkSession: true,
               ),
             ),
           ),
@@ -87,19 +92,11 @@ void main() {
 
       await tester.pump();
 
-      // Test pause/resume button
-      final pauseButton = find.text('⏸️ Pause');
-      expect(pauseButton, findsOneWidget);
+      // Test timer display
+      expect(find.text('03:15'), findsOneWidget);
       
-      await tester.tap(pauseButton);
-      expect(pauseBreakCalled, isTrue);
-
-      // Test end break button
-      final endBreakButton = find.text('🤿 End Break');
-      expect(endBreakButton, findsOneWidget);
-      
-      await tester.tap(endBreakButton);
-      expect(endBreakCalled, isTrue);
+      // Test progress bar exists
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
     });
 
     testWidgets('should display paused state correctly', (WidgetTester tester) async {
@@ -110,14 +107,14 @@ void main() {
               width: 500,
               height: 600,
               child: ResearchVesselDeckWidget(
-                breakTimeRemaining: const Duration(minutes: 2, seconds: 45),
-                isBreakActive: true,
-                onEndBreak: () {},
-                onPauseBreak: () {},
-                onResumeBreak: () {},
-                onStartBreak: () {},
-                isPaused: true, // Paused state
-                showExtendButton: true,
+                aquarium: testAquarium,
+                secondsRemaining: 165, // 2 minutes 45 seconds
+                totalBreakSeconds: 300, // 5 minutes
+                isRunning: false, // Paused state
+                recentDiscoveries: testCreatures,
+                onTap: () {},
+                isActualBreakSession: true,
+                followsWorkSession: true,
               ),
             ),
           ),
@@ -126,13 +123,13 @@ void main() {
 
       await tester.pump();
 
-      // Verify resume button is shown when paused
-      expect(find.text('▶️ Resume'), findsOneWidget);
-      expect(find.text('⏸️ Pause'), findsNothing);
+      // Verify paused timer display
+      expect(find.text('02:45'), findsOneWidget);
     });
 
-    testWidgets('should handle inactive break state', (WidgetTester tester) async {
-      bool startBreakCalled = false;
+    testWidgets('should handle activity buttons state correctly', (WidgetTester tester) async {
+      bool activityCompleted = false;
+      String? completedActivity;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -141,14 +138,18 @@ void main() {
               width: 500,
               height: 600,
               child: ResearchVesselDeckWidget(
-                breakTimeRemaining: const Duration(minutes: 5),
-                isBreakActive: false, // Not active
-                onEndBreak: () {},
-                onPauseBreak: () {},
-                onResumeBreak: () {},
-                onStartBreak: () => startBreakCalled = true,
-                isPaused: false,
-                showExtendButton: true,
+                aquarium: testAquarium,
+                secondsRemaining: 300, // 5 minutes
+                totalBreakSeconds: 300, // 5 minutes
+                isRunning: true,
+                recentDiscoveries: testCreatures,
+                onTap: () {},
+                onActivityComplete: (activity) {
+                  activityCompleted = true;
+                  completedActivity = activity;
+                },
+                isActualBreakSession: true,
+                followsWorkSession: true,
               ),
             ),
           ),
@@ -157,12 +158,15 @@ void main() {
 
       await tester.pump();
 
-      // Should show start break button when not active
-      final startButton = find.text('🏖️ Start Break');
-      if (startButton.evaluate().isNotEmpty) {
-        await tester.tap(startButton);
-        expect(startBreakCalled, isTrue);
-      }
+      // Find and tap an activity button
+      final equipmentButton = find.widgetWithText(ElevatedButton, 'Equipment Maintenance');
+      expect(equipmentButton, findsOneWidget);
+      
+      await tester.tap(equipmentButton);
+      await tester.pump();
+      
+      expect(activityCompleted, isTrue);
+      expect(completedActivity, equals('equipment'));
     });
 
     testWidgets('should handle responsive design for mobile', (WidgetTester tester) async {
@@ -174,14 +178,14 @@ void main() {
               width: 390, // iPhone 12 width
               height: 400,
               child: ResearchVesselDeckWidget(
-                breakTimeRemaining: const Duration(minutes: 4),
-                isBreakActive: true,
-                onEndBreak: () {},
-                onPauseBreak: () {},
-                onResumeBreak: () {},
-                onStartBreak: () {},
-                isPaused: false,
-                showExtendButton: false, // No extend button for mobile
+                aquarium: testAquarium,
+                secondsRemaining: 240, // 4 minutes
+                totalBreakSeconds: 300, // 5 minutes
+                isRunning: true,
+                recentDiscoveries: testCreatures,
+                onTap: () {},
+                isActualBreakSession: true,
+                followsWorkSession: true,
               ),
             ),
           ),
@@ -192,6 +196,40 @@ void main() {
 
       // Should still display basic elements on mobile
       expect(find.text('Vessel Deck Break'), findsOneWidget); // Shortened title for mobile
+      expect(find.text('04:00'), findsOneWidget);
+    });
+
+    testWidgets('should handle not actual break session state', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 500,
+              height: 600,
+              child: ResearchVesselDeckWidget(
+                aquarium: testAquarium,
+                secondsRemaining: 300,
+                totalBreakSeconds: 300,
+                isRunning: true,
+                recentDiscoveries: testCreatures,
+                onTap: () {},
+                isActualBreakSession: false, // Not an actual break
+                followsWorkSession: false,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      // Activities should be disabled when not an actual break session
+      final equipmentButton = find.widgetWithText(ElevatedButton, 'Equipment Maintenance');
+      expect(equipmentButton, findsOneWidget);
+      
+      // The button should be disabled (we can check its enabled state)
+      final ElevatedButton button = tester.widget(equipmentButton);
+      expect(button.onPressed, isNull); // Disabled buttons have null onPressed
     });
   });
 }

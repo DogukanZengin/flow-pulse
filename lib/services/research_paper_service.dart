@@ -1,0 +1,347 @@
+import 'package:flutter/material.dart';
+import '../models/creature.dart';
+
+/// Research Paper Service - Phase 4 Scientific Documentation System
+/// Manages research paper creation, publication, and rewards for marine biology career progression
+class ResearchPaperService {
+  static final ResearchPaperService _instance = ResearchPaperService._internal();
+  ResearchPaperService._internal();
+  static ResearchPaperService get instance => _instance;
+
+  /// Get available research papers based on user progress
+  static List<ResearchPaper> getAvailablePapers(
+    List<Creature> discoveredCreatures,
+    int userLevel,
+    List<String> publishedPaperIds,
+  ) {
+    final papers = <ResearchPaper>[];
+    
+    // Filter discovered creatures by biome
+    final shallowWaterCreatures = discoveredCreatures
+        .where((c) => c.habitat == BiomeType.shallowWaters)
+        .toList();
+    final coralGardenCreatures = discoveredCreatures
+        .where((c) => c.habitat == BiomeType.coralGarden)
+        .toList();
+    final deepOceanCreatures = discoveredCreatures
+        .where((c) => c.habitat == BiomeType.deepOcean)
+        .toList();
+    final abyssalCreatures = discoveredCreatures
+        .where((c) => c.habitat == BiomeType.abyssalZone)
+        .toList();
+    
+    // Biome-specific papers
+    if (shallowWaterCreatures.length >= 5 && userLevel >= 5) {
+      papers.add(ResearchPaper(
+        id: 'shallow_waters_survey',
+        title: 'Shallow Waters Biodiversity Survey',
+        description: 'Document the diverse ecosystem of the shallow waters biome, cataloging species interactions and habitat preferences.',
+        category: PaperCategory.biomeSurvey,
+        biome: BiomeType.shallowWaters,
+        requiredLevel: 5,
+        requiredDiscoveries: 5,
+        requiredSpecies: [],
+        researchValue: 100,
+        xpReward: 200,
+        citations: 0,
+        publicationDate: null,
+      ));
+    }
+    
+    if (coralGardenCreatures.length >= 10 && userLevel >= 15) {
+      papers.add(ResearchPaper(
+        id: 'coral_garden_ecology',
+        title: 'Coral Garden Ecosystem Dynamics',
+        description: 'Analyze the complex relationships between coral species and their inhabitants, documenting symbiotic relationships and growth patterns.',
+        category: PaperCategory.biomeSurvey,
+        biome: BiomeType.coralGarden,
+        requiredLevel: 15,
+        requiredDiscoveries: 10,
+        requiredSpecies: [],
+        researchValue: 150,
+        xpReward: 350,
+        citations: 0,
+        publicationDate: null,
+      ));
+    }
+    
+    if (deepOceanCreatures.length >= 8 && userLevel >= 25) {
+      papers.add(ResearchPaper(
+        id: 'deep_ocean_adaptations',
+        title: 'Deep Ocean Pressure Adaptations',
+        description: 'Study the remarkable adaptations of deep ocean species to extreme pressure and low light conditions.',
+        category: PaperCategory.biomeSurvey,
+        biome: BiomeType.deepOcean,
+        requiredLevel: 25,
+        requiredDiscoveries: 8,
+        requiredSpecies: [],
+        researchValue: 200,
+        xpReward: 500,
+        citations: 0,
+        publicationDate: null,
+      ));
+    }
+    
+    if (abyssalCreatures.length >= 5 && userLevel >= 40) {
+      papers.add(ResearchPaper(
+        id: 'abyssal_bioluminescence',
+        title: 'Bioluminescence in the Abyssal Zone',
+        description: 'Investigate the mechanisms and purposes of bioluminescence in the deepest ocean trenches.',
+        category: PaperCategory.biomeSurvey,
+        biome: BiomeType.abyssalZone,
+        requiredLevel: 40,
+        requiredDiscoveries: 5,
+        requiredSpecies: [],
+        researchValue: 300,
+        xpReward: 750,
+        citations: 0,
+        publicationDate: null,
+      ));
+    }
+    
+    // Rarity-based papers
+    final commonCount = discoveredCreatures.where((c) => c.rarity == CreatureRarity.common).length;
+    final uncommonCount = discoveredCreatures.where((c) => c.rarity == CreatureRarity.uncommon).length;
+    final rareCount = discoveredCreatures.where((c) => c.rarity == CreatureRarity.rare).length;
+    final legendaryCount = discoveredCreatures.where((c) => c.rarity == CreatureRarity.legendary).length;
+    
+    if (commonCount >= 20 && userLevel >= 10) {
+      papers.add(ResearchPaper(
+        id: 'common_species_catalog',
+        title: 'Common Marine Species Catalog',
+        description: 'Create a comprehensive catalog of frequently encountered marine species and their behaviors.',
+        category: PaperCategory.speciesStudy,
+        biome: null,
+        requiredLevel: 10,
+        requiredDiscoveries: 20,
+        requiredSpecies: [],
+        researchValue: 80,
+        xpReward: 150,
+        citations: 0,
+        publicationDate: null,
+      ));
+    }
+    
+    if (uncommonCount >= 10 && userLevel >= 20) {
+      papers.add(ResearchPaper(
+        id: 'uncommon_species_behavior',
+        title: 'Behavioral Patterns of Uncommon Species',
+        description: 'Analyze the unique behaviors and habitats of less frequently observed marine life.',
+        category: PaperCategory.speciesStudy,
+        biome: null,
+        requiredLevel: 20,
+        requiredDiscoveries: 10,
+        requiredSpecies: [],
+        researchValue: 120,
+        xpReward: 300,
+        citations: 0,
+        publicationDate: null,
+      ));
+    }
+    
+    if (rareCount >= 5 && userLevel >= 35) {
+      papers.add(ResearchPaper(
+        id: 'rare_species_discovery',
+        title: 'Rare Species Discovery Report',
+        description: 'Document the discovery and characteristics of exceptionally rare marine species.',
+        category: PaperCategory.speciesStudy,
+        biome: null,
+        requiredLevel: 35,
+        requiredDiscoveries: 5,
+        requiredSpecies: [],
+        researchValue: 250,
+        xpReward: 600,
+        citations: 0,
+        publicationDate: null,
+      ));
+    }
+    
+    if (legendaryCount >= 1 && userLevel >= 50) {
+      papers.add(ResearchPaper(
+        id: 'legendary_creature_thesis',
+        title: 'Legendary Creature Research Thesis',
+        description: 'Present groundbreaking research on mythical marine creatures previously thought to be extinct or fictional.',
+        category: PaperCategory.speciesStudy,
+        biome: null,
+        requiredLevel: 50,
+        requiredDiscoveries: 1,
+        requiredSpecies: [],
+        researchValue: 500,
+        xpReward: 1500,
+        citations: 0,
+        publicationDate: null,
+      ));
+    }
+    
+    // Comparative and special papers
+    if (discoveredCreatures.length >= 30 && userLevel >= 30) {
+      papers.add(ResearchPaper(
+        id: 'comparative_marine_biology',
+        title: 'Comparative Marine Biology Analysis',
+        description: 'Compare and contrast species across different ocean biomes, identifying evolutionary patterns.',
+        category: PaperCategory.comparative,
+        biome: null,
+        requiredLevel: 30,
+        requiredDiscoveries: 30,
+        requiredSpecies: [],
+        researchValue: 180,
+        xpReward: 400,
+        citations: 0,
+        publicationDate: null,
+      ));
+    }
+    
+    if (discoveredCreatures.length >= 50 && userLevel >= 45) {
+      papers.add(ResearchPaper(
+        id: 'ocean_biodiversity_report',
+        title: 'Comprehensive Ocean Biodiversity Report',
+        description: 'Compile extensive research on ocean biodiversity, creating a reference work for future researchers.',
+        category: PaperCategory.milestone,
+        biome: null,
+        requiredLevel: 45,
+        requiredDiscoveries: 50,
+        requiredSpecies: [],
+        researchValue: 350,
+        xpReward: 1000,
+        citations: 0,
+        publicationDate: null,
+      ));
+    }
+    
+    if (discoveredCreatures.length >= 75 && userLevel >= 60) {
+      papers.add(ResearchPaper(
+        id: 'marine_conservation_thesis',
+        title: 'Marine Conservation Strategy Thesis',
+        description: 'Develop comprehensive conservation strategies based on extensive species documentation.',
+        category: PaperCategory.milestone,
+        biome: null,
+        requiredLevel: 60,
+        requiredDiscoveries: 75,
+        requiredSpecies: [],
+        researchValue: 450,
+        xpReward: 1250,
+        citations: 0,
+        publicationDate: null,
+      ));
+    }
+    
+    if (discoveredCreatures.length >= 100 && userLevel >= 75) {
+      papers.add(ResearchPaper(
+        id: 'marine_biology_textbook',
+        title: 'Marine Biology Research Textbook',
+        description: 'Author a comprehensive textbook based on your extensive marine research experience.',
+        category: PaperCategory.milestone,
+        biome: null,
+        requiredLevel: 75,
+        requiredDiscoveries: 100,
+        requiredSpecies: [],
+        researchValue: 600,
+        xpReward: 2000,
+        citations: 0,
+        publicationDate: null,
+      ));
+    }
+    
+    if (discoveredCreatures.length >= 144 && userLevel >= 100) {
+      papers.add(ResearchPaper(
+        id: 'complete_ocean_encyclopedia',
+        title: 'Complete Ocean Life Encyclopedia',
+        description: 'Create the definitive encyclopedia of all discovered ocean life, a magnum opus of marine biology.',
+        category: PaperCategory.milestone,
+        biome: null,
+        requiredLevel: 100,
+        requiredDiscoveries: 144,
+        requiredSpecies: [],
+        researchValue: 1000,
+        xpReward: 5000,
+        citations: 0,
+        publicationDate: null,
+      ));
+    }
+    
+    // Filter out already published papers
+    return papers.where((paper) => !publishedPaperIds.contains(paper.id)).toList();
+  }
+  
+  /// Calculate total research impact from published papers
+  static int calculateResearchImpact(List<ResearchPaper> publishedPapers) {
+    return publishedPapers.fold(0, (sum, paper) => sum + paper.researchValue + paper.citations);
+  }
+  
+  /// Get researcher title based on published papers
+  static String getResearcherTitle(int publishedCount) {
+    if (publishedCount >= 20) return 'Distinguished Scholar';
+    if (publishedCount >= 15) return 'Senior Researcher';
+    if (publishedCount >= 10) return 'Research Fellow';
+    if (publishedCount >= 5) return 'Published Researcher';
+    if (publishedCount >= 1) return 'Contributing Author';
+    return 'Research Assistant';
+  }
+}
+
+/// Research paper categories
+enum PaperCategory {
+  biomeSurvey,
+  speciesStudy,
+  comparative,
+  milestone,
+}
+
+/// Research paper model
+class ResearchPaper {
+  final String id;
+  final String title;
+  final String description;
+  final PaperCategory category;
+  final BiomeType? biome;
+  final int requiredLevel;
+  final int requiredDiscoveries;
+  final List<String> requiredSpecies;
+  final int researchValue;
+  final int xpReward;
+  int citations;
+  DateTime? publicationDate;
+
+  ResearchPaper({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.category,
+    this.biome,
+    required this.requiredLevel,
+    required this.requiredDiscoveries,
+    required this.requiredSpecies,
+    required this.researchValue,
+    required this.xpReward,
+    required this.citations,
+    this.publicationDate,
+  });
+
+  bool get isPublished => publicationDate != null;
+
+  Color get categoryColor {
+    switch (category) {
+      case PaperCategory.biomeSurvey:
+        return Colors.blue;
+      case PaperCategory.speciesStudy:
+        return Colors.green;
+      case PaperCategory.comparative:
+        return Colors.purple;
+      case PaperCategory.milestone:
+        return Colors.orange;
+    }
+  }
+
+  IconData get categoryIcon {
+    switch (category) {
+      case PaperCategory.biomeSurvey:
+        return Icons.water;
+      case PaperCategory.speciesStudy:
+        return Icons.pets;
+      case PaperCategory.comparative:
+        return Icons.compare_arrows;
+      case PaperCategory.milestone:
+        return Icons.emoji_events;
+    }
+  }
+}

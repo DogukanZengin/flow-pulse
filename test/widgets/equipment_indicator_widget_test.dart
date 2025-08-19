@@ -121,8 +121,9 @@ void main() {
         ),
       );
 
-      // Wait for animations to settle
-      await tester.pumpAndSettle(const Duration(seconds: 5));
+      // Wait for initial animations
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.byType(AnimatedBuilder), findsWidgets);
     });

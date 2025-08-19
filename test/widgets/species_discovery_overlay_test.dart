@@ -483,6 +483,10 @@ void main() {
         );
 
         await tester.pump();
+        // Wait for all animations to complete
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump(const Duration(milliseconds: 200));
+        await tester.pump(const Duration(milliseconds: 300));
         
         expect(find.byType(SpeciesDiscoveryOverlay), findsOneWidget);
         expect(tester.takeException(), isNull);
