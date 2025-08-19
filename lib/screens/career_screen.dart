@@ -263,9 +263,10 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
   
   Widget _buildAchievementsTab() {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.04,
-        vertical: 8,
+      padding: EdgeInsets.only(
+        left: MediaQuery.of(context).size.width * 0.04,
+        right: MediaQuery.of(context).size.width * 0.04,
+        top: 8,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -386,9 +387,10 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
     }
     
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.04,
-        vertical: 8,
+      padding: EdgeInsets.only(
+        left: MediaQuery.of(context).size.width * 0.04,
+        right: MediaQuery.of(context).size.width * 0.04,
+        top: 8, // Adjusted bottom padding for tab bar
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,9 +490,10 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
   
   Widget _buildPapersTab() {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.04,
-        vertical: 8,
+      padding: EdgeInsets.only(
+        left: MediaQuery.of(context).size.width * 0.04,
+        right: MediaQuery.of(context).size.width * 0.04,
+        top: 8, // Adjusted bottom padding for tab bar
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

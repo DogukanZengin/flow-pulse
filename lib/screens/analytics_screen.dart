@@ -199,9 +199,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   Widget _buildDivePerformanceTab() {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.04,
-        vertical: 8,
+      padding: EdgeInsets.only(
+        left: MediaQuery.of(context).size.width * 0.04,
+        right: MediaQuery.of(context).size.width * 0.04,
+        top: 8,
+        bottom: 80, // Adjusted bottom padding for tab bar
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,9 +222,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   Widget _buildDiscoveryTrendsTab() {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.04,
-        vertical: 8,
+      padding: EdgeInsets.only(
+        left: MediaQuery.of(context).size.width * 0.04,
+        right: MediaQuery.of(context).size.width * 0.04,
+        top: 8,
+        bottom: 80, // Adjusted bottom padding for tab bar
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,9 +243,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   Widget _buildResearchInsightsTab() {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.04,
-        vertical: 8,
+      padding: EdgeInsets.only(
+        left: MediaQuery.of(context).size.width * 0.04,
+        right: MediaQuery.of(context).size.width * 0.04,
+        top: 8,
+        bottom: 80, // Adjusted bottom padding for tab bar
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -173,7 +173,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       )
                     : Padding(
                         padding: EdgeInsets.only(
-                          bottom: MediaQuery.of(context).padding.bottom,
                           left: MediaQuery.of(context).size.width * 0.02,
                           right: MediaQuery.of(context).size.width * 0.02,
                         ),

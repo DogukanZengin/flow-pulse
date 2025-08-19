@@ -1,0 +1,963 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
+import 'dart:async';
+import '../providers/timer_provider.dart';
+import '../services/database_service.dart';
+import '../models/session.dart';
+import '../widgets/celebration_dialog.dart';
+import '../widgets/particle_system.dart';
+import '../widgets/underwater_environment.dart';
+import '../services/ui_sound_service.dart';
+import '../services/gamification_service.dart';
+import '../services/notification_service.dart';
+import '../services/live_activities_service.dart';
+import '../widgets/full_screen_ocean_widget.dart';
+import '../models/aquarium.dart';
+import '../models/creature.dart';
+import '../models/coral.dart';
+import '../services/creature_service.dart';
+import '../widgets/creature_discovery_animation.dart';
+import '../services/ocean_activity_service.dart';
+import '../services/ocean_audio_service.dart';
+import '../services/break_rewards_service.dart';
+import '../widgets/research_vessel_deck_widget.dart';
+import '../widgets/surface_transition_animation.dart';
+
+class TimerScreen extends StatefulWidget {
+  const TimerScreen({super.key});
+
+  @override
+  State<TimerScreen> createState() => TimerScreenState();
+}
+
+class TimerScreenState extends State<TimerScreen>
+    with TickerProviderStateMixin {
+  
+  late AnimationController _progressAnimationController;
+  
+  Timer? _timer;
+  bool _isRunning = false;
+  bool _isStudySession = true;
+  int _secondsRemaining = 0;
+  int _completedSessions = 0;
+  DateTime? _sessionStartTime;
+  
+  // Ocean system state
+  Aquarium? _aquarium;
+  List<Creature> _visibleCreatures = [];
+  List<Coral> _visibleCorals = [];
+  
+  // Break system state
+  bool _showingTransition = false;
+  bool _isOnSurface = false; // true when in break mode on vessel deck
+  final List<String> _completedBreakActivities = [];
+  
+  @override
+  void initState() {
+    super.initState();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeTimer();
+      _loadTodayStats();
+      _initializeOceanSystem();
+      _initializeOceanAudio();
+    });
+    
+    _progressAnimationController = AnimationController(
+      duration: const Duration(seconds: 1500), // Will be updated dynamically
+      vsync: this,
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reinitialize timer when TimerProvider settings change
+    if (mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _reinitializeTimer();
+      });
+    }
+  }
+
+  void _initializeTimer() {
+    final timerProvider = context.read<TimerProvider>();
+    setState(() {
+      _secondsRemaining = timerProvider.focusDuration * 60;
+    });
+  }
+
+  void _reinitializeTimer() {
+    if (!_isRunning) {
+      final timerProvider = context.read<TimerProvider>();
+      setState(() {
+        _secondsRemaining = _isStudySession 
+            ? timerProvider.focusDuration * 60
+            : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
+      });
+    }
+  }
+
+  Future<void> _loadTodayStats() async {
+    await DatabaseService.getStatistics();
+  }
+  
+  Future<void> _initializeOceanAudio() async {
+    // Initialize ocean audio with current biome
+    final biome = _aquarium?.currentBiome ?? BiomeType.shallowWaters;
+    await OceanAudioService.instance.initializeBiomeAudio(biome);
+  }
+
+  Future<void> _initializeOceanSystem() async {
+    try {
+      // Create demo aquarium for the UI integration
+      final demoAquarium = Aquarium(
+        id: 'demo_aquarium',
+        currentBiome: BiomeType.shallowWaters,
+        pearlWallet: const PearlWallet(pearls: 150, crystals: 2),
+        ecosystemHealth: 0.85,
+        createdAt: DateTime.now().subtract(const Duration(days: 7)),
+        lastActiveAt: DateTime.now().subtract(const Duration(hours: 2)),
+        unlockedBiomes: const {
+          BiomeType.shallowWaters: true,
+          BiomeType.coralGarden: true,
+        },
+        settings: const AquariumSettings(),
+        stats: const AquariumStats(
+          totalCreaturesDiscovered: 3,
+          totalCoralsGrown: 2,
+          totalFocusTime: 180,
+          currentStreak: 4,
+          longestStreak: 7,
+        ),
+      );
+      
+      // Create some demo creatures
+      final demoCreatures = [
+        Creature(
+          id: 'clownfish',
+          name: 'Clownfish',
+          species: 'Amphiprioninae',
+          rarity: CreatureRarity.common,
+          type: CreatureType.starterFish,
+          habitat: BiomeType.shallowWaters,
+          animationAsset: 'assets/creatures/clownfish.png',
+          pearlValue: 10,
+          requiredLevel: 1,
+          description: 'A friendly orange fish that lives in sea anemones',
+          discoveryChance: 0.7,
+          isDiscovered: true,
+          discoveredAt: DateTime.now().subtract(const Duration(days: 2)),
+        ),
+        Creature(
+          id: 'blue_tang',
+          name: 'Blue Tang',
+          species: 'Paracanthurus hepatus',
+          rarity: CreatureRarity.common,
+          type: CreatureType.starterFish,
+          habitat: BiomeType.shallowWaters,
+          animationAsset: 'assets/creatures/blue_tang.png',
+          pearlValue: 12,
+          requiredLevel: 2,
+          description: 'A vibrant blue fish with a peaceful nature',
+          discoveryChance: 0.7,
+          isDiscovered: true,
+          discoveredAt: DateTime.now().subtract(const Duration(days: 1)),
+        ),
+      ];
+      
+      // Create some demo corals
+      final demoCorals = [
+        Coral(
+          id: 'brain_coral_1',
+          type: CoralType.brain,
+          stage: CoralStage.mature,
+          growthProgress: 0.8,
+          plantedAt: DateTime.now().subtract(const Duration(days: 3)),
+          lastGrowthAt: DateTime.now().subtract(const Duration(hours: 4)),
+          biome: BiomeType.shallowWaters,
+          sessionsGrown: 3,
+        ),
+        Coral(
+          id: 'staghorn_coral_1',
+          type: CoralType.staghorn,
+          stage: CoralStage.flourishing,
+          growthProgress: 1.0,
+          plantedAt: DateTime.now().subtract(const Duration(days: 2)),
+          lastGrowthAt: DateTime.now().subtract(const Duration(hours: 1)),
+          biome: BiomeType.shallowWaters,
+          sessionsGrown: 4,
+          attractedSpecies: ['clownfish'],
+        ),
+      ];
+      
+      if (mounted) {
+        setState(() {
+          _aquarium = demoAquarium;
+          _visibleCreatures = demoCreatures;
+          _visibleCorals = demoCorals;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error initializing ocean system: $e');
+      }
+    }
+  }
+  
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _progressAnimationController.dispose();
+    super.dispose();
+  }
+  
+  void _toggleTimer() {
+    setState(() {
+      _isRunning = !_isRunning;
+      if (_isRunning) {
+        _startTimer();
+        UISoundService.instance.timerStart();
+      } else {
+        _pauseTimer();
+        UISoundService.instance.timerPause();
+      }
+    });
+  }
+  
+  void _startTimer() {
+    _progressAnimationController.duration = Duration(seconds: _secondsRemaining);
+    _progressAnimationController.forward();
+    _sessionStartTime = DateTime.now();
+    
+    // Play ocean audio when session starts
+    OceanAudioService.instance.playSessionSound(SessionOceanSound.sessionStart);
+    
+    // Log coral planting activity for focus sessions
+    if (_isStudySession) {
+      final coralType = _aquarium?.corals.isNotEmpty == true 
+          ? _aquarium!.corals.first.type 
+          : CoralType.brain;
+      final biome = _aquarium?.currentBiome ?? BiomeType.shallowWaters;
+      
+      OceanActivityService.logCoralPlanted(
+        coralType: coralType,
+        biome: biome,
+      );
+    }
+    
+    // Show notification with timer controls
+    NotificationService().showTimerWithActions(
+      title: _getSessionTitle(),
+      body: 'Timer running: ${_formatTime(_secondsRemaining)} remaining',
+      isRunning: true,
+    );
+    
+    // Schedule background timer check
+    NotificationService().scheduleBackgroundTimerCheck(
+      durationSeconds: _secondsRemaining,
+      isStudySession: _isStudySession,
+    );
+    
+    
+    // Start Live Activity (iOS)
+    final timerProvider = context.read<TimerProvider>();
+    final totalSeconds = _isStudySession 
+        ? timerProvider.focusDuration * 60 
+        : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
+    
+    LiveActivitiesService().startTimerActivity(
+      sessionTitle: _getSessionTitle(),
+      totalSeconds: totalSeconds,
+      remainingSeconds: _secondsRemaining,
+      isStudySession: _isStudySession,
+    );
+    
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_secondsRemaining > 0) {
+          _secondsRemaining--;
+          
+          // Update notification every 30 seconds to avoid spam
+          if (_secondsRemaining % 30 == 0) {
+            NotificationService().showTimerWithActions(
+              title: _getSessionTitle(),
+              body: 'Timer running: ${_formatTime(_secondsRemaining)} remaining',
+              isRunning: true,
+            );
+          }
+          
+          // Update Live Activity every 10 seconds
+          if (_secondsRemaining % 10 == 0) {
+            final timerProvider = context.read<TimerProvider>();
+            final totalSeconds = _isStudySession 
+                ? timerProvider.focusDuration * 60 
+                : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
+            
+            LiveActivitiesService().updateTimerActivity(
+              sessionTitle: _getSessionTitle(),
+              totalSeconds: totalSeconds,
+              remainingSeconds: _secondsRemaining,
+              isRunning: true,
+              isStudySession: _isStudySession,
+            );
+          }
+        } else {
+          _completeSession();
+        }
+      });
+    });
+  }
+  
+  void _pauseTimer() {
+    _timer?.cancel();
+    _progressAnimationController.stop();
+    
+    // Cancel background timer check
+    NotificationService().cancelBackgroundTimerCheck();
+    
+    // Show paused notification
+    NotificationService().showTimerWithActions(
+      title: '⏸️ ${_getSessionTitle()} Paused',
+      body: 'Tap to resume: ${_formatTime(_secondsRemaining)} remaining',
+      isRunning: false,
+    );
+    
+    
+    // Update Live Activity to paused state
+    final timerProvider = context.read<TimerProvider>();
+    final totalSeconds = _isStudySession 
+        ? timerProvider.focusDuration * 60 
+        : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
+    
+    LiveActivitiesService().pauseTimerActivity(
+      sessionTitle: _getSessionTitle(),
+      totalSeconds: totalSeconds,
+      remainingSeconds: _secondsRemaining,
+      isStudySession: _isStudySession,
+    );
+  }
+  
+  void _resetTimer() {
+    final timerProvider = context.read<TimerProvider>();
+    
+    // Save incomplete session if timer was running
+    if (_isRunning && _sessionStartTime != null) {
+      _saveSession(completed: false);
+      
+      // Log pollution event for abandoned focus session
+      if (_isStudySession) {
+        OceanActivityService.logPollutionEvent(
+          reason: 'Focus session abandoned',
+          ecosystemDamage: 0.05, // 5% damage for abandoning
+        );
+      }
+    }
+    
+    // Cancel notifications and background tasks
+    NotificationService().cancelBackgroundTimerCheck();
+    NotificationService().cancelAllNotifications();
+    
+    // End Live Activity
+    LiveActivitiesService().endTimerActivity();
+    
+    setState(() {
+      _timer?.cancel();
+      _isRunning = false;
+      _sessionStartTime = null;
+      _secondsRemaining = _isStudySession 
+          ? timerProvider.focusDuration * 60 
+          : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
+      _progressAnimationController.reset();
+    });
+    
+  }
+
+  bool _shouldUseLongBreak() {
+    final timerProvider = context.read<TimerProvider>();
+    return _completedSessions > 0 && _completedSessions % timerProvider.sessionsUntilLongBreak == 0;
+  }
+  
+  void _completeSession() async {
+    final timerProvider = context.read<TimerProvider>();
+    _timer?.cancel();
+    
+    // Play session complete sound
+    UISoundService.instance.sessionComplete();
+    
+    // Play ocean audio for session completion
+    OceanAudioService.instance.playSessionSound(SessionOceanSound.sessionComplete);
+    
+    final wasStudySession = _isStudySession;
+    
+    // Calculate session duration
+    final sessionDuration = wasStudySession 
+        ? timerProvider.focusDuration 
+        : (_shouldUseLongBreak() ? timerProvider.longBreakDuration : timerProvider.breakDuration);
+    
+    // Check for creature discovery (only for focus sessions)
+    Creature? discoveredCreature;
+    if (wasStudySession && _aquarium != null) {
+      final sessionDepth = CreatureService.calculateSessionDepth(sessionDuration, 1.0);
+      discoveredCreature = await CreatureService.checkForCreatureDiscovery(
+        aquarium: _aquarium!,
+        sessionDurationMinutes: sessionDuration,
+        sessionCompleted: true,
+        sessionDepth: sessionDepth,
+      );
+      
+      if (discoveredCreature != null) {
+        // Add to visible creatures
+        final creature = discoveredCreature; // Capture non-null value
+        setState(() {
+          if (!_visibleCreatures.any((c) => c.id == creature.id)) {
+            _visibleCreatures.add(creature);
+          }
+        });
+      }
+    }
+    
+    // Update notification with ocean theme if creature discovered
+    final notificationTitle = wasStudySession 
+        ? (discoveredCreature != null 
+            ? '🐠 New Creature Discovered!' 
+            : '🪸 Coral Bloomed Beautifully!')
+        : '🌊 Peaceful Currents Restored';
+    
+    final notificationBody = wasStudySession
+        ? (discoveredCreature != null
+            ? 'You discovered a ${discoveredCreature.name}! +${discoveredCreature.pearlValue} pearls earned!'
+            : 'Your coral garden is growing! Keep focusing to attract marine life.')
+        : 'Ready for another dive into deep focus?';
+    
+    // Show completion notification
+    NotificationService().showTimerNotification(
+      title: notificationTitle,
+      body: notificationBody,
+      payload: 'session_completed',
+    );
+    
+    // Award XP and rewards
+    final reward = await GamificationService.instance.completeSession(
+      durationMinutes: sessionDuration,
+      isStudySession: wasStudySession,
+    );
+    
+    // Save completed session
+    _saveSession(completed: true);
+    
+    // Log ocean activity for the session
+    if (wasStudySession) {
+      // Use first coral in aquarium or default to brain coral
+      final coralType = _aquarium?.corals.isNotEmpty == true 
+          ? _aquarium!.corals.first.type 
+          : CoralType.brain;
+      
+      await OceanActivityService.logCoralGrowth(
+        coralType: coralType,
+        finalStage: CoralStage.flourishing,
+        sessionDurationMinutes: sessionDuration,
+        discoveredCreatures: discoveredCreature != null ? [discoveredCreature] : [],
+        pearlsEarned: discoveredCreature?.pearlValue ?? 0,
+      );
+    }
+    
+    // Show transition animation before changing session
+    setState(() {
+      _showingTransition = true;
+    });
+    
+    // Start transition animation
+    _showTransitionAnimation(wasStudySession, () {
+      setState(() {
+        _showingTransition = false;
+        _isRunning = false;
+        if (wasStudySession) {
+          _completedSessions++;
+          _isOnSurface = true; // Go to surface for break
+        } else {
+          _isOnSurface = false; // Return underwater for work
+        }
+        _isStudySession = !_isStudySession;
+        _secondsRemaining = _isStudySession 
+            ? timerProvider.focusDuration * 60 
+            : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
+        _progressAnimationController.reset();
+        _sessionStartTime = null;
+        _completedBreakActivities.clear(); // Reset break activities
+      });
+      
+      // Auto-start next session if enabled
+      if ((wasStudySession && timerProvider.autoStartBreaks) || 
+          (!wasStudySession && timerProvider.autoStartSessions)) {
+        // Wait a moment for the UI to update, then auto-start
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted && !_isRunning) {
+            _startTimer();
+          }
+        });
+      }
+    });
+    
+    
+    // Complete Live Activity
+    LiveActivitiesService().completeTimerActivity(
+      isStudySession: wasStudySession,
+      nextSessionType: _isStudySession ? 'Research Dive' : 'Surface Rest',
+    );
+    
+    // Refresh stats after completing session
+    _loadTodayStats();
+    
+    // Show creature discovery animation if creature was discovered
+    if (discoveredCreature != null) {
+      _showCreatureDiscoveryAnimation(discoveredCreature);
+    } else {
+      _showSessionCompleteDialog(reward);
+    }
+  }
+
+  Future<void> _saveSession({required bool completed}) async {
+    if (_sessionStartTime == null) return;
+
+    final endTime = DateTime.now();
+    final actualDuration = endTime.difference(_sessionStartTime!).inSeconds;
+    
+    SessionType sessionType;
+    if (_isStudySession) {
+      sessionType = SessionType.focus;
+    } else {
+      sessionType = _shouldUseLongBreak() ? SessionType.longBreak : SessionType.shortBreak;
+    }
+
+    final session = Session(
+      startTime: _sessionStartTime!,
+      endTime: endTime,
+      duration: actualDuration,
+      type: sessionType,
+      completed: completed,
+    );
+
+    await DatabaseService.insertSession(session);
+  }
+  
+  void _showSessionCompleteDialog(GamificationReward reward) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      builder: (context) => CelebrationDialog(
+        isStudySession: _isStudySession,
+        reward: reward,
+        onDismiss: () => Navigator.of(context).pop(),
+      ),
+    );
+  }
+  
+  void _showCreatureDiscoveryAnimation(Creature creature) {
+    // Play creature discovery sound
+    OceanAudioService.instance.playOceanEffect(OceanSoundEffect.creatureDiscover);
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.transparent,
+      builder: (context) => CreatureDiscoveryAnimation(
+        creature: creature,
+        onComplete: () {
+          Navigator.of(context).pop();
+          // Show regular completion dialog after creature discovery
+          // Create a simple reward for the discovery
+          final discoveryReward = GamificationReward()
+            ..xpGained = creature.pearlValue * 10 // Convert pearls to XP
+            ..currentStreak = GamificationService.instance.currentStreak
+            ..newLevel = GamificationService.instance.currentLevel;
+          _showSessionCompleteDialog(discoveryReward);
+        },
+      ),
+    );
+  }
+  
+  void _showTransitionAnimation(bool wasStudySession, VoidCallback onComplete) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.transparent,
+      builder: (context) => SurfaceTransitionAnimation(
+        isAscending: wasStudySession, // Ascending after study, descending after break
+        duration: const Duration(seconds: 3),
+        onComplete: () {
+          Navigator.of(context).pop();
+          onComplete();
+        },
+      ),
+    );
+  }
+  
+  void _onBreakActivityComplete(String activityType) async {
+    if (!_completedBreakActivities.contains(activityType)) {
+      _completedBreakActivities.add(activityType);
+      
+      // Award activity rewards
+      final timerProvider = context.read<TimerProvider>();
+      final breakDuration = _shouldUseLongBreak() 
+          ? timerProvider.longBreakDuration 
+          : timerProvider.breakDuration;
+      
+      final reward = await BreakRewardsService().completeActivity(activityType, breakDuration);
+      
+      // Show activity reward feedback
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(reward.message),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+  
+  
+  String _formatTime(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  String _getSessionTitle() {
+    if (_isStudySession) {
+      return 'Research Dive';
+    } else {
+      return _shouldUseLongBreak() ? 'Extended Surface Rest' : 'Vessel Deck Break';
+    }
+  }
+  
+  // External control methods for quick actions and deep linking
+  void startFocusSession() {
+    if (!_isStudySession || _isRunning) {
+      setState(() {
+        _isStudySession = true;
+        _resetTimer();
+      });
+    }
+    if (!_isRunning) {
+      _toggleTimer();
+    }
+  }
+  
+  void startBreakSession() {
+    if (_isStudySession || _isRunning) {
+      setState(() {
+        _isStudySession = false;
+        _resetTimer();
+      });
+    }
+    if (!_isRunning) {
+      _toggleTimer();
+    }
+  }
+  
+  void pauseTimer() {
+    if (_isRunning) {
+      _toggleTimer();
+    }
+  }
+  
+  void resumeTimer() {
+    if (!_isRunning) {
+      _toggleTimer();
+    }
+  }
+  
+  void resetTimer() {
+    _resetTimer();
+  }
+  
+  
+  // Session switching methods
+  void _switchToWorkSession() {
+    if (!_isStudySession && !_isRunning) {
+      final timerProvider = context.read<TimerProvider>();
+      setState(() {
+        _isStudySession = true;
+        _isOnSurface = false; // Go underwater for work
+        _secondsRemaining = timerProvider.focusDuration * 60;
+        _completedBreakActivities.clear();
+      });
+      
+      // Play transition sound
+      UISoundService.instance.navigationSwitch();
+    }
+  }
+  
+  void _switchToBreakSession() {
+    if (_isStudySession && !_isRunning) {
+      final timerProvider = context.read<TimerProvider>();
+      setState(() {
+        _isStudySession = false;
+        _isOnSurface = true; // Go to surface for break
+        _secondsRemaining = _shouldUseLongBreak() 
+            ? timerProvider.longBreakDuration * 60 
+            : timerProvider.breakDuration * 60;
+        _completedBreakActivities.clear();
+      });
+      
+      // Play transition sound
+      UISoundService.instance.navigationSwitch();
+    }
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final timerProvider = context.watch<TimerProvider>();
+    // Use consistent ocean theme colors
+    final oceanGradientColors = _isStudySession 
+      ? [const Color(0xFF1B4D72), const Color(0xFF2E86AB)] // Deep ocean focus
+      : [const Color(0xFF48A38A), const Color(0xFF81C7D4)]; // Light ocean break
+    final oceanParticleColors = [
+      Colors.blue.shade200,
+      Colors.cyan.shade200, 
+      Colors.teal.shade200,
+    ];
+    
+    final totalSeconds = _isStudySession 
+        ? timerProvider.focusDuration * 60 
+        : (_shouldUseLongBreak() ? timerProvider.longBreakDuration * 60 : timerProvider.breakDuration * 60);
+    final progress = totalSeconds > 0 ? (_secondsRemaining / totalSeconds).clamp(0.0, 1.0) : 0.0;
+    
+    return Scaffold(
+      body: AnimatedContainer(
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeInOut,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: oceanGradientColors,
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Gradient mesh background
+            if (timerProvider.enableVisualEffects)
+              Positioned.fill(
+                child: RepaintBoundary(
+                  child: UnderwaterEnvironment(
+                    isStudySession: _isStudySession,
+                    isEnabled: timerProvider.enableVisualEffects,
+                    aquarium: _aquarium,
+                    visibleCreatures: _visibleCreatures,
+                  ),
+                ),
+              ),
+            // Particle system background
+            if (timerProvider.enableVisualEffects)
+              Positioned.fill(
+                child: RepaintBoundary(
+                  child: ParticleSystem(
+                    isRunning: _isRunning,
+                    isStudySession: _isStudySession,
+                    screenSize: MediaQuery.of(context).size,
+                    timeBasedColors: oceanParticleColors,
+                  ),
+                ),
+              ),
+            Column(
+          children: [
+            // Compact responsive header
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Compact title
+                    Text(
+                      'Marine Research',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 8),
+                    
+                    // Compact session type selector
+                    Container(
+                      height: 40, // Fixed height to prevent overflow
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(26),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.white.withAlpha(51),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          // Work session button
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => _switchToWorkSession(),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: _isStudySession 
+                                      ? Colors.white.withAlpha(51)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.scuba_diving,
+                                      color: Colors.white.withAlpha(_isStudySession ? 255 : 179),
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        'Dive',
+                                        style: TextStyle(
+                                          color: Colors.white.withAlpha(_isStudySession ? 255 : 179),
+                                          fontWeight: _isStudySession ? FontWeight.bold : FontWeight.normal,
+                                          fontSize: 12,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          
+                          // Break session button
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => _switchToBreakSession(),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: !_isStudySession 
+                                      ? Colors.white.withAlpha(51)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.deck,
+                                      color: Colors.white.withAlpha(!_isStudySession ? 255 : 179),
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        'Break',
+                                        style: TextStyle(
+                                          color: Colors.white.withAlpha(!_isStudySession ? 255 : 179),
+                                          fontWeight: !_isStudySession ? FontWeight.bold : FontWeight.normal,
+                                          fontSize: 12,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Full-screen marine biology research station or research vessel deck
+            Expanded(
+              child: _showingTransition 
+                  ? Container() // Transition animation will overlay
+                  : _isOnSurface && !_isStudySession
+                      ? (_aquarium != null 
+                          ? ResearchVesselDeckWidget(
+                              aquarium: _aquarium!,
+                              secondsRemaining: _secondsRemaining,
+                              totalBreakSeconds: totalSeconds,
+                              isRunning: _isRunning,
+                              recentDiscoveries: _visibleCreatures.where((c) => c.isDiscovered).toList(),
+                              onTap: _toggleTimer,
+                              onActivityComplete: _onBreakActivityComplete,
+                            )
+                          : Container(
+                              width: double.infinity,
+                              height: double.infinity,
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Color(0xFF87CEEB),
+                                    Color(0xFFFFF8DC),
+                                    Color(0xFF00BFFF),
+                                  ],
+                                ),
+                              ),
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ))
+                      : (_aquarium != null
+                          ? FullScreenOceanWidget(
+                              aquarium: _aquarium!,
+                              sessionProgress: 1.0 - progress, // Invert for depth progression
+                              isRunning: _isRunning,
+                              isStudySession: _isStudySession,
+                              visibleCreatures: _visibleCreatures,
+                              visibleCorals: _visibleCorals,
+                              secondsRemaining: _secondsRemaining,
+                              totalSessionSeconds: totalSeconds,
+                              onTap: _toggleTimer,
+                            )
+                          : Container(
+                              width: double.infinity,
+                              height: double.infinity,
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Color(0xFF87CEEB),
+                                    Color(0xFF00A6D6),
+                                    Color(0xFF006994),
+                                  ],
+                                ),
+                              ),
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            )),
+            ),
+          ],
+        ),
+          ],
+        ),
+      ),
+    );
+  }
+}
