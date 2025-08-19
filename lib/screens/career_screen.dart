@@ -110,106 +110,135 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
         child: SafeArea(
           child: Column(
             children: [
-              // Header
+              // Compact Mobile Header
               Container(
-                padding: const EdgeInsets.all(16),
-                child: Column(
+                padding: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width * 0.04,
+                  vertical: 12,
+                ),
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.military_tech,
-                          color: Colors.amber,
-                          size: 32,
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Colors.amber, Colors.orange],
                         ),
-                        const SizedBox(width: 12),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Research Career',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              Text(
-                                'Track your marine biology journey',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white70,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Career Level Badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Colors.cyan, Colors.blue],
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            'Level ${GamificationService.instance.currentLevel}',
-                            style: const TextStyle(
-                              color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.military_tech,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Marine Research Career',
+                            style: TextStyle(
+                              fontSize: MediaQuery.of(context).size.width < 400 ? 16 : 18,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              color: Colors.white,
                             ),
                           ),
+                          Text(
+                            'Level ${GamificationService.instance.currentLevel} Marine Biologist',
+                            style: TextStyle(
+                              fontSize: MediaQuery.of(context).size.width < 400 ? 11 : 12,
+                              color: Colors.cyan,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Compact Progress Indicator
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [Colors.cyan, Colors.blue],
                         ),
-                      ],
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${GamificationService.instance.currentLevel}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
               
-              // Tab Bar
+              // Clean Tab Bar
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                margin: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width * 0.04,
                 ),
+                height: 48,
                 child: TabBar(
                   controller: _tabController,
                   indicatorColor: Colors.cyan,
                   indicatorWeight: 3,
+                  indicatorPadding: const EdgeInsets.symmetric(horizontal: 8),
+                  dividerColor: Colors.transparent,
                   labelColor: Colors.cyan,
                   unselectedLabelColor: Colors.white60,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  indicator: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.cyan.withValues(alpha: 0.2),
+                  labelStyle: TextStyle(
+                    fontSize: MediaQuery.of(context).size.width < 400 ? 11 : 12,
+                    fontWeight: FontWeight.w600,
                   ),
-                  tabs: const [
+                  unselectedLabelStyle: TextStyle(
+                    fontSize: MediaQuery.of(context).size.width < 400 ? 10 : 11,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                  tabAlignment: TabAlignment.fill,
+                  tabs: [
                     Tab(
-                      icon: Icon(Icons.emoji_events, size: 20),
-                      text: 'Achievements',
+                      icon: Icon(Icons.emoji_events, 
+                        size: MediaQuery.of(context).size.width < 400 ? 18 : 20),
+                      text: MediaQuery.of(context).size.width < 400 ? 'Awards' : 'Achievements',
+                      height: 48,
                     ),
                     Tab(
-                      icon: Icon(Icons.construction, size: 20),
+                      icon: Icon(Icons.construction, 
+                        size: MediaQuery.of(context).size.width < 400 ? 18 : 20),
                       text: 'Equipment',
+                      height: 48,
                     ),
                     Tab(
-                      icon: Icon(Icons.article, size: 20),
-                      text: 'Papers',
+                      icon: Icon(Icons.article, 
+                        size: MediaQuery.of(context).size.width < 400 ? 18 : 20),
+                      text: 'Research',
+                      height: 48,
                     ),
                   ],
                 ),
               ),
               
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               
               // Tab Content
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).padding.bottom,
+                    left: MediaQuery.of(context).size.width * 0.02,
+                    right: MediaQuery.of(context).size.width * 0.02,
+                  ),
                   child: TabBarView(
                     controller: _tabController,
                     children: [
@@ -234,281 +263,500 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
   
   Widget _buildAchievementsTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: AchievementDisplayWidget(
-        achievements: _achievements,
-        showOnlyUnlocked: false,
-        compactView: false,
+      padding: EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width * 0.04,
+        vertical: 8,
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Quick Stats Card
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.cyan.withValues(alpha: 0.2),
+                  Colors.blue.withValues(alpha: 0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.cyan.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildStatItem(
+                    'Unlocked',
+                    '${_achievements.where((a) => a.isUnlocked).length}',
+                    Colors.green,
+                    Icons.emoji_events,
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 40,
+                  color: Colors.white.withValues(alpha: 0.2),
+                ),
+                Expanded(
+                  child: _buildStatItem(
+                    'Progress',
+                    '${_achievements.where((a) => !a.isUnlocked && a.progress > 0).length}',
+                    Colors.orange,
+                    Icons.trending_up,
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 40,
+                  color: Colors.white.withValues(alpha: 0.2),
+                ),
+                Expanded(
+                  child: _buildStatItem(
+                    'Total',
+                    '${_achievements.length}',
+                    Colors.cyan,
+                    Icons.flag,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          AchievementDisplayWidget(
+            achievements: _achievements,
+            showOnlyUnlocked: false,
+            compactView: false, // Always use full mobile-friendly view
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildStatItem(String label, String value, Color color, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 18),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: Colors.white.withValues(alpha: 0.8),
+          ),
+        ),
+      ],
     );
   }
   
   Widget _buildEquipmentTab() {
     if (_equipmentBonuses == null) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.cyan),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              color: Colors.cyan,
+              strokeWidth: 3,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Loading Research Equipment...',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.8),
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
       );
     }
     
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: EnhancedEquipmentDisplayWidget(
-        equipment: _equipment,
-        bonuses: _equipmentBonuses!,
-        onEquipmentTap: (equipment) {
-          // Show equipment details dialog
-          showDialog(
-            context: context,
-            builder: (context) => EquipmentDetailsDialog(equipment: equipment),
-          );
-        },
+      padding: EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width * 0.04,
+        vertical: 8,
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Equipment Overview Card
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.blue.withValues(alpha: 0.2),
+                  Colors.indigo.withValues(alpha: 0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.blue.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.construction, color: Colors.blue, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Equipment Status',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildEquipmentStat(
+                        'Unlocked',
+                        '${_equipment.where((e) => e.isUnlocked).length}',
+                        Colors.green,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildEquipmentStat(
+                        'Discovery Bonus',
+                        '+${(_equipmentBonuses!.discoveryRateBonus * 100).toInt()}%',
+                        Colors.cyan,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          EnhancedEquipmentDisplayWidget(
+            equipment: _equipment,
+            bonuses: _equipmentBonuses!,
+            onEquipmentTap: (equipment) {
+              _showMobileEquipmentDetails(equipment);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildEquipmentStat(String label, String value, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.white.withValues(alpha: 0.8),
+          ),
+        ),
+      ],
     );
   }
   
   Widget _buildPapersTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: ResearchPaperDisplayWidget(
-        papers: _availablePapers,
-        publishedPapers: _publishedPapers.map((p) => p.id).toList(),
-        showOnlyAvailable: true,
-        onPublishPaper: (paper) async {
-          // Handle paper publication
-          setState(() {
-            _availablePapers.remove(paper);
-            _publishedPapers.add(paper);
-          });
-          
-          // Show success feedback
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Published: ${paper.title}'),
-                backgroundColor: Colors.green,
-              ),
-            );
-          }
-        },
+      padding: EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width * 0.04,
+        vertical: 8,
       ),
-    );
-  }
-  
-  void _showAchievementDetails(MarineBiologyAchievement achievement) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF1E3A5F),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                achievement.rarityColor.withValues(alpha: 0.3),
-                achievement.rarityColor.withValues(alpha: 0.1),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: achievement.rarityColor.withValues(alpha: 0.5),
-              width: 2,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                achievement.icon.toString(),
-                style: const TextStyle(fontSize: 48),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                achievement.title,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                achievement.description,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.white70,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              if (achievement.isUnlocked) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    'Achievement Unlocked!',
-                    style: const TextStyle(
-                      color: Colors.green,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ] else ...[
-                LinearProgressIndicator(
-                  value: achievement.progress,
-                  backgroundColor: Colors.grey.withValues(alpha: 0.3),
-                  valueColor: AlwaysStoppedAnimation<Color>(achievement.rarityColor),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${(achievement.progress * 100).toInt()}% Complete',
-                  style: TextStyle(
-                    color: achievement.rarityColor,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-  
-  void _showPaperDetails(ResearchPaper paper) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF1E3A5F),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF2E5A7A),
-                Color(0xFF1E3A5F),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.cyan.withValues(alpha: 0.5),
-              width: 2,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.article, color: Colors.cyan, size: 32),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      paper.title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Research Overview Card
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.indigo.withValues(alpha: 0.2),
+                  Colors.purple.withValues(alpha: 0.1),
                 ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                paper.description,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.white70,
-                ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.indigo.withValues(alpha: 0.3),
+                width: 1,
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Requirements:',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Level ${paper.requiredLevel} • ${paper.requiredDiscoveries} discoveries required',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.white70,
-                ),
-              ),
-              if (paper.requiredSpecies.isNotEmpty)
-                Text(
-                  'Required species: ${paper.requiredSpecies.join(", ")}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.white70,
-                  ),
-                ),
-              /*...paper.requirementDescriptions.map((req) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    const Icon(Icons.check_circle, color: Colors.green, size: 16),
+                    Icon(Icons.article, color: Colors.indigo, size: 20),
                     const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        req,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white70,
-                        ),
+                    Text(
+                      'Research Publications',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
                 ),
-              )),*/
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Research Value: ${paper.researchValue}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.green,
-                        ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildResearchStat(
+                        'Available',
+                        '${_availablePapers.length}',
+                        Colors.cyan,
                       ),
-                      Text(
-                        'Citations: ${paper.citations}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.blue,
-                        ),
+                    ),
+                    Expanded(
+                      child: _buildResearchStat(
+                        'Published',
+                        '${_publishedPapers.length}',
+                        Colors.green,
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          ResearchPaperDisplayWidget(
+            papers: _availablePapers,
+            publishedPapers: _publishedPapers.map((p) => p.id).toList(),
+            showOnlyAvailable: true,
+            onPublishPaper: (paper) async {
+              // Handle paper publication
+              setState(() {
+                _availablePapers.remove(paper);
+                _publishedPapers.add(paper);
+              });
+              
+              // Show mobile-friendly success feedback
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Published: ${paper.title}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: Colors.green,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    margin: const EdgeInsets.all(16),
                   ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Close'),
-                  ),
-                ],
-              ),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildResearchStat(String label, String value, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.white.withValues(alpha: 0.8),
+          ),
+        ),
+      ],
+    );
+  }
+  
+  void _showMobileEquipmentDetails(ResearchEquipment equipment) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF1E3A5F),
+              Color(0xFF0A1628),
             ],
           ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: equipment.rarityColor.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            equipment.icon,
+                            style: const TextStyle(fontSize: 24),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                equipment.name,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                'Level ${equipment.unlockLevel} Equipment',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: equipment.rarityColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      equipment.description,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (equipment.benefits.isNotEmpty) ...[
+                      const Text(
+                        'Equipment Benefits:',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...equipment.benefits.map((benefit) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.arrow_right,
+                              color: Colors.green,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              benefit,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
+                    ],
+                    const Spacer(),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.cyan,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Close'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

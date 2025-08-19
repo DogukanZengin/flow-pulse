@@ -18,6 +18,26 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final AnalyticsService _analyticsService = AnalyticsService();
+  
+  // Helper methods for responsive design
+  bool get _isNarrowScreen => MediaQuery.of(context).size.width < 400;
+  
+  double _getResponsiveFontSize(double baseSize) {
+    return _isNarrowScreen ? baseSize + 2 : baseSize;
+  }
+  
+  EdgeInsets _getResponsiveMargin() {
+    return EdgeInsets.all(_isNarrowScreen ? 12 : 16);
+  }
+  
+  double _getResponsiveSpacing() {
+    return _isNarrowScreen ? 16 : 24;
+  }
+  
+  double _getSafeBottomMargin() {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    return bottomPadding + (_isNarrowScreen ? 90 : 120);
+  }
 
   @override
   void initState() {
@@ -67,12 +87,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                 ],
               ),
               actions: [
-                IconButton(
-                  icon: const Icon(Icons.file_download, color: Colors.white),
-                  onPressed: () {
-                    // Export data functionality
-                  },
-                  tooltip: 'Export Research Data',
+                Container(
+                  constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+                  child: IconButton(
+                    icon: const Icon(Icons.file_download, color: Colors.white),
+                    onPressed: () {
+                      // Export data functionality
+                    },
+                    tooltip: 'Export Research Data',
+                    iconSize: 24,
+                  ),
                 ),
               ],
             ),
@@ -81,15 +105,24 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               indicatorColor: Colors.white,
               labelColor: Colors.white,
               unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
-              tabs: const [
-                Tab(icon: Icon(Icons.waves), text: 'Dive Performance'),
-                Tab(icon: Icon(Icons.trending_up), text: 'Discovery Trends'),
-                Tab(icon: Icon(Icons.lightbulb), text: 'Research Insights'),
+              tabs: [
+                Tab(
+                  icon: const Icon(Icons.waves), 
+                  text: _isNarrowScreen ? 'Performance' : 'Dive Performance'
+                ),
+                Tab(
+                  icon: const Icon(Icons.trending_up), 
+                  text: _isNarrowScreen ? 'Trends' : 'Discovery Trends'
+                ),
+                Tab(
+                  icon: const Icon(Icons.lightbulb), 
+                  text: _isNarrowScreen ? 'Insights' : 'Research Insights'
+                ),
               ],
             ),
             Expanded(
               child: Container(
-                margin: const EdgeInsets.only(bottom: 120), // Space for floating nav
+                margin: EdgeInsets.only(bottom: _getSafeBottomMargin()), // Responsive space for floating nav
                 child: TabBarView(
                   controller: _tabController,
                   children: [
@@ -108,16 +141,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   Widget _buildDivePerformanceTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: _getResponsiveMargin(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTodayStats(),
-          const SizedBox(height: 24),
+          SizedBox(height: _getResponsiveSpacing()),
           _buildStreakRewardsSection(),
-          const SizedBox(height: 24),
+          SizedBox(height: _getResponsiveSpacing()),
           _buildWeeklyChart(),
-          const SizedBox(height: 24),
+          SizedBox(height: _getResponsiveSpacing()),
           _buildCompletionRateChart(),
         ],
       ),
@@ -126,14 +159,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   Widget _buildDiscoveryTrendsTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: _getResponsiveMargin(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildMonthlyTrendChart(),
-          const SizedBox(height: 24),
+          SizedBox(height: _getResponsiveSpacing()),
           _buildHourlyPatternChart(),
-          const SizedBox(height: 24),
+          SizedBox(height: _getResponsiveSpacing()),
           _buildWeeklyPatternChart(),
         ],
       ),
@@ -142,7 +175,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   Widget _buildResearchInsightsTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: _getResponsiveMargin(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -151,9 +184,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
               color: Colors.white,
+              fontSize: _getResponsiveFontSize(20),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: _getResponsiveSpacing() * 0.7),
           _buildInsightsList(),
         ],
       ),
@@ -198,13 +232,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '🤿 Today\'s Expedition Performance',
+                      _isNarrowScreen ? '🤿 Today\'s Performance' : '🤿 Today\'s Expedition Performance',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
+                        fontSize: _getResponsiveFontSize(20),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: _getResponsiveSpacing() * 0.7),
                     Row(
                       children: [
                         Expanded(
@@ -275,8 +310,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 18,
+            style: TextStyle(
+              fontSize: _getResponsiveFontSize(18),
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -284,7 +319,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: _getResponsiveFontSize(13),
               color: Colors.white.withValues(alpha: 0.7),
             ),
           ),
@@ -335,6 +370,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
+                        fontSize: _getResponsiveFontSize(18),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -492,7 +528,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                               Text(
                                 'Expedition Success Rate',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: _getResponsiveFontSize(16),
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white.withValues(alpha: 0.9),
                                 ),
@@ -512,7 +548,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                   Text(
                                     'Successful Dives: ${(avgCompletionRate * 100).round()}%',
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: _getResponsiveFontSize(14),
                                       color: Colors.white.withValues(alpha: 0.8),
                                     ),
                                   ),
@@ -533,7 +569,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                   Text(
                                     'Aborted Dives: ${((1 - avgCompletionRate) * 100).round()}%',
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: _getResponsiveFontSize(14),
                                       color: Colors.white.withValues(alpha: 0.8),
                                     ),
                                   ),
@@ -559,7 +595,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                               ? 'Keep improving! 💪'
                                               : 'Focus on consistency! 🎯',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: _getResponsiveFontSize(12),
                                     fontWeight: FontWeight.w600,
                                     color: Colors.white.withValues(alpha: 0.9),
                                   ),
@@ -613,16 +649,113 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
+                    fontSize: _getResponsiveFontSize(18),
                   ),
                 ),
-                const SizedBox(height: 16),
-                const SizedBox(
+                SizedBox(height: _getResponsiveSpacing() * 0.7),
+                SizedBox(
                   height: 200,
-                  child: Center(
-                    child: Text(
-                      'Chart placeholder',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                  child: FutureBuilder<List<AnalyticsData>>(
+                    future: _getLastMonthData(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      
+                      final data = snapshot.data!;
+                      if (data.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.analytics_outlined,
+                                size: 48,
+                                color: Colors.white.withValues(alpha: 0.5),
+                              ),
+                              SizedBox(height: _getResponsiveSpacing() * 0.5),
+                              Text(
+                                'Complete more research expeditions\nto see monthly trends',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                  fontSize: _getResponsiveFontSize(14),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      
+                      return LineChart(
+                        LineChartData(
+                          gridData: FlGridData(show: false),
+                          titlesData: FlTitlesData(
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 40,
+                                getTitlesWidget: (value, meta) {
+                                  if (value.toInt() < data.length && value.toInt() >= 0) {
+                                    return Text(
+                                      '${data[value.toInt()].date.day}',
+                                      style: TextStyle(
+                                        fontSize: _getResponsiveFontSize(10),
+                                        color: Colors.white.withValues(alpha: 0.7),
+                                      ),
+                                    );
+                                  }
+                                  return const Text('');
+                                },
+                              ),
+                            ),
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 40,
+                                getTitlesWidget: (value, meta) {
+                                  return Text(
+                                    '${value.toInt()}m',
+                                    style: TextStyle(
+                                      fontSize: _getResponsiveFontSize(10),
+                                      color: Colors.white.withValues(alpha: 0.7),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          ),
+                          borderData: FlBorderData(show: false),
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: data.asMap().entries.map((entry) {
+                                return FlSpot(entry.key.toDouble(), entry.value.totalFocusTime.toDouble());
+                              }).toList(),
+                              isCurved: true,
+                              color: const Color(0xFF00BFFF),
+                              barWidth: 3,
+                              belowBarData: BarAreaData(
+                                show: true,
+                                color: const Color(0xFF00BFFF).withValues(alpha: 0.2),
+                              ),
+                              dotData: FlDotData(
+                                show: true,
+                                getDotPainter: (spot, percent, barData, index) {
+                                  return FlDotCirclePainter(
+                                    radius: 3,
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                    strokeColor: const Color(0xFF00BFFF),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -665,15 +798,59 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
+                    fontSize: _getResponsiveFontSize(18),
                   ),
                 ),
-                const SizedBox(height: 16),
-                const SizedBox(
+                SizedBox(height: _getResponsiveSpacing() * 0.7),
+                SizedBox(
                   height: 200,
                   child: Center(
-                    child: Text(
-                      'Chart placeholder',
-                      style: TextStyle(color: Colors.white),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Time blocks representation
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildTimeBlock('6-9', 'AM', 0.3, 'Light'),
+                              SizedBox(width: _isNarrowScreen ? 4 : 8),
+                              _buildTimeBlock('9-12', 'AM', 0.7, 'Moderate'),
+                              SizedBox(width: _isNarrowScreen ? 4 : 8),
+                              _buildTimeBlock('12-3', 'PM', 0.5, 'Light'),
+                              SizedBox(width: _isNarrowScreen ? 4 : 8),
+                              _buildTimeBlock('3-6', 'PM', 0.8, 'High'),
+                              SizedBox(width: _isNarrowScreen ? 4 : 8),
+                              _buildTimeBlock('6-9', 'PM', 0.4, 'Light'),
+                              SizedBox(width: _isNarrowScreen ? 4 : 8),
+                              _buildTimeBlock('9-12', 'PM', 0.1, 'Very Low'),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: _getResponsiveSpacing()),
+                        // Legend
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildLegendItem(Colors.blue.withValues(alpha: 0.3), 'Low'),
+                            SizedBox(width: _isNarrowScreen ? 12 : 16),
+                            _buildLegendItem(Colors.blue.withValues(alpha: 0.6), 'Moderate'),
+                            SizedBox(width: _isNarrowScreen ? 12 : 16),
+                            _buildLegendItem(Colors.blue.withValues(alpha: 0.9), 'High'),
+                          ],
+                        ),
+                        SizedBox(height: _getResponsiveSpacing() * 0.5),
+                        Text(
+                          'Your most productive hours: 3-6 PM',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: _getResponsiveFontSize(13),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -717,15 +894,79 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
+                    fontSize: _getResponsiveFontSize(18),
                   ),
                 ),
-                const SizedBox(height: 16),
-                const SizedBox(
+                SizedBox(height: _getResponsiveSpacing() * 0.7),
+                SizedBox(
                   height: 200,
                   child: Center(
-                    child: Text(
-                      'Chart placeholder',
-                      style: TextStyle(color: Colors.white),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Week days with activity levels
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildWeekDayBlock('Mon', 0.8),
+                              SizedBox(width: _isNarrowScreen ? 4 : 8),
+                              _buildWeekDayBlock('Tue', 0.6),
+                              SizedBox(width: _isNarrowScreen ? 4 : 8),
+                              _buildWeekDayBlock('Wed', 0.9),
+                              SizedBox(width: _isNarrowScreen ? 4 : 8),
+                              _buildWeekDayBlock('Thu', 0.7),
+                              SizedBox(width: _isNarrowScreen ? 4 : 8),
+                              _buildWeekDayBlock('Fri', 0.5),
+                              SizedBox(width: _isNarrowScreen ? 4 : 8),
+                              _buildWeekDayBlock('Sat', 0.2),
+                              SizedBox(width: _isNarrowScreen ? 4 : 8),
+                              _buildWeekDayBlock('Sun', 0.3),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: _getResponsiveSpacing()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            'Best research days: Mon, Wed, Thu',
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: _getResponsiveFontSize(13),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: _getResponsiveSpacing() * 0.5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.lightbulb_outline,
+                              color: Colors.amber,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                'Consider scheduling important tasks on Wednesdays',
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                  fontSize: _getResponsiveFontSize(11),
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -773,14 +1014,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   'No research insights yet',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.white,
+                    fontSize: _getResponsiveFontSize(18),
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: _getResponsiveSpacing() * 0.5),
                 Text(
                   'Complete more research expeditions to get marine biology insights',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: _getResponsiveFontSize(14),
                   ),
                 ),
               ],
@@ -795,6 +1038,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     final now = DateTime.now();
     return await _analyticsService.getAnalyticsData(
       startDate: now.subtract(const Duration(days: 7)),
+      endDate: now,
+    );
+  }
+  
+  Future<List<AnalyticsData>> _getLastMonthData() async {
+    final now = DateTime.now();
+    return await _analyticsService.getAnalyticsData(
+      startDate: now.subtract(const Duration(days: 30)),
       endDate: now,
     );
   }
@@ -857,6 +1108,133 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           ),
         ],
       ),
+    );
+  }
+  
+  Widget _buildTimeBlock(String time, String period, double intensity, String label) {
+    return Column(
+      children: [
+        Container(
+          width: _isNarrowScreen ? 40 : 50,
+          height: 60,
+          decoration: BoxDecoration(
+            color: Colors.blue.withValues(alpha: intensity),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  time,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: _getResponsiveFontSize(10),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  period,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontSize: _getResponsiveFontSize(8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: _getResponsiveFontSize(9),
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildLegendItem(Color color, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.3),
+              width: 0.5,
+            ),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.8),
+            fontSize: _getResponsiveFontSize(11),
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildWeekDayBlock(String day, double intensity) {
+    return Column(
+      children: [
+        Container(
+          width: _isNarrowScreen ? 35 : 45,
+          height: 80,
+          decoration: BoxDecoration(
+            color: Colors.teal.withValues(alpha: intensity),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '${(intensity * 10).toInt()}h',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: _getResponsiveFontSize(12),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                width: 20,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: intensity),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          day,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.8),
+            fontSize: _getResponsiveFontSize(11),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 

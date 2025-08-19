@@ -174,245 +174,10 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
     // Only show categories that have equipment
     final categories = groupedEquipment.keys.toList();
     
-    return DefaultTabController(
-      length: categories.length,
-      child: Column(
-        children: [
-          TabBar(
-            isScrollable: true,
-            indicatorColor: Colors.cyan,
-            labelColor: Colors.cyan,
-            unselectedLabelColor: Colors.grey,
-            tabs: categories.map((category) => Tab(
-              text: category.displayName,
-              icon: Icon(_getCategoryIcon(category), size: 16),
-            )).toList(),
-          ),
-          SizedBox(
-            height: 400, // Fixed height for tab content
-            child: TabBarView(
-              children: categories.map((category) => 
-                _buildCategoryContent(groupedEquipment[category]!)
-              ).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildCategoryContent(List<ResearchEquipment> categoryEquipment) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: GridView.builder(
-        shrinkWrap: true,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.8,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        itemCount: categoryEquipment.length,
-        itemBuilder: (context, index) {
-          final eq = categoryEquipment[index];
-          return _buildEquipmentCard(eq);
-        },
-      ),
-    );
-  }
-  
-  Widget _buildEquipmentCard(ResearchEquipment equipment) {
-    return GestureDetector(
-      onTap: () => onEquipmentTap?.call(equipment),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: equipment.isUnlocked 
-                ? [
-                    equipment.rarityColor.withValues(alpha: 0.3),
-                    equipment.rarityColor.withValues(alpha: 0.1),
-                  ]
-                : [
-                    Colors.grey.withValues(alpha: 0.2),
-                    Colors.grey.withValues(alpha: 0.05),
-                  ],
-          ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: equipment.isUnlocked 
-                ? equipment.rarityColor.withValues(alpha: 0.5)
-                : Colors.grey.withValues(alpha: 0.3),
-            width: equipment.isEquipped ? 3 : 1,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: equipment.isUnlocked 
-                        ? equipment.rarityColor.withValues(alpha: 0.2)
-                        : Colors.grey.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    equipment.icon,
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: equipment.isUnlocked ? null : Colors.grey,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        equipment.name,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: equipment.isUnlocked ? Colors.white : Colors.grey,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (equipment.isEquipped)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                          child: const Text(
-                            'EQUIPPED',
-                            style: TextStyle(
-                              fontSize: 8,
-                              color: Colors.green,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              equipment.description,
-              style: TextStyle(
-                fontSize: 10,
-                color: equipment.isUnlocked 
-                    ? Colors.white.withValues(alpha: 0.8)
-                    : Colors.grey,
-                height: 1.2,
-              ),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const Spacer(),
-            if (equipment.isUnlocked) ...[
-              Row(
-                children: [
-                  if (equipment.discoveryBonus > 0)
-                    _buildStatChip(
-                      '+${(equipment.discoveryBonus * 100).toInt()}%',
-                      'Discovery',
-                      Colors.green,
-                    ),
-                  if (equipment.sessionBonus > 0) ...[
-                    if (equipment.discoveryBonus > 0) const SizedBox(width: 4),
-                    _buildStatChip(
-                      '+${(equipment.sessionBonus * 100).toInt()}%',
-                      'XP',
-                      Colors.purple,
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(
-                  color: equipment.rarityColor.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  equipment.rarity.displayName,
-                  style: TextStyle(
-                    fontSize: 8,
-                    color: equipment.rarityColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ] else ...[
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.lock, size: 12, color: Colors.orange),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Level ${equipment.unlockLevel}',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.orange,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (equipment.requiredDiscoveries > 0) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        '${equipment.requiredDiscoveries} discoveries',
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: Colors.orange.withValues(alpha: 0.8),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildStatChip(String value, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(3),
-      ),
-      child: Text(
-        '$value $label',
-        style: TextStyle(
-          fontSize: 8,
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+    return _MobileEquipmentCategoryView(
+      groupedEquipment: groupedEquipment,
+      categories: categories,
+      onEquipmentTap: onEquipmentTap,
     );
   }
   
@@ -505,35 +270,6 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
         ],
       ),
     );
-  }
-  
-  IconData _getCategoryIcon(EquipmentCategory category) {
-    switch (category) {
-      case EquipmentCategory.breathing:
-        return Icons.air;
-      case EquipmentCategory.mobility:
-        return Icons.directions_run;
-      case EquipmentCategory.documentation:
-        return Icons.camera_alt;
-      case EquipmentCategory.visibility:
-        return Icons.visibility;
-      case EquipmentCategory.safety:
-        return Icons.security;
-      case EquipmentCategory.sampling:
-        return Icons.science;
-      case EquipmentCategory.detection:
-        return Icons.radar;
-      case EquipmentCategory.analysis:
-        return Icons.biotech;
-      case EquipmentCategory.platform:
-        return Icons.directions_boat;
-      case EquipmentCategory.communication:
-        return Icons.wifi;
-      case EquipmentCategory.conservation:
-        return Icons.eco;
-      case EquipmentCategory.visualization:
-        return Icons.view_in_ar;
-    }
   }
 }
 
@@ -729,5 +465,344 @@ class EquipmentDetailsDialog extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Mobile-friendly Equipment Category View
+class _MobileEquipmentCategoryView extends StatefulWidget {
+  final Map<EquipmentCategory, List<ResearchEquipment>> groupedEquipment;
+  final List<EquipmentCategory> categories;
+  final Function(ResearchEquipment)? onEquipmentTap;
+
+  const _MobileEquipmentCategoryView({
+    required this.groupedEquipment,
+    required this.categories,
+    this.onEquipmentTap,
+  });
+
+  @override
+  State<_MobileEquipmentCategoryView> createState() => _MobileEquipmentCategoryViewState();
+}
+
+class _MobileEquipmentCategoryViewState extends State<_MobileEquipmentCategoryView> {
+  String? expandedCategory;
+  
+  @override
+  void initState() {
+    super.initState();
+    // Expand the first category by default if it has equipment
+    if (widget.categories.isNotEmpty) {
+      expandedCategory = widget.categories.first.toString();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: widget.categories.map((category) {
+        final categoryEquipment = widget.groupedEquipment[category]!;
+        final isExpanded = expandedCategory == category.toString();
+        final unlockedCount = categoryEquipment.where((e) => e.isUnlocked).length;
+        
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                _getCategoryColor(category).withValues(alpha: 0.1),
+                _getCategoryColor(category).withValues(alpha: 0.05),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: _getCategoryColor(category).withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              // Category Header (Always Visible)
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    expandedCategory = isExpanded ? null : category.toString();
+                  });
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: _getCategoryColor(category).withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          _getCategoryIcon(category),
+                          color: _getCategoryColor(category),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              category.displayName,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              '$unlockedCount/${categoryEquipment.length} unlocked',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: _getCategoryColor(category),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Progress indicator
+                      SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: Stack(
+                          children: [
+                            Center(
+                              child: SizedBox(
+                                width: 32,
+                                height: 32,
+                                child: CircularProgressIndicator(
+                                  value: unlockedCount / categoryEquipment.length,
+                                  strokeWidth: 3,
+                                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                                  valueColor: AlwaysStoppedAnimation(_getCategoryColor(category)),
+                                ),
+                              ),
+                            ),
+                            Center(
+                              child: Text(
+                                '$unlockedCount',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: _getCategoryColor(category),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        isExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: Colors.white60,
+                        size: 24,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Equipment Grid (Expandable)
+              if (isExpanded) ...[
+                const Divider(
+                  color: Colors.white12,
+                  height: 1,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: _buildMobileEquipmentGrid(categoryEquipment),
+                ),
+              ],
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+  
+  Widget _buildMobileEquipmentGrid(List<ResearchEquipment> categoryEquipment) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: MediaQuery.of(context).size.width < 400 ? 2 : 3,
+        childAspectRatio: 0.75,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+      ),
+      itemCount: categoryEquipment.length,
+      itemBuilder: (context, index) {
+        final equipment = categoryEquipment[index];
+        return _buildMobileEquipmentCard(equipment);
+      },
+    );
+  }
+  
+  Widget _buildMobileEquipmentCard(ResearchEquipment equipment) {
+    return GestureDetector(
+      onTap: () => widget.onEquipmentTap?.call(equipment),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: equipment.isUnlocked 
+                ? [
+                    equipment.rarityColor.withValues(alpha: 0.3),
+                    equipment.rarityColor.withValues(alpha: 0.1),
+                  ]
+                : [
+                    Colors.grey.withValues(alpha: 0.2),
+                    Colors.grey.withValues(alpha: 0.05),
+                  ],
+          ),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: equipment.isUnlocked 
+                ? equipment.rarityColor.withValues(alpha: 0.5)
+                : Colors.grey.withValues(alpha: 0.3),
+            width: equipment.isEquipped ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Equipment Icon
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: equipment.isUnlocked 
+                    ? equipment.rarityColor.withValues(alpha: 0.2)
+                    : Colors.grey.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                equipment.icon,
+                style: TextStyle(
+                  fontSize: 24,
+                  color: equipment.isUnlocked ? null : Colors.grey,
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 8),
+            
+            // Equipment Name
+            Text(
+              equipment.name,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: equipment.isUnlocked ? Colors.white : Colors.grey,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            
+            const SizedBox(height: 4),
+            
+            // Level Requirement
+            Text(
+              'Level ${equipment.unlockLevel}',
+              style: TextStyle(
+                fontSize: 9,
+                color: equipment.isUnlocked 
+                    ? equipment.rarityColor 
+                    : Colors.grey,
+              ),
+            ),
+            
+            // Equipped Indicator
+            if (equipment.isEquipped)
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'EQUIPPED',
+                  style: TextStyle(
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Color _getCategoryColor(EquipmentCategory category) {
+    switch (category) {
+      case EquipmentCategory.breathing:
+        return Colors.cyan;
+      case EquipmentCategory.mobility:
+        return Colors.green;
+      case EquipmentCategory.documentation:
+        return Colors.orange;
+      case EquipmentCategory.visibility:
+        return Colors.yellow;
+      case EquipmentCategory.safety:
+        return Colors.red;
+      case EquipmentCategory.sampling:
+        return Colors.purple;
+      case EquipmentCategory.detection:
+        return Colors.pink;
+      case EquipmentCategory.analysis:
+        return Colors.indigo;
+      case EquipmentCategory.platform:
+        return Colors.brown;
+      case EquipmentCategory.communication:
+        return Colors.teal;
+      case EquipmentCategory.conservation:
+        return Colors.lightGreen;
+      case EquipmentCategory.visualization:
+        return Colors.deepOrange;
+    }
+  }
+
+  IconData _getCategoryIcon(EquipmentCategory category) {
+    switch (category) {
+      case EquipmentCategory.breathing:
+        return Icons.air;
+      case EquipmentCategory.mobility:
+        return Icons.directions_run;
+      case EquipmentCategory.documentation:
+        return Icons.camera_alt;
+      case EquipmentCategory.visibility:
+        return Icons.flashlight_on;
+      case EquipmentCategory.safety:
+        return Icons.security;
+      case EquipmentCategory.sampling:
+        return Icons.science;
+      case EquipmentCategory.detection:
+        return Icons.radar;
+      case EquipmentCategory.analysis:
+        return Icons.biotech;
+      case EquipmentCategory.platform:
+        return Icons.directions_boat;
+      case EquipmentCategory.communication:
+        return Icons.wifi;
+      case EquipmentCategory.conservation:
+        return Icons.eco;
+      case EquipmentCategory.visualization:
+        return Icons.view_in_ar;
+    }
   }
 }

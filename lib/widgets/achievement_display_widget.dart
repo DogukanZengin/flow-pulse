@@ -81,16 +81,8 @@ class AchievementDisplayWidget extends StatelessWidget {
       groupedAchievements.putIfAbsent(achievement.category, () => []).add(achievement);
     }
     
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: groupedAchievements.length,
-      itemBuilder: (context, index) {
-        final category = groupedAchievements.keys.elementAt(index);
-        final categoryAchievements = groupedAchievements[category]!;
-        
-        return _buildCategorySection(category, categoryAchievements);
-      },
+    return _MobileAchievementCategoryView(
+      groupedAchievements: groupedAchievements,
     );
   }
   
@@ -108,192 +100,7 @@ class AchievementDisplayWidget extends StatelessWidget {
     );
   }
   
-  Widget _buildCategorySection(AchievementCategory category, List<MarineBiologyAchievement> achievements) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildCategoryHeader(category),
-        const SizedBox(height: 12),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 1.4,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-          ),
-          itemCount: achievements.length,
-          itemBuilder: (context, index) {
-            return _buildAchievementCard(achievements[index]);
-          },
-        ),
-        const SizedBox(height: 24),
-      ],
-    );
-  }
   
-  Widget _buildCategoryHeader(AchievementCategory category) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            Colors.cyan.withValues(alpha: 0.2),
-            Colors.blue.withValues(alpha: 0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.cyan.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            category.icon,
-            style: const TextStyle(fontSize: 18),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            category.displayName,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildAchievementCard(MarineBiologyAchievement achievement) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: achievement.isUnlocked 
-              ? [
-                  achievement.rarityColor.withValues(alpha: 0.2),
-                  achievement.rarityColor.withValues(alpha: 0.05),
-                ]
-              : [
-                  Colors.grey.withValues(alpha: 0.2),
-                  Colors.grey.withValues(alpha: 0.05),
-                ],
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: achievement.isUnlocked 
-              ? achievement.rarityColor.withValues(alpha: 0.5)
-              : Colors.grey.withValues(alpha: 0.3),
-          width: achievement.isUnlocked ? 2 : 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: achievement.isUnlocked 
-                      ? achievement.rarityColor.withValues(alpha: 0.2)
-                      : Colors.grey.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  achievement.icon,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: achievement.isUnlocked ? null : Colors.grey,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      achievement.title,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: achievement.isUnlocked ? Colors.white : Colors.grey,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      achievement.rarityDisplayName,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: achievement.isUnlocked 
-                            ? achievement.rarityColor
-                            : Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Flexible(
-            child: Text(
-              achievement.description,
-              style: TextStyle(
-                fontSize: 10,
-                color: achievement.isUnlocked 
-                    ? Colors.white.withValues(alpha: 0.8)
-                    : Colors.grey,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(height: 6),
-          if (!achievement.isUnlocked && achievement.progress > 0) 
-            _buildProgressBar(achievement),
-          if (achievement.isUnlocked)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: achievement.rarityColor.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                '+${achievement.researchValue} XP',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: achievement.rarityColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          if (!achievement.isUnlocked)
-            Text(
-              achievement.unlocksAt,
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.grey.withValues(alpha: 0.8),
-                fontStyle: FontStyle.italic,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-        ],
-      ),
-    );
-  }
   
   Widget _buildCompactAchievementCard(MarineBiologyAchievement achievement) {
     return Container(
@@ -386,44 +193,6 @@ class AchievementDisplayWidget extends StatelessWidget {
     );
   }
   
-  Widget _buildProgressBar(MarineBiologyAchievement achievement) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '${achievement.current}/${achievement.target}',
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.white.withValues(alpha: 0.7),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            Text(
-              '${(achievement.progress * 100).toInt()}%',
-              style: TextStyle(
-                fontSize: 10,
-                color: achievement.rarityColor.withValues(alpha: 0.8),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        SizedBox(
-          height: 6,
-          child: LinearProgressIndicator(
-            value: achievement.progress,
-            backgroundColor: Colors.grey.withValues(alpha: 0.3),
-            valueColor: AlwaysStoppedAnimation<Color>(achievement.rarityColor),
-            borderRadius: BorderRadius.circular(3),
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 /// Achievement Summary Widget for quick stats display
@@ -555,6 +324,369 @@ class AchievementSummaryWidget extends StatelessWidget {
         return 'Rare';
       case AchievementRarity.legendary:
         return 'Legendary';
+    }
+  }
+}
+
+/// Mobile-friendly Achievement Category View
+class _MobileAchievementCategoryView extends StatefulWidget {
+  final Map<AchievementCategory, List<MarineBiologyAchievement>> groupedAchievements;
+
+  const _MobileAchievementCategoryView({
+    required this.groupedAchievements,
+  });
+
+  @override
+  State<_MobileAchievementCategoryView> createState() => _MobileAchievementCategoryViewState();
+}
+
+class _MobileAchievementCategoryViewState extends State<_MobileAchievementCategoryView> {
+  String? expandedCategory;
+  
+  @override
+  void initState() {
+    super.initState();
+    // Expand the first category by default if it has achievements
+    if (widget.groupedAchievements.isNotEmpty) {
+      expandedCategory = widget.groupedAchievements.keys.first.toString();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: widget.groupedAchievements.entries.map((entry) {
+        final category = entry.key;
+        final achievements = entry.value;
+        final isExpanded = expandedCategory == category.toString();
+        final unlockedCount = achievements.where((a) => a.isUnlocked).length;
+        
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                _getCategoryColor(category).withValues(alpha: 0.1),
+                _getCategoryColor(category).withValues(alpha: 0.05),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: _getCategoryColor(category).withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              // Category Header (Always Visible)
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    expandedCategory = isExpanded ? null : category.toString();
+                  });
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: _getCategoryColor(category).withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          category.icon,
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              category.displayName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              '$unlockedCount/${achievements.length} unlocked',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: _getCategoryColor(category),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Progress indicator
+                      SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: Stack(
+                          children: [
+                            Center(
+                              child: SizedBox(
+                                width: 40,
+                                height: 40,
+                                child: CircularProgressIndicator(
+                                  value: unlockedCount / achievements.length,
+                                  strokeWidth: 4,
+                                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                                  valueColor: AlwaysStoppedAnimation(_getCategoryColor(category)),
+                                ),
+                              ),
+                            ),
+                            Center(
+                              child: Text(
+                                '$unlockedCount',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: _getCategoryColor(category),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        isExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: Colors.white60,
+                        size: 24,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Achievement Grid (Expandable)
+              if (isExpanded) ...[
+                const Divider(
+                  color: Colors.white12,
+                  height: 1,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: _buildMobileAchievementGrid(achievements),
+                ),
+              ],
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+  
+  Widget _buildMobileAchievementGrid(List<MarineBiologyAchievement> achievements) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: MediaQuery.of(context).size.width < 400 ? 1 : 2,
+        childAspectRatio: MediaQuery.of(context).size.width < 400 ? 2.5 : 2.0,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+      ),
+      itemCount: achievements.length,
+      itemBuilder: (context, index) {
+        final achievement = achievements[index];
+        return _buildMobileAchievementCard(achievement);
+      },
+    );
+  }
+  
+  Widget _buildMobileAchievementCard(MarineBiologyAchievement achievement) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: achievement.isUnlocked 
+              ? [
+                  achievement.rarityColor.withValues(alpha: 0.3),
+                  achievement.rarityColor.withValues(alpha: 0.1),
+                ]
+              : [
+                  Colors.grey.withValues(alpha: 0.2),
+                  Colors.grey.withValues(alpha: 0.05),
+                ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: achievement.isUnlocked 
+              ? achievement.rarityColor.withValues(alpha: 0.5)
+              : Colors.grey.withValues(alpha: 0.3),
+          width: achievement.isUnlocked ? 2 : 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          // Achievement Icon
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: achievement.isUnlocked 
+                  ? achievement.rarityColor.withValues(alpha: 0.2)
+                  : Colors.grey.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              achievement.icon,
+              style: TextStyle(
+                fontSize: 24,
+                color: achievement.isUnlocked ? null : Colors.grey,
+              ),
+            ),
+          ),
+          
+          const SizedBox(width: 12),
+          
+          // Achievement Details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title and Rarity
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        achievement.title,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: achievement.isUnlocked ? Colors.white : Colors.grey,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: achievement.rarityColor.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        achievement.rarityDisplayName,
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: achievement.rarityColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 4),
+                
+                // Description
+                Text(
+                  achievement.description,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: achievement.isUnlocked 
+                        ? Colors.white.withValues(alpha: 0.8)
+                        : Colors.grey.withValues(alpha: 0.8),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                
+                const SizedBox(height: 8),
+                
+                // Progress or Reward
+                if (achievement.isUnlocked) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.green, size: 12),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Unlocked • +${achievement.researchValue} XP',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.green,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else if (achievement.progress > 0) ...[
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${achievement.current}/${achievement.target} • ${(achievement.progress * 100).toInt()}%',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: achievement.rarityColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      LinearProgressIndicator(
+                        value: achievement.progress,
+                        backgroundColor: Colors.grey.withValues(alpha: 0.3),
+                        valueColor: AlwaysStoppedAnimation<Color>(achievement.rarityColor),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  Text(
+                    achievement.unlocksAt,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey.withValues(alpha: 0.8),
+                      fontStyle: FontStyle.italic,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Color _getCategoryColor(AchievementCategory category) {
+    switch (category) {
+      case AchievementCategory.discovery:
+        return Colors.cyan;
+      case AchievementCategory.rarity:
+        return Colors.purple;
+      case AchievementCategory.biome:
+        return Colors.blue;
+      case AchievementCategory.career:
+        return Colors.amber;
+      case AchievementCategory.streak:
+        return Colors.orange;
+      case AchievementCategory.productivity:
+        return Colors.green;
+      case AchievementCategory.special:
+        return Colors.pink;
     }
   }
 }
