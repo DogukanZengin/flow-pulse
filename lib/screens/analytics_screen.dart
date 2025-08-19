@@ -3,6 +3,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui';
 import '../services/analytics_service.dart';
+import '../widgets/streak_rewards_display_widget.dart';
+import '../services/streak_rewards_service.dart';
+import '../services/gamification_service.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -110,6 +113,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTodayStats(),
+          const SizedBox(height: 24),
+          _buildStreakRewardsSection(),
           const SizedBox(height: 24),
           _buildWeeklyChart(),
           const SizedBox(height: 24),
@@ -791,6 +796,67 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     return await _analyticsService.getAnalyticsData(
       startDate: now.subtract(const Duration(days: 7)),
       endDate: now,
+    );
+  }
+  
+  Widget _buildStreakRewardsSection() {
+    final currentStreak = GamificationService.instance.currentStreak;
+    final currentTier = StreakRewardsService.getCurrentStreakTier(currentStreak);
+    final availableRewards = StreakRewardsService.getStreakRewards(currentStreak);
+    
+    // Create a daily reward for display
+    final baseXP = 50;
+    final streakBonusXP = currentStreak * 5;
+    final todaysReward = currentStreak > 0 
+        ? DailyStreakReward(
+            baseXP: baseXP,
+            streakBonusXP: streakBonusXP,
+            timeBonusXP: 0,
+            totalXP: baseXP + streakBonusXP,
+            tier: currentTier,
+            sessionsCompleted: 0,
+            focusTimeMinutes: 0,
+            discoveryRateBonus: currentStreak >= 7 ? 0.1 : 0.0,
+          )
+        : null;
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.2),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.local_fire_department, color: currentTier.color, size: 28),
+              const SizedBox(width: 12),
+              const Text(
+                'Research Streak Rewards',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          StreakRewardsDisplayWidget(
+            currentStreak: currentStreak,
+            currentTier: currentTier,
+            availableRewards: availableRewards,
+            todaysReward: todaysReward,
+            showCompact: false,
+          ),
+        ],
+      ),
     );
   }
 

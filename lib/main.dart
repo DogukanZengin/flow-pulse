@@ -6,8 +6,8 @@ import 'dart:ui';
 import 'providers/timer_provider.dart';
 import 'screens/settings_screen.dart';
 import 'screens/analytics_screen.dart';
-import 'screens/tasks_screen.dart';
-import 'screens/enhanced_ocean_debug_screen.dart';
+import 'screens/career_screen.dart';
+import 'screens/community_screen.dart';
 import 'services/database_service.dart';
 import 'models/session.dart';
 import 'widgets/celebration_dialog.dart';
@@ -80,9 +80,9 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _screens = [
       TimerScreen(key: _timerKey),
-      const TasksScreen(),
       const AnalyticsScreen(),
-      const EnhancedOceanDebugScreen(),
+      const CareerScreen(),
+      const CommunityScreen(),
       const SettingsScreen(),
     ];
     
@@ -99,72 +99,103 @@ class _MainScreenState extends State<MainScreen> {
         children: _screens,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: Container(
-        margin: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(25),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-            child: Container(
-              height: 68,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  width: 1.0,
+      floatingActionButton: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrowScreen = MediaQuery.of(context).size.width < 400;
+          return Container(
+            margin: EdgeInsets.only(
+              bottom: 10,
+              left: isNarrowScreen ? 8 : 20,
+              right: isNarrowScreen ? 8 : 20,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(25),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                child: Container(
+                  height: 68,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(25),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      width: 1.0,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final screenWidth = constraints.maxWidth;
+                      final isNarrowScreen = screenWidth < 400;
+                      
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Flexible(
+                            child: _NavItem(
+                              icon: Icons.scuba_diving,
+                              label: 'Dive',
+                              index: 0,
+                              isSelected: _currentIndex == 0,
+                              onTap: () => _selectTab(0),
+                              isCompact: isNarrowScreen,
+                            ),
+                          ),
+                          Flexible(
+                            child: _NavItem(
+                              icon: Icons.analytics,
+                              label: isNarrowScreen ? 'Data' : 'Data Log',
+                              index: 1,
+                              isSelected: _currentIndex == 1,
+                              onTap: () => _selectTab(1),
+                              isCompact: isNarrowScreen,
+                            ),
+                          ),
+                          Flexible(
+                            child: _NavItem(
+                              icon: Icons.military_tech,
+                              label: 'Career',
+                              index: 2,
+                              isSelected: _currentIndex == 2,
+                              onTap: () => _selectTab(2),
+                              isCompact: isNarrowScreen,
+                            ),
+                          ),
+                          Flexible(
+                            child: _NavItem(
+                              icon: Icons.groups,
+                              label: isNarrowScreen ? 'Social' : 'Community',
+                              index: 3,
+                              isSelected: _currentIndex == 3,
+                              onTap: () => _selectTab(3),
+                              isCompact: isNarrowScreen,
+                            ),
+                          ),
+                          Flexible(
+                            child: _NavItem(
+                              icon: Icons.settings,
+                              label: 'Station',
+                              index: 4,
+                              isSelected: _currentIndex == 4,
+                              onTap: () => _selectTab(4),
+                              isCompact: isNarrowScreen,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _NavItem(
-                    icon: Icons.scuba_diving,
-                    label: 'Dive',
-                    index: 0,
-                    isSelected: _currentIndex == 0,
-                    onTap: () => _selectTab(0),
-                  ),
-                  _NavItem(
-                    icon: Icons.science,
-                    label: 'Research',
-                    index: 1,
-                    isSelected: _currentIndex == 1,
-                    onTap: () => _selectTab(1),
-                  ),
-                  _NavItem(
-                    icon: Icons.analytics,
-                    label: 'Data Log',
-                    index: 2,
-                    isSelected: _currentIndex == 2,
-                    onTap: () => _selectTab(2),
-                  ),
-                  _NavItem(
-                    icon: Icons.biotech,
-                    label: 'Lab',
-                    index: 3,
-                    isSelected: _currentIndex == 3,
-                    onTap: () => _selectTab(3),
-                  ),
-                  _NavItem(
-                    icon: Icons.settings,
-                    label: 'Station',
-                    index: 4,
-                    isSelected: _currentIndex == 4,
-                    onTap: () => _selectTab(4),
-                  ),
-                ],
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -1122,6 +1153,7 @@ class _NavItem extends StatefulWidget {
   final int index;
   final bool isSelected;
   final VoidCallback onTap;
+  final bool isCompact;
 
   const _NavItem({
     required this.icon,
@@ -1129,6 +1161,7 @@ class _NavItem extends StatefulWidget {
     required this.index,
     required this.isSelected,
     required this.onTap,
+    this.isCompact = false,
   });
 
   @override
@@ -1207,7 +1240,10 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
               onTap: _handleTap,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                padding: EdgeInsets.symmetric(
+                  vertical: widget.isCompact ? 6 : 8,
+                  horizontal: widget.isCompact ? 8 : 16,
+                ),
                 decoration: BoxDecoration(
                   color: widget.isSelected 
                       ? Colors.white.withValues(alpha: 0.3) 
@@ -1229,18 +1265,27 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
                       child: Icon(
                         widget.icon,
                         color: Colors.white.withValues(alpha: widget.isSelected ? 1.0 : 0.7),
-                        size: widget.isSelected ? 28 : 24,
+                        size: widget.isCompact 
+                            ? (widget.isSelected ? 22 : 20)
+                            : (widget.isSelected ? 28 : 24),
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: widget.isCompact ? 1 : 2),
                     AnimatedDefaultTextStyle(
                       duration: const Duration(milliseconds: 200),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: widget.isSelected ? 1.0 : 0.7),
-                        fontSize: widget.isSelected ? 11 : 9,
+                        fontSize: widget.isCompact 
+                            ? (widget.isSelected ? 9 : 8)
+                            : (widget.isSelected ? 11 : 9),
                         fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
                       ),
-                      child: Text(widget.label),
+                      child: Text(
+                        widget.label,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                     ),
                   ],
                 ),
