@@ -171,14 +171,21 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     ? const Center(
                         child: CircularProgressIndicator(color: Colors.cyan),
                       )
-                    : SocialResearchDisplayWidget(
-                        leaderboard: _leaderboard,
-                        collaborations: _collaborations,
-                        communityGoals: _communityGoals,
-                        currentUser: _currentUser,
-                        selectedCategory: _selectedCategory,
-                        onCategoryChange: _onCategoryChange,
-                        onJoinCollaboration: _onJoinCollaboration,
+                    : Padding(
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(context).padding.bottom,
+                          left: MediaQuery.of(context).size.width * 0.02,
+                          right: MediaQuery.of(context).size.width * 0.02,
+                        ),
+                        child: SocialResearchDisplayWidget(
+                          leaderboard: _leaderboard,
+                          collaborations: _collaborations,
+                          communityGoals: _communityGoals,
+                          currentUser: _currentUser,
+                          selectedCategory: _selectedCategory,
+                          onCategoryChange: _onCategoryChange,
+                          onJoinCollaboration: _onJoinCollaboration,
+                        ),
                       ),
               ),
             ],

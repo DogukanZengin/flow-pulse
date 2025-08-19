@@ -47,27 +47,54 @@ class _SocialResearchDisplayWidgetState extends State<SocialResearchDisplayWidge
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Tab bar
+        // Clean Tab Bar - Matching Career Tab Style
         Container(
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(12),
+          margin: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.04,
           ),
-          margin: const EdgeInsets.symmetric(horizontal: 16),
+          height: 48,
           child: TabBar(
             controller: _tabController,
             indicatorColor: Colors.cyan,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            tabs: const [
-              Tab(text: 'Leaderboards'),
-              Tab(text: 'Collaborations'),
-              Tab(text: 'Community'),
+            indicatorWeight: 3,
+            indicatorPadding: const EdgeInsets.symmetric(horizontal: 8),
+            dividerColor: Colors.transparent,
+            labelColor: Colors.cyan,
+            unselectedLabelColor: Colors.white60,
+            labelStyle: TextStyle(
+              fontSize: MediaQuery.of(context).size.width < 400 ? 11 : 12,
+              fontWeight: FontWeight.w600,
+            ),
+            unselectedLabelStyle: TextStyle(
+              fontSize: MediaQuery.of(context).size.width < 400 ? 10 : 11,
+              fontWeight: FontWeight.w400,
+            ),
+            labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+            tabAlignment: TabAlignment.fill,
+            tabs: [
+              Tab(
+                icon: Icon(Icons.leaderboard, 
+                  size: MediaQuery.of(context).size.width < 400 ? 18 : 20),
+                text: MediaQuery.of(context).size.width < 400 ? 'Leaders' : 'Leaderboards',
+                height: 48,
+              ),
+              Tab(
+                icon: Icon(Icons.handshake, 
+                  size: MediaQuery.of(context).size.width < 400 ? 18 : 20),
+                text: MediaQuery.of(context).size.width < 400 ? 'Collabs' : 'Collaborations',
+                height: 48,
+              ),
+              Tab(
+                icon: Icon(Icons.groups, 
+                  size: MediaQuery.of(context).size.width < 400 ? 18 : 20),
+                text: 'Community',
+                height: 48,
+              ),
             ],
           ),
         ),
         
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         
         // Tab content
         Expanded(
@@ -85,49 +112,95 @@ class _SocialResearchDisplayWidgetState extends State<SocialResearchDisplayWidge
   }
 
   Widget _buildLeaderboardsTab() {
-    return Column(
-      children: [
-        // Category selector
-        Container(
-          height: 40,
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: LeaderboardCategory.values.length,
-            itemBuilder: (context, index) {
-              final category = LeaderboardCategory.values[index];
-              final isSelected = category == widget.selectedCategory;
-              
-              return Container(
-                margin: const EdgeInsets.only(right: 8),
-                child: ElevatedButton(
-                  onPressed: () => widget.onCategoryChange(category),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isSelected ? Colors.cyan : Colors.transparent,
-                    side: BorderSide(color: Colors.cyan.withValues(alpha: 0.5)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: Text(
-                    _getCategoryDisplayName(category),
-                    style: TextStyle(
-                      color: isSelected ? Colors.black : Colors.white,
-                      fontSize: 12,
-                    ),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Quick Stats Card - Matching Career Tab Style
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.cyan.withValues(alpha: 0.2),
+                  Colors.blue.withValues(alpha: 0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.cyan.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.leaderboard, color: Colors.cyan, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Research Rankings',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              );
-            },
+                const Spacer(),
+                Text(
+                  'Your Rank: #${widget.currentUser.ranking}',
+                  style: TextStyle(
+                    color: Colors.cyan,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        
-        const SizedBox(height: 16),
-        
-        // Leaderboard list
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+          
+          // Category selector - Improved Mobile Design
+          Container(
+            height: 40,
+            margin: const EdgeInsets.only(bottom: 16),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: LeaderboardCategory.values.length,
+              itemBuilder: (context, index) {
+                final category = LeaderboardCategory.values[index];
+                final isSelected = category == widget.selectedCategory;
+                
+                return Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  child: ElevatedButton(
+                    onPressed: () => widget.onCategoryChange(category),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isSelected ? Colors.cyan : Colors.transparent,
+                      side: BorderSide(color: Colors.cyan.withValues(alpha: 0.5)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    child: Text(
+                      _getCategoryDisplayName(category),
+                      style: TextStyle(
+                        color: isSelected ? Colors.black : Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          
+          // Leaderboard list - Enhanced Card Design
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
             itemCount: widget.leaderboard.length,
             itemBuilder: (context, index) {
               final researcher = widget.leaderboard[index];
@@ -137,16 +210,20 @@ class _SocialResearchDisplayWidgetState extends State<SocialResearchDisplayWidge
                 margin: const EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                     colors: isCurrentUser
-                        ? [Colors.cyan.withValues(alpha: 0.3), Colors.blue.withValues(alpha: 0.3)]
-                        : [Colors.black.withValues(alpha: 0.3), Colors.black.withValues(alpha: 0.1)],
+                        ? [Colors.cyan.withValues(alpha: 0.2), Colors.blue.withValues(alpha: 0.1)]
+                        : [Colors.black.withValues(alpha: 0.2), Colors.black.withValues(alpha: 0.05)],
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                  border: isCurrentUser
-                      ? Border.all(color: Colors.cyan, width: 2)
-                      : null,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isCurrentUser ? Colors.cyan : Colors.white.withValues(alpha: 0.1),
+                    width: isCurrentUser ? 2 : 1,
+                  ),
                 ),
                 child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   leading: Container(
                     width: 40,
                     height: 40,
@@ -155,6 +232,7 @@ class _SocialResearchDisplayWidgetState extends State<SocialResearchDisplayWidge
                       gradient: LinearGradient(
                         colors: _getRankColors(researcher.ranking),
                       ),
+                      border: Border.all(color: Colors.white, width: 1),
                     ),
                     child: Center(
                       child: Text(
@@ -171,12 +249,16 @@ class _SocialResearchDisplayWidgetState extends State<SocialResearchDisplayWidge
                     researcher.name,
                     style: TextStyle(
                       color: Colors.white,
-                      fontWeight: isCurrentUser ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isCurrentUser ? FontWeight.bold : FontWeight.w600,
+                      fontSize: 16,
                     ),
                   ),
                   subtitle: Text(
                     researcher.specialization,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.8), 
+                      fontSize: 12,
+                    ),
                   ),
                   trailing: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -184,16 +266,17 @@ class _SocialResearchDisplayWidgetState extends State<SocialResearchDisplayWidge
                     children: [
                       Text(
                         _getCategoryValue(researcher, widget.selectedCategory),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.cyan,
                           fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
                       ),
                       Text(
                         'Level ${researcher.researchLevel}',
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 11,
                         ),
                       ),
                     ],
@@ -202,35 +285,85 @@ class _SocialResearchDisplayWidgetState extends State<SocialResearchDisplayWidge
               );
             },
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildCollaborationsTab() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: widget.collaborations.length,
-      itemBuilder: (context, index) {
-        final collaboration = widget.collaborations[index];
-        
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                _getCollaborationColor(collaboration.category).withValues(alpha: 0.3),
-                _getCollaborationColor(collaboration.category).withValues(alpha: 0.1),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Collaboration Overview Card
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.blue.withValues(alpha: 0.2),
+                  Colors.indigo.withValues(alpha: 0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.blue.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.handshake, color: Colors.blue, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Research Collaborations',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${widget.collaborations.where((c) => c.isEligible).length} Available',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: _getCollaborationColor(collaboration.category).withValues(alpha: 0.5),
-              width: 1,
-            ),
           ),
+          
+          // Collaborations List
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: widget.collaborations.length,
+            itemBuilder: (context, index) {
+              final collaboration = widget.collaborations[index];
+              
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      _getCollaborationColor(collaboration.category).withValues(alpha: 0.2),
+                      _getCollaborationColor(collaboration.category).withValues(alpha: 0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: _getCollaborationColor(collaboration.category).withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -370,33 +503,86 @@ class _SocialResearchDisplayWidgetState extends State<SocialResearchDisplayWidge
           ),
         );
       },
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildCommunityTab() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: widget.communityGoals.length,
-      itemBuilder: (context, index) {
-        final goal = widget.communityGoals[index];
-        
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                _getCommunityGoalColor(goal.category).withValues(alpha: 0.3),
-                _getCommunityGoalColor(goal.category).withValues(alpha: 0.1),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Community Overview Card
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.purple.withValues(alpha: 0.2),
+                  Colors.indigo.withValues(alpha: 0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.purple.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.groups, color: Colors.purple, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Community Goals',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${widget.communityGoals.where((g) => g.progressPercentage < 1.0).length} Active',
+                  style: TextStyle(
+                    color: Colors.purple,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: _getCommunityGoalColor(goal.category).withValues(alpha: 0.5),
-              width: 1,
-            ),
           ),
+          
+          // Community Goals List
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: widget.communityGoals.length,
+            itemBuilder: (context, index) {
+              final goal = widget.communityGoals[index];
+              
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      _getCommunityGoalColor(goal.category).withValues(alpha: 0.2),
+                      _getCommunityGoalColor(goal.category).withValues(alpha: 0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: _getCommunityGoalColor(goal.category).withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -549,6 +735,9 @@ class _SocialResearchDisplayWidgetState extends State<SocialResearchDisplayWidge
           ),
         );
       },
+          ),
+        ],
+      ),
     );
   }
 
