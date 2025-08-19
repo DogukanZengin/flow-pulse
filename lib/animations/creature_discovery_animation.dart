@@ -150,13 +150,14 @@ class _CreatureDiscoveryAnimationState extends State<CreatureDiscoveryAnimation>
               _buildBubbles(),
               
               // Main discovery card
-              AnimatedBuilder(
-                animation: _rotateController,
-                builder: (context, child) {
-                  return Transform.rotate(
-                    angle: _rotateAnimation.value,
-                    child: ScaleTransition(
-                      scale: _scaleAnimation,
+              RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _rotateController,
+                  builder: (context, child) {
+                    return Transform.rotate(
+                      angle: _rotateAnimation.value,
+                      child: ScaleTransition(
+                        scale: _scaleAnimation,
                       child: Container(
                         width: 320,
                         padding: const EdgeInsets.all(24),
@@ -324,6 +325,7 @@ class _CreatureDiscoveryAnimationState extends State<CreatureDiscoveryAnimation>
                     ),
                   );
                 },
+              ),
               ),
               
               // Sparkle effects for legendary creatures

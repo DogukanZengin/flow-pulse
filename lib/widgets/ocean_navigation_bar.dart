@@ -64,8 +64,10 @@ class OceanNavigationBar extends StatelessWidget {
         children: [
           // Subtle wave pattern overlay
           Positioned.fill(
-            child: CustomPaint(
-              painter: _OceanWavePainter(),
+            child: RepaintBoundary(
+              child: CustomPaint(
+                painter: _OceanWavePainter(),
+              ),
             ),
           ),
           // Navigation items
@@ -248,7 +250,7 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 200),
       vsync: this,
     );
     
@@ -279,15 +281,16 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
   }
 
   void _handleTap() async {
+    // Execute the original onTap callback first for immediate screen change
+    widget.onTap();
+    
     // Play UI sound and haptic feedback
     UISoundService.instance.navigationSwitch();
     
-    // Play elastic animation
-    await _animationController.forward();
-    _animationController.reset();
-    
-    // Execute the original onTap callback
-    widget.onTap();
+    // Play elastic animation (non-blocking)
+    _animationController.forward().then((_) {
+      _animationController.reset();
+    });
   }
 
   @override

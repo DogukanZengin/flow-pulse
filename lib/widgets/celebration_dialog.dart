@@ -96,14 +96,16 @@ class _CelebrationDialogState extends State<CelebrationDialog>
       child: Stack(
         children: [
           // Confetti background
-          AnimatedBuilder(
-            animation: _confettiAnimation,
-            builder: (context, child) {
-              return CustomPaint(
-                painter: ConfettiPainter(_confettiAnimation.value),
-                size: MediaQuery.of(context).size,
-              );
-            },
+          RepaintBoundary(
+            child: AnimatedBuilder(
+              animation: _confettiAnimation,
+              builder: (context, child) {
+                return CustomPaint(
+                  painter: ConfettiPainter(_confettiAnimation.value),
+                  size: MediaQuery.of(context).size,
+                );
+              },
+            ),
           ),
           
           // Dialog content

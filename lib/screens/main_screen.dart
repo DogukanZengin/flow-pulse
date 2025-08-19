@@ -34,15 +34,37 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF4A8FA0), // Match navigation bar bottom color
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.3, 0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            )),
+            child: FadeTransition(
+              opacity: animation,
+              child: child,
+            ),
+          );
+        },
+        child: _buildCurrentScreen(),
       ),
       extendBody: false,
       bottomNavigationBar: OceanNavigationBar(
         currentIndex: _currentIndex,
         onTap: _selectTab,
       ),
+    );
+  }
+
+  Widget _buildCurrentScreen() {
+    return Container(
+      key: ValueKey(_currentIndex),
+      child: _screens[_currentIndex],
     );
   }
 
