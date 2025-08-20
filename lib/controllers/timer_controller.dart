@@ -9,6 +9,7 @@ import '../services/notification_service.dart';
 import '../services/live_activities_service.dart';
 import '../services/ocean_activity_service.dart';
 import '../services/ocean_audio_service.dart';
+import '../services/fast_forward_service.dart';
 import '../models/coral.dart';
 import '../models/aquarium.dart';
 import '../models/creature.dart';
@@ -125,9 +126,18 @@ class TimerController extends ChangeNotifier {
       isStudySession: _isStudySession,
     );
     
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    // Use fast forward service for timer intervals and decrements
+    final fastForward = FastForwardService.instance;
+    final timerInterval = Duration(milliseconds: fastForward.getTimerIntervalMs());
+    final secondsPerTick = fastForward.getSecondsPerTick();
+    
+    _timer = Timer.periodic(timerInterval, (timer) {
       if (_secondsRemaining > 0) {
-        _secondsRemaining--;
+        _secondsRemaining -= secondsPerTick;
+        // Ensure we don't go below zero
+        if (_secondsRemaining < 0) {
+          _secondsRemaining = 0;
+        }
         _secondsRemainingNotifier.value = _secondsRemaining;
         
         // Update notification every 30 seconds to avoid spam
@@ -370,9 +380,7 @@ class TimerController extends ChangeNotifier {
   }
   
   String formatTime(int seconds) {
-    final minutes = seconds ~/ 60;
-    final remainingSeconds = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+    return FastForwardService.instance.formatTimeWithIndicator(seconds);
   }
 
   String _getSessionTitle() {

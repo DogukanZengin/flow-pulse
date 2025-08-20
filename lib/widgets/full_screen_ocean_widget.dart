@@ -68,6 +68,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
   
   // State for discovered creatures (for research journal)
   List<Creature> _discoveredCreatures = [];
+  int _publishedPapersCount = 0;
   
   // Continuous time tracking for smooth animations
   late DateTime _startTime;
@@ -137,6 +138,8 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     
     // Load discovered creatures for research journal
     _loadDiscoveredCreatures();
+    // Load published papers count
+    _loadPublishedPapersCount();
   }
   
   /// Load discovered creatures from persistence service
@@ -150,6 +153,20 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
       }
     } catch (e) {
       // Handle error silently - research journal will show empty state
+    }
+  }
+  
+  /// Load published papers count from research repository
+  Future<void> _loadPublishedPapersCount() async {
+    try {
+      final publishedPapers = await PersistenceService.instance.research.getPublishedPapers();
+      if (mounted) {
+        setState(() {
+          _publishedPapersCount = publishedPapers.length;
+        });
+      }
+    } catch (e) {
+      // Handle error silently - will show 0 papers
     }
   }
   
@@ -379,7 +396,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                     ResearchProgressWidget(
                       speciesDiscovered: _discoveredCreatures.length,
                       totalSpeciesInCurrentBiome: 12, // TODO: Get from aquarium data
-                      researchPapersPublished: 3, // TODO: Get from gamification service
+                      researchPapersPublished: _publishedPapersCount,
                       certificationProgress: GamificationService.instance.getLevelProgress(),
                     ),
                   ],

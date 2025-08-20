@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../providers/timer_provider.dart';
+import '../widgets/fast_forward_control_widget.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -57,6 +58,10 @@ class SettingsScreen extends StatelessWidget {
           
           // Core timer settings
           const _TimerSection(),
+          const SizedBox(height: 24),
+          
+          // Fast forward controls for testing
+          const FastForwardControlWidget(),
           const SizedBox(height: 24),
                     
                     // Original settings
