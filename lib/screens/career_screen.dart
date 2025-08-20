@@ -6,6 +6,8 @@ import '../services/marine_biology_achievement_service.dart';
 import '../services/equipment_progression_service.dart';
 import '../services/research_paper_service.dart';
 import '../services/gamification_service.dart';
+import '../services/persistence/persistence_service.dart';
+import '../services/marine_biology_career_service.dart';
 
 /// Career Screen - Phase 4 Progression Hub
 /// Houses achievements, equipment, and research papers
@@ -20,10 +22,10 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
   late TabController _tabController;
   
   // Clean state - no mock data
-  final List<MarineBiologyAchievement> _achievements = [];
-  final List<ResearchEquipment> _equipment = [];
-  final List<ResearchPaper> _availablePapers = [];
-  final List<ResearchPaper> _publishedPapers = [];
+  List<MarineBiologyAchievement> _achievements = [];
+  List<ResearchEquipment> _equipment = [];
+  List<ResearchPaper> _availablePapers = [];
+  List<ResearchPaper> _publishedPapers = [];
   EquipmentBonuses? _equipmentBonuses;
   
   @override
@@ -40,17 +42,78 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
   }
   
   Future<void> _loadCareerData() async {
-    // Clean slate - initialize with empty equipment bonuses only
-    setState(() {
-      _equipmentBonuses = const EquipmentBonuses(
-        discoveryRateBonus: 0.0,
-        sessionXPBonus: 0.0,
-        equippedCount: 0,
-        availableCount: 0,
-        totalCount: 0,
-        categoryBonuses: {},
+    try {
+      // Load discovered creatures from persistence
+      final discoveredCreatures = await PersistenceService.instance.ocean.getDiscoveredCreatures();
+      
+      // Get gamification data
+      final currentLevel = GamificationService.instance.currentLevel;
+      final totalXP = GamificationService.instance.totalXP;
+      final currentStreak = GamificationService.instance.currentStreak;
+      final totalSessions = GamificationService.instance.totalSessions;
+      
+      // Calculate research metrics
+      final metrics = MarineBiologyCareerService.calculateResearchMetrics(
+        discoveredCreatures,
+        totalSessions,
+        (GamificationService.instance.totalFocusTime / 60.0).round(), // Convert to minutes (int)
       );
-    });
+      
+      // Load achievements
+      final achievements = MarineBiologyAchievementService.getAllAchievements(
+        discoveredCreatures,
+        currentLevel,
+        totalXP,
+        metrics,
+        currentStreak,
+        totalSessions,
+      );
+      
+      // Load equipment data
+      final equipmentService = EquipmentProgressionService(PersistenceService.instance.equipment);
+      
+      // Safety check: unlock any equipment that should be unlocked at current level
+      try {
+        final unlockedEquipment = await PersistenceService.instance.equipment.checkAndUnlockEquipmentByLevel(currentLevel);
+        if (unlockedEquipment.isNotEmpty) {
+          debugPrint('🎒 Career screen: Unlocked ${unlockedEquipment.length} equipment items for level $currentLevel');
+        }
+      } catch (e) {
+        debugPrint('❌ Error checking equipment unlocks: $e');
+      }
+      
+      final equipment = await equipmentService.getAllEquipment(currentLevel, discoveredCreatures, []);
+      final equipmentBonuses = await equipmentService.calculateEquipmentBonuses([], currentLevel, discoveredCreatures);
+      
+      // Load research papers
+      final availablePapers = ResearchPaperService.getAvailablePapers(discoveredCreatures, currentLevel, []);
+      final publishedPapers = <ResearchPaper>[]; // Initialize as empty list for now
+      
+      if (mounted) {
+        setState(() {
+          _achievements = achievements;
+          _equipment = equipment;
+          _equipmentBonuses = equipmentBonuses;
+          _availablePapers = availablePapers;
+          _publishedPapers = publishedPapers;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading career data: $e');
+      // Fallback to empty state
+      if (mounted) {
+        setState(() {
+          _equipmentBonuses = const EquipmentBonuses(
+            discoveryRateBonus: 0.0,
+            sessionXPBonus: 0.0,
+            equippedCount: 0,
+            availableCount: 0,
+            totalCount: 0,
+            categoryBonuses: {},
+          );
+        });
+      }
+    }
   }
   
   @override
@@ -397,7 +460,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                   children: [
                     Expanded(
                       child: _buildEquipmentStat(
-                        'Unlocked',
+                        'Available',
                         '${_equipment.where((e) => e.isUnlocked).length}',
                         Colors.green,
                       ),

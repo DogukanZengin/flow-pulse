@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math' as math;
+import 'persistence/persistence_service.dart';
 
 class GamificationService {
   static GamificationService? _instance;
@@ -166,6 +167,21 @@ class GamificationService {
     if (_currentLevel > oldLevel) {
       reward.leveledUp = true;
       reward.newLevel = _currentLevel;
+      
+      // Unlock equipment based on new level
+      try {
+        final equipmentRepository = PersistenceService.instance.equipment;
+        final unlockedEquipment = await equipmentRepository.checkAndUnlockEquipmentByLevel(_currentLevel);
+        if (unlockedEquipment.isNotEmpty) {
+          // Add unlocked equipment to reward (we'll need to add this field)
+          debugPrint('🎒 Unlocked ${unlockedEquipment.length} new equipment items at level $_currentLevel');
+          for (final equipmentId in unlockedEquipment) {
+            debugPrint('🎒 Unlocked equipment: $equipmentId');
+          }
+        }
+      } catch (e) {
+        debugPrint('❌ Error unlocking equipment: $e');
+      }
       
       // Unlock theme for level milestone
       if (_currentLevel % 5 == 0) {

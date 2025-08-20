@@ -71,6 +71,13 @@ class PersistenceService {
   Future<void> initialize() async {
     await _initDatabase();
     _initRepositories();
+    
+    // Initialize default equipment if needed
+    try {
+      await equipment.initializeDefaultEquipment();
+    } catch (e) {
+      debugPrint('Warning: Could not initialize default equipment: $e');
+    }
   }
 
   // Get database instance

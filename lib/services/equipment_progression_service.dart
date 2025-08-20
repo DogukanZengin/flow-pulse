@@ -1,37 +1,200 @@
 import 'package:flutter/material.dart';
 import '../models/creature.dart';
+import 'persistence/repositories/equipment_repository.dart';
 
 /// Equipment Progression Service for Phase 4
 /// Handles marine research equipment unlocks, upgrades, and visual indicators
 class EquipmentProgressionService {
+  final EquipmentRepository _equipmentRepository;
+  
+  EquipmentProgressionService(this._equipmentRepository);
   
   /// Get all available equipment based on user level and discoveries
-  static List<ResearchEquipment> getAllEquipment(
+  Future<List<ResearchEquipment>> getAllEquipment(
     int userLevel,
     List<Creature> discoveredCreatures,
     List<String> unlockedEquipment,
-  ) {
-    // Return empty list - no mock equipment data
-    return <ResearchEquipment>[];
+  ) async {
+    final equipmentData = await _equipmentRepository.getAllEquipment();
+    final List<ResearchEquipment> equipment = [];
+    
+    for (final data in equipmentData) {
+      final isUnlocked = (data['is_unlocked'] as int) == 1;
+      final isEquipped = (data['is_equipped'] as int) == 1;
+      
+      equipment.add(ResearchEquipment(
+        id: data['id'] as String,
+        name: data['name'] as String,
+        description: data['description'] as String,
+        icon: data['icon'] as String,
+        unlockLevel: data['unlock_level'] as int,
+        category: _parseCategory(data['category'] as String),
+        rarity: _parseRarity(data['rarity'] as String),
+        benefits: _generateBenefits(data),
+        discoveryBonus: (data['discovery_bonus'] as num?)?.toDouble() ?? 0.0,
+        sessionBonus: (data['session_bonus'] as num?)?.toDouble() ?? 0.0,
+        isUnlocked: isUnlocked,
+        isEquipped: isEquipped,
+        unlockCondition: 'Reach level ${data['unlock_level']}',
+        requiredDiscoveries: (data['required_discoveries'] as int?) ?? 0,
+        requiredRareSpecies: (data['required_rare_species'] as int?) ?? 0,
+        requiredLegendarySpecies: (data['required_legendary_species'] as int?) ?? 0,
+      ));
+    }
+    
+    return equipment;
   }
   
   /// Calculate total equipment bonuses
-  static EquipmentBonuses calculateEquipmentBonuses(List<String> equippedEquipment, int userLevel, List<Creature> discoveredCreatures) {
-    // Return empty bonuses - no equipment available
-    return const EquipmentBonuses(
-      discoveryRateBonus: 0.0,
-      sessionXPBonus: 0.0,
-      equippedCount: 0,
-      availableCount: 0,
-      totalCount: 0,
-      categoryBonuses: {},
+  Future<EquipmentBonuses> calculateEquipmentBonuses(List<String> equippedEquipment, int userLevel, List<Creature> discoveredCreatures) async {
+    final allEquipment = await _equipmentRepository.getAllEquipment();
+    final equippedItems = await _equipmentRepository.getEquippedItems();
+    final unlockedItems = await _equipmentRepository.getUnlockedEquipment();
+    
+    double discoveryBonus = 0.0;
+    double sessionBonus = 0.0;
+    final Map<EquipmentCategory, double> categoryBonuses = {};
+    
+    for (final item in equippedItems) {
+      discoveryBonus += (item['discovery_bonus'] as num?)?.toDouble() ?? 0.0;
+      sessionBonus += (item['session_bonus'] as num?)?.toDouble() ?? 0.0;
+      
+      final category = _parseCategory(item['category'] as String);
+      categoryBonuses[category] = (categoryBonuses[category] ?? 0.0) + 
+          ((item['discovery_bonus'] as num?)?.toDouble() ?? 0.0) +
+          ((item['session_bonus'] as num?)?.toDouble() ?? 0.0);
+    }
+    
+    return EquipmentBonuses(
+      discoveryRateBonus: discoveryBonus,
+      sessionXPBonus: sessionBonus,
+      equippedCount: equippedItems.length,
+      availableCount: unlockedItems.length,
+      totalCount: allEquipment.length,
+      categoryBonuses: categoryBonuses,
     );
   }
   
   /// Get next equipment unlock
-  static ResearchEquipment? getNextUnlock(int userLevel, List<Creature> discoveredCreatures, List<String> unlockedEquipment) {
-    // No equipment available to unlock
+  Future<ResearchEquipment?> getNextUnlock(int userLevel, List<Creature> discoveredCreatures, List<String> unlockedEquipment) async {
+    final equipmentData = await _equipmentRepository.getAllEquipment();
+    
+    for (final data in equipmentData) {
+      final isUnlocked = (data['is_unlocked'] as int) == 1;
+      final unlockLevel = data['unlock_level'] as int;
+      
+      if (!isUnlocked && unlockLevel <= userLevel + 3) { // Show items up to 3 levels ahead
+        return ResearchEquipment(
+          id: data['id'] as String,
+          name: data['name'] as String,
+          description: data['description'] as String,
+          icon: data['icon'] as String,
+          unlockLevel: unlockLevel,
+          category: _parseCategory(data['category'] as String),
+          rarity: _parseRarity(data['rarity'] as String),
+          benefits: _generateBenefits(data),
+          discoveryBonus: (data['discovery_bonus'] as num?)?.toDouble() ?? 0.0,
+          sessionBonus: (data['session_bonus'] as num?)?.toDouble() ?? 0.0,
+          isUnlocked: false,
+          isEquipped: false,
+          unlockCondition: 'Reach level $unlockLevel',
+          requiredDiscoveries: (data['required_discoveries'] as int?) ?? 0,
+          requiredRareSpecies: (data['required_rare_species'] as int?) ?? 0,
+          requiredLegendarySpecies: (data['required_legendary_species'] as int?) ?? 0,
+        );
+      }
+    }
+    
     return null;
+  }
+  
+  /// Parse equipment category from string
+  EquipmentCategory _parseCategory(String categoryStr) {
+    switch (categoryStr) {
+      case 'breathing': return EquipmentCategory.breathing;
+      case 'mobility': return EquipmentCategory.mobility;
+      case 'documentation': return EquipmentCategory.documentation;
+      case 'visibility': return EquipmentCategory.visibility;
+      case 'safety': return EquipmentCategory.safety;
+      case 'sampling': return EquipmentCategory.sampling;
+      case 'detection': return EquipmentCategory.detection;
+      case 'analysis': return EquipmentCategory.analysis;
+      case 'platform': return EquipmentCategory.platform;
+      case 'communication': return EquipmentCategory.communication;
+      case 'conservation': return EquipmentCategory.conservation;
+      case 'visualization': return EquipmentCategory.visualization;
+      default: return EquipmentCategory.documentation;
+    }
+  }
+  
+  /// Parse equipment rarity from string
+  EquipmentRarity _parseRarity(String rarityStr) {
+    switch (rarityStr) {
+      case 'common': return EquipmentRarity.common;
+      case 'uncommon': return EquipmentRarity.uncommon;
+      case 'rare': return EquipmentRarity.rare;
+      case 'epic': return EquipmentRarity.epic;
+      case 'legendary': return EquipmentRarity.legendary;
+      default: return EquipmentRarity.common;
+    }
+  }
+  
+  /// Generate benefits list from equipment data
+  List<String> _generateBenefits(Map<String, dynamic> data) {
+    final List<String> benefits = [];
+    
+    final discoveryBonus = (data['discovery_bonus'] as num?)?.toDouble() ?? 0.0;
+    final sessionBonus = (data['session_bonus'] as num?)?.toDouble() ?? 0.0;
+    
+    if (discoveryBonus > 0) {
+      benefits.add('+${(discoveryBonus * 100).toInt()}% Species Discovery Rate');
+    }
+    if (sessionBonus > 0) {
+      benefits.add('+${(sessionBonus * 100).toInt()}% Session Experience');
+    }
+    
+    // Add category-specific benefits
+    final category = data['category'] as String;
+    switch (category) {
+      case 'breathing':
+        benefits.add('Extended underwater exploration time');
+        break;
+      case 'mobility':
+        benefits.add('Faster underwater movement');
+        break;
+      case 'documentation':
+        benefits.add('Better species documentation');
+        break;
+      case 'visibility':
+        benefits.add('Improved underwater visibility');
+        break;
+      case 'safety':
+        benefits.add('Enhanced safety during exploration');
+        break;
+      case 'sampling':
+        benefits.add('Advanced sample collection');
+        break;
+      case 'detection':
+        benefits.add('Enhanced species detection');
+        break;
+      case 'analysis':
+        benefits.add('Real-time species analysis');
+        break;
+      case 'platform':
+        benefits.add('Mobile research platform');
+        break;
+      case 'communication':
+        benefits.add('Surface communication capabilities');
+        break;
+      case 'conservation':
+        benefits.add('Conservation data collection');
+        break;
+      case 'visualization':
+        benefits.add('Advanced underwater visualization');
+        break;
+    }
+    
+    return benefits;
   }
 }
 
