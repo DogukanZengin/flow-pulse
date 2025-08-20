@@ -34,7 +34,7 @@ class TimerScreenState extends State<TimerScreen>
     
     final timerProvider = context.read<TimerProvider>();
     _oceanSystemController = OceanSystemController();
-    _timerController = TimerController(timerProvider, _oceanSystemController.aquarium);
+    _timerController = TimerController(timerProvider, _oceanSystemController.aquarium, _oceanSystemController);
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTodayStats();
@@ -125,12 +125,10 @@ class TimerScreenState extends State<TimerScreen>
   // Session switching methods
   void _switchToWorkSession() {
     _timerController.switchToWorkSession();
-    _oceanSystemController.setOnSurface(false);
   }
   
   void _switchToBreakSession() {
     _timerController.switchToBreakSession();
-    _oceanSystemController.setOnSurface(true);
   }
   
   // External control methods for quick actions and deep linking

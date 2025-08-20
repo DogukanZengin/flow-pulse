@@ -13,6 +13,7 @@ import '../services/fast_forward_service.dart';
 import '../models/coral.dart';
 import '../models/aquarium.dart';
 import '../models/creature.dart';
+import './ocean_system_controller.dart';
 
 class TimerController extends ChangeNotifier {
   Timer? _timer;
@@ -41,8 +42,9 @@ class TimerController extends ChangeNotifier {
   
   final TimerProvider _timerProvider;
   final Aquarium? _aquarium;
+  final OceanSystemController? _oceanSystemController;
   
-  TimerController(this._timerProvider, this._aquarium) {
+  TimerController(this._timerProvider, this._aquarium, [this._oceanSystemController]) {
     _initializeTimer();
     _secondsRemainingNotifier.value = _secondsRemaining;
     _isRunningNotifier.value = _isRunning;
@@ -283,6 +285,15 @@ class TimerController extends ChangeNotifier {
     _secondsRemainingNotifier.value = _secondsRemaining;
     _sessionStartTime = null;
     
+    // Automatically set ocean system to surface when transitioning to break
+    if (!_isStudySession) {
+      _oceanSystemController?.setOnSurface(true);
+    }
+    // Automatically set ocean system to underwater when transitioning to study
+    else if (_isStudySession) {
+      _oceanSystemController?.setOnSurface(false);
+    }
+    
     // Complete Live Activity
     LiveActivitiesService().completeTimerActivity(
       isStudySession: wasStudySession,
@@ -326,6 +337,9 @@ class TimerController extends ChangeNotifier {
       _secondsRemaining = _timerProvider.focusDuration * 60;
       _secondsRemainingNotifier.value = _secondsRemaining;
       
+      // Sync ocean system controller
+      _oceanSystemController?.setOnSurface(false);
+      
       // Play transition sound
       UISoundService.instance.navigationSwitch();
       notifyListeners();
@@ -340,6 +354,9 @@ class TimerController extends ChangeNotifier {
           ? _timerProvider.longBreakDuration * 60 
           : _timerProvider.breakDuration * 60;
       _secondsRemainingNotifier.value = _secondsRemaining;
+      
+      // Sync ocean system controller
+      _oceanSystemController?.setOnSurface(true);
       
       // Play transition sound
       UISoundService.instance.navigationSwitch();
