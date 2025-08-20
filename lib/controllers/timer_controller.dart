@@ -256,6 +256,15 @@ class TimerController extends ChangeNotifier {
     // Save completed session
     await _saveSession(completed: true);
     
+    // Check for creature discovery after study sessions
+    Creature? discoveredCreature;
+    if (wasStudySession && _oceanSystemController != null) {
+      discoveredCreature = await _oceanSystemController.checkForCreatureDiscovery(sessionDuration);
+    }
+    
+    // Add discovered creature to reward
+    reward.discoveredCreature = discoveredCreature;
+    
     // Log ocean activity for the session
     if (wasStudySession) {
       // Use first coral in aquarium or default to brain coral
@@ -267,8 +276,8 @@ class TimerController extends ChangeNotifier {
         coralType: coralType,
         finalStage: CoralStage.flourishing,
         sessionDurationMinutes: sessionDuration,
-        discoveredCreatures: [],
-        pearlsEarned: 0,
+        discoveredCreatures: discoveredCreature != null ? [discoveredCreature] : [],
+        pearlsEarned: discoveredCreature?.pearlValue ?? 0,
       );
     }
     

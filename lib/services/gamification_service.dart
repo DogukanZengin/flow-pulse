@@ -42,14 +42,24 @@ class GamificationService {
   int get totalSessions => _totalSessions;
   int get totalFocusTime => _totalFocusTime;
   
-  // XP calculation
-  int getXPForNextLevel() => _currentLevel * 100;
-  int getCurrentLevelXP() => _totalXP - getLevelStartXP(_currentLevel);
-  int getLevelStartXP(int level) => ((level - 1) * level * 50);
+  // XP calculation - consistent with square root level formula
+  int getXPForNextLevel() {
+    // XP needed for next level based on square root formula
+    final nextLevel = _currentLevel + 1;
+    return getXPRequiredForLevel(nextLevel) - getXPRequiredForLevel(_currentLevel);
+  }
+  
+  int getCurrentLevelXP() => _totalXP - getXPRequiredForLevel(_currentLevel);
+  
+  int getXPRequiredForLevel(int level) {
+    // Inverse of sqrt formula: totalXP = ((level^2) - 1) * 50
+    return ((level * level) - 1) * 50;
+  }
+  
   double getLevelProgress() {
     final currentLevelXP = getCurrentLevelXP();
     final xpForNextLevel = getXPForNextLevel();
-    return currentLevelXP / xpForNextLevel;
+    return xpForNextLevel > 0 ? (currentLevelXP / xpForNextLevel).clamp(0.0, 1.0) : 0.0;
   }
   
   Future<void> initialize() async {
@@ -328,6 +338,7 @@ class GamificationReward {
   int currentStreak = 0;
   List<String> unlockedThemes = [];
   List<Achievement> unlockedAchievements = [];
+  dynamic discoveredCreature; // Can be Creature or null
 }
 
 class Achievement {

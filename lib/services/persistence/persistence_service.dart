@@ -10,6 +10,7 @@ import 'repositories/ocean_repository.dart';
 import 'repositories/career_repository.dart';
 import 'repositories/equipment_repository.dart';
 import 'repositories/research_repository.dart';
+import '../../data/comprehensive_species_database.dart';
 
 /// Unified persistence service for Flow Pulse
 /// Single source of truth for all data storage operations
@@ -189,6 +190,9 @@ class PersistenceService {
   Future<void> _onOpen(Database db) async {
     // Enable foreign keys
     await db.execute('PRAGMA foreign_keys = ON');
+    
+    // Populate initial creatures if empty
+    await _populateInitialCreatures(db);
     
     if (kDebugMode) {
       print('Database opened successfully');
@@ -527,6 +531,39 @@ class PersistenceService {
         'papers_published': 0,
         'last_updated': DateTime.now().millisecondsSinceEpoch,
       });
+    }
+  }
+
+  // Populate initial creatures from ComprehensiveSpeciesDatabase
+  Future<void> _populateInitialCreatures(Database db) async {
+    // Check if creatures table is empty
+    final creatureCount = Sqflite.firstIntValue(
+      await db.rawQuery('SELECT COUNT(*) FROM creatures')
+    ) ?? 0;
+    
+    if (creatureCount == 0) {
+      if (kDebugMode) {
+        print('Populating initial creatures from ComprehensiveSpeciesDatabase...');
+      }
+      
+      // Import the species database
+      final allSpecies = ComprehensiveSpeciesDatabase.allSpecies;
+      
+      // Batch insert all creatures
+      final batch = db.batch();
+      for (final creature in allSpecies) {
+        batch.insert(
+          'creatures',
+          creature.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+      
+      await batch.commit(noResult: true);
+      
+      if (kDebugMode) {
+        print('Successfully populated ${allSpecies.length} creatures');
+      }
     }
   }
 

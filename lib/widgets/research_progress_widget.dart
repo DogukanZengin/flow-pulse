@@ -139,20 +139,20 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                   ],
                 ),
                 
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 
                 // Level and title
                 Text(
                   'Level $level: ${_getResearcherTitle()}',
                   style: TextStyle(
                     color: levelColor,
-                    fontSize: widgetWidth < 190 ? 12 : 13,
+                    fontSize: widgetWidth < 190 ? 11 : 12,
                     fontWeight: FontWeight.w600,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
                 
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 
                 // Species progress
                 Row(
@@ -165,10 +165,10 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                             'Species: ${widget.speciesDiscovered}/${widget.totalSpeciesInCurrentBiome}',
                             style: const TextStyle(
                               color: Colors.white70,
-                              fontSize: 12,
+                              fontSize: 11,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           LinearProgressIndicator(
                             value: speciesProgress.clamp(0.0, 1.0),
                             backgroundColor: Colors.white.withValues(alpha: 0.1),
@@ -183,7 +183,7 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                   ],
                 ),
                 
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 
                 // Papers and certification
                 Row(
@@ -196,18 +196,18 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                             'Papers: ${widget.researchPapersPublished}',
                             style: const TextStyle(
                               color: Colors.white70,
-                              fontSize: 12,
+                              fontSize: 11,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           Text(
-                            'Next Cert: ${(widget.certificationProgress * 100).round()}%',
+                            'Next Level: ${(widget.certificationProgress * 100).round()}%',
                             style: const TextStyle(
                               color: Colors.white70,
-                              fontSize: 12,
+                              fontSize: 11,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           LinearProgressIndicator(
                             value: widget.certificationProgress.clamp(0.0, 1.0),
                             backgroundColor: Colors.white.withValues(alpha: 0.1),
@@ -219,8 +219,8 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                     ),
                     // Level badge
                     Container(
-                      width: 40,
-                      height: 40,
+                      width: 36,
+                      height: 36,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
@@ -239,7 +239,7 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                           '$level',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 14,
+                            fontSize: 13,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

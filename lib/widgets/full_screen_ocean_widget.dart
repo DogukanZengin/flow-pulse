@@ -11,6 +11,7 @@ import '../services/persistence/persistence_service.dart';
 import '../rendering/advanced_creature_renderer.dart';
 import '../rendering/biome_environment_renderer.dart';
 import '../widgets/enhanced_research_journal.dart';
+import '../data/comprehensive_species_database.dart';
 
 /// Full-screen marine biology research station and ocean environment
 /// Replaces the circular timer with an immersive underwater experience
@@ -395,7 +396,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                     // Research Progress - hidden during study sessions
                     ResearchProgressWidget(
                       speciesDiscovered: _discoveredCreatures.length,
-                      totalSpeciesInCurrentBiome: 12, // TODO: Get from aquarium data
+                      totalSpeciesInCurrentBiome: ComprehensiveSpeciesDatabase.getSpeciesForBiome(_getCurrentBiome()).length,
                       researchPapersPublished: _publishedPapersCount,
                       certificationProgress: GamificationService.instance.getLevelProgress(),
                     ),
