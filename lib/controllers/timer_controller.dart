@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:async';
 import '../providers/timer_provider.dart';
 import '../models/session.dart';
-import '../services/database_service.dart';
+import '../services/persistence/persistence_service.dart';
 import '../services/ui_sound_service.dart';
 import '../services/gamification_service.dart';
 import '../services/notification_service.dart';
@@ -306,7 +306,7 @@ class TimerController extends ChangeNotifier {
       completed: completed,
     );
 
-    await DatabaseService.insertSession(session);
+    await PersistenceService.instance.sessions.saveSession(session);
   }
   
   void switchToWorkSession() {

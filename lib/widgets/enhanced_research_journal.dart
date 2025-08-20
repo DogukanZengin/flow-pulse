@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/creature.dart';
 import '../data/comprehensive_species_database.dart';
-import '../services/database_service.dart';
+import '../services/persistence/persistence_service.dart';
 
 /// Enhanced Research Journal Widget for Phase 2 of Ocean Gamification Master Plan
 /// Provides comprehensive species tracking, discovery statistics, and research progress
@@ -60,7 +60,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
 
   Future<void> _loadResearchData() async {
     try {
-      final discovered = await DatabaseService.getDiscoveredCreatures();
+      final discovered = await PersistenceService.instance.ocean.getDiscoveredCreatures();
       
       // Calculate progress by biome
       final biomeProgress = <BiomeType, int>{};

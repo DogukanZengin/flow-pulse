@@ -1,5 +1,5 @@
 import '../models/session.dart';
-import 'database_service.dart';
+import 'persistence/persistence_service.dart';
 
 class AnalyticsData {
   final DateTime date;
@@ -68,7 +68,7 @@ class AnalyticsService {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
-    final sessions = await DatabaseService.getSessionsByDateRange(startDate, endDate);
+    final sessions = await PersistenceService.instance.sessions.getSessionsByDateRange(startDate, endDate);
     final List<AnalyticsData> analyticsData = [];
 
     // Group sessions by date
@@ -105,7 +105,7 @@ class AnalyticsService {
       return _dailyCache[cacheKey]!;
     }
 
-    final sessions = await DatabaseService.getSessionsByDateRange(startOfDay, endOfDay);
+    final sessions = await PersistenceService.instance.sessions.getSessionsByDateRange(startOfDay, endOfDay);
     final analytics = await _calculateDayAnalytics(today, sessions);
     
     _dailyCache[cacheKey] = analytics;
@@ -120,7 +120,7 @@ class AnalyticsService {
     final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
     final endOfWeek = startOfWeek.add(const Duration(days: 7));
     
-    final sessions = await DatabaseService.getSessionsByDateRange(
+    final sessions = await PersistenceService.instance.sessions.getSessionsByDateRange(
       startOfWeek,
       endOfWeek,
     );
@@ -289,7 +289,7 @@ class AnalyticsService {
     
     while (true) {
       final nextDay = currentDate.add(const Duration(days: 1));
-      final sessions = await DatabaseService.getSessionsByDateRange(currentDate, nextDay);
+      final sessions = await PersistenceService.instance.sessions.getSessionsByDateRange(currentDate, nextDay);
       
       // Check if this day has at least one completed focus session
       final hasCompletedFocus = sessions.any(

@@ -3,7 +3,7 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:flow_pulse/services/database_service.dart' as _i2;
+import 'package:flow_pulse/services/persistence/persistence_service.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -20,11 +20,11 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-/// A class which mocks [DatabaseService].
+/// A class which mocks [PersistenceService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockDatabaseService extends _i1.Mock implements _i2.DatabaseService {
-  MockDatabaseService() {
+class MockPersistenceService extends _i1.Mock implements _i2.PersistenceService {
+  MockPersistenceService() {
     _i1.throwOnMissingStub(this);
   }
 }

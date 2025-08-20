@@ -1,6 +1,6 @@
 import 'dart:async';
 import '../models/session.dart';
-import '../services/database_service.dart';
+import 'persistence/persistence_service.dart';
 import '../services/notification_service.dart';
 import '../services/live_activities_service.dart';
 
@@ -35,7 +35,7 @@ class TimerService {
       completed: completed,
     );
 
-    await DatabaseService.insertSession(session);
+    await PersistenceService.instance.sessions.saveSession(session);
   }
   
   static void startNotificationUpdates({

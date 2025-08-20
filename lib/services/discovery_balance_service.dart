@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import '../models/creature.dart';
-import 'database_service.dart';
+import 'persistence/persistence_service.dart';
 
 /// Discovery Balance Service - Phase 5 Implementation
 /// Dynamically adjusts discovery rates based on user progression and engagement
@@ -80,7 +80,7 @@ class DiscoveryBalanceService {
   /// Get personalized discovery recommendations
   Future<List<String>> getDiscoveryRecommendations(int userLevel) async {
     final recommendations = <String>[];
-    final allCreatures = await DatabaseService.getAllCreatures();
+    final allCreatures = await PersistenceService.instance.ocean.getAllCreatures();
     final discoveredIds = allCreatures.where((c) => c.isDiscovered).map((c) => c.id).toSet();
     final undiscovered = allCreatures.where((c) => !discoveredIds.contains(c.id)).toList();
     
@@ -179,7 +179,7 @@ class DiscoveryBalanceService {
   }
   
   Future<double> _applyBiomeCompletionBalance(double rate, BiomeType biome) async {
-    final allCreatures = await DatabaseService.getAllCreatures();
+    final allCreatures = await PersistenceService.instance.ocean.getAllCreatures();
     final biomeCreatures = allCreatures.where((c) => c.habitat == biome).toList();
     final discoveredInBiome = biomeCreatures.where((c) => c.isDiscovered).length;
     

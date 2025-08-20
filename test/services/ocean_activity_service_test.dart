@@ -1,14 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:flow_pulse/services/ocean_activity_service.dart';
-import 'package:flow_pulse/services/database_service.dart';
+import 'package:flow_pulse/services/persistence/persistence_service.dart';
 import 'package:flow_pulse/models/ocean_activity.dart';
 import 'package:flow_pulse/models/session.dart';
 import 'package:flow_pulse/models/creature.dart';
 import 'package:flow_pulse/models/coral.dart';
 
 // Generate mocks - Note: OceanActivityService has static methods
-@GenerateMocks([DatabaseService])
+@GenerateMocks([PersistenceService])
 
 void main() {
   group('OceanActivityService Tests', () {

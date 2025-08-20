@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import '../providers/timer_provider.dart';
-import '../services/database_service.dart';
+import '../services/persistence/persistence_service.dart';
 import '../widgets/particle_system.dart';
 import '../widgets/underwater_environment.dart';
 import '../widgets/full_screen_ocean_widget.dart';
@@ -62,7 +62,7 @@ class TimerScreenState extends State<TimerScreen>
   }
 
   Future<void> _loadTodayStats() async {
-    await DatabaseService.getStatistics();
+    await PersistenceService.instance.sessions.getStatistics();
   }
 
   void _onTimerUpdate() {

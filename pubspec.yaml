@@ -38,6 +38,8 @@ dependencies:
   # Core functionality dependencies
   shared_preferences: ^2.5.3
   sqflite: ^2.4.2
+  sqflite_common_ffi: ^2.3.0
+  sqflite_common_ffi_web: ^0.4.5
   audioplayers: ^6.5.0
   
   # UI and state management
@@ -96,7 +98,6 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
-  sqflite_common_ffi: ^2.3.0
   mockito: ^5.4.4
   build_runner: ^2.4.7
 

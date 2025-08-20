@@ -274,7 +274,7 @@ class SeasonalEventsService {
     // Every 4th week has a special encounter event
     if (weekOfYear % 4 == 0) {
       return SeasonalEvent(
-        id: 'weekly_special_${weekOfYear}',
+        id: 'weekly_special_$weekOfYear',
         name: 'Research Expedition Week',
         description: 'Special research opportunities available. Increased legendary encounter rates.',
         type: SeasonalEventType.specialEncounter,

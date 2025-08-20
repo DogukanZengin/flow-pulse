@@ -2,7 +2,7 @@ import '../models/creature.dart';
 import '../models/coral.dart';
 import '../models/aquarium.dart';
 import '../models/ocean_activity.dart';
-import 'database_service.dart';
+import 'persistence/persistence_service.dart';
 import 'ocean_activity_service.dart';
 
 class OceanSetupService {
@@ -24,7 +24,7 @@ class OceanSetupService {
         stats: const AquariumStats(),
       );
 
-      await DatabaseService.saveAquarium(aquarium);
+      await PersistenceService.instance.ocean.saveAquarium(aquarium);
 
       // 2. Populate creature database (all undiscovered)
       await _createCreatureDatabase();
@@ -39,17 +39,17 @@ class OceanSetupService {
 
   /// Check if user aquarium already exists
   static Future<bool> hasExistingAquarium() async {
-    final aquarium = await DatabaseService.getAquarium(_defaultAquariumId);
+    final aquarium = await PersistenceService.instance.ocean.getAquarium(_defaultAquariumId);
     return aquarium != null;
   }
 
   /// Get user's aquarium or create new one if needed
   static Future<Aquarium> getOrCreateAquarium() async {
-    var aquarium = await DatabaseService.getAquarium(_defaultAquariumId);
+    var aquarium = await PersistenceService.instance.ocean.getAquarium(_defaultAquariumId);
     
     if (aquarium == null) {
       await initializeNewUserAquarium();
-      aquarium = await DatabaseService.getAquarium(_defaultAquariumId);
+      aquarium = await PersistenceService.instance.ocean.getAquarium(_defaultAquariumId);
     }
     
     return aquarium!;
@@ -60,7 +60,7 @@ class OceanSetupService {
     final creatures = _generateAllCreatures();
     
     for (final creature in creatures) {
-      await DatabaseService.saveCreature(creature);
+      await PersistenceService.instance.ocean.saveCreature(creature);
     }
   }
 
@@ -81,7 +81,7 @@ class OceanSetupService {
       priority: ActivityPriority.high,
     );
 
-    await DatabaseService.saveOceanActivity(welcomeActivity);
+    await PersistenceService.instance.ocean.saveOceanActivity(welcomeActivity);
 
     // Tutorial activity
     final tutorialActivity = OceanActivity(
@@ -98,7 +98,7 @@ class OceanSetupService {
       priority: ActivityPriority.normal,
     );
 
-    await DatabaseService.saveOceanActivity(tutorialActivity);
+    await PersistenceService.instance.ocean.saveOceanActivity(tutorialActivity);
   }
 
   /// Generate all creatures for the database
@@ -206,7 +206,7 @@ class OceanSetupService {
       position: {'x': 0.5, 'y': 0.6}, // Center-bottom position
     );
 
-    await DatabaseService.saveCoral(coral);
+    await PersistenceService.instance.ocean.saveCoral(coral);
 
     // Log coral planting activity
     await OceanActivityService.logCoralPlanted(
@@ -217,7 +217,7 @@ class OceanSetupService {
 
   /// Get total creature count by biome (for UI display)
   static Future<Map<BiomeType, int>> getCreatureCountByBiome() async {
-    final creatures = await DatabaseService.getAllCreatures();
+    final creatures = await PersistenceService.instance.ocean.getAllCreatures();
     final counts = <BiomeType, int>{};
     
     for (final biome in BiomeType.values) {
@@ -229,8 +229,8 @@ class OceanSetupService {
 
   /// Get discovered creatures percentage by biome
   static Future<Map<BiomeType, double>> getDiscoveryProgressByBiome() async {
-    final allCreatures = await DatabaseService.getAllCreatures();
-    final discoveredCreatures = await DatabaseService.getDiscoveredCreatures();
+    final allCreatures = await PersistenceService.instance.ocean.getAllCreatures();
+    final discoveredCreatures = await PersistenceService.instance.ocean.getDiscoveredCreatures();
     
     final progress = <BiomeType, double>{};
     

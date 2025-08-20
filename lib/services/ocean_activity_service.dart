@@ -3,7 +3,7 @@ import '../models/ocean_activity.dart';
 import '../models/session.dart';
 import '../models/creature.dart';
 import '../models/coral.dart';
-import 'database_service.dart';
+import 'persistence/persistence_service.dart';
 
 class OceanActivityService {
   static const int _maxActivities = 200; // Keep last 200 activities
@@ -18,7 +18,7 @@ class OceanActivityService {
       biome: biome.displayName,
     );
     
-    await DatabaseService.saveOceanActivity(activity);
+    await PersistenceService.instance.ocean.saveOceanActivity(activity);
     await _cleanupOldActivities();
   }
 
@@ -36,7 +36,7 @@ class OceanActivityService {
       stage: finalStage.displayName,
       sessionMinutes: sessionDurationMinutes,
     );
-    await DatabaseService.saveOceanActivity(coralActivity);
+    await PersistenceService.instance.ocean.saveOceanActivity(coralActivity);
 
     // Log creature discoveries
     for (final creature in discoveredCreatures) {
@@ -45,7 +45,7 @@ class OceanActivityService {
         rarity: creature.rarity.displayName,
         pearlsEarned: creature.pearlValue,
       );
-      await DatabaseService.saveOceanActivity(discoveryActivity);
+      await PersistenceService.instance.ocean.saveOceanActivity(discoveryActivity);
     }
 
     // Log pearl earnings if any
@@ -54,7 +54,7 @@ class OceanActivityService {
         amount: pearlsEarned,
         source: 'coral growth session',
       );
-      await DatabaseService.saveOceanActivity(pearlActivity);
+      await PersistenceService.instance.ocean.saveOceanActivity(pearlActivity);
     }
 
     await _cleanupOldActivities();
@@ -72,7 +72,7 @@ class OceanActivityService {
       damageAmount: damagePercent,
     );
     
-    await DatabaseService.saveOceanActivity(activity);
+    await PersistenceService.instance.ocean.saveOceanActivity(activity);
     await _cleanupOldActivities();
   }
 
@@ -86,7 +86,7 @@ class OceanActivityService {
       requiredLevel: levelReached,
     );
     
-    await DatabaseService.saveOceanActivity(activity);
+    await PersistenceService.instance.ocean.saveOceanActivity(activity);
     await _cleanupOldActivities();
   }
 
@@ -102,7 +102,7 @@ class OceanActivityService {
       rewardPearls: pearlReward,
     );
     
-    await DatabaseService.saveOceanActivity(activity);
+    await PersistenceService.instance.ocean.saveOceanActivity(activity);
     await _cleanupOldActivities();
   }
 
@@ -116,7 +116,7 @@ class OceanActivityService {
       bonusPearls: bonusPearls,
     );
     
-    await DatabaseService.saveOceanActivity(activity);
+    await PersistenceService.instance.ocean.saveOceanActivity(activity);
     await _cleanupOldActivities();
   }
 
@@ -143,7 +143,7 @@ class OceanActivityService {
       priority: ActivityPriority.normal,
     );
     
-    await DatabaseService.saveOceanActivity(activity);
+    await PersistenceService.instance.ocean.saveOceanActivity(activity);
     await _cleanupOldActivities();
   }
 
@@ -167,7 +167,7 @@ class OceanActivityService {
       priority: ActivityPriority.low,
     );
     
-    await DatabaseService.saveOceanActivity(activity);
+    await PersistenceService.instance.ocean.saveOceanActivity(activity);
     await _cleanupOldActivities();
   }
 
@@ -189,7 +189,7 @@ class OceanActivityService {
       priority: priority,
     );
     
-    await DatabaseService.saveOceanActivity(activity);
+    await PersistenceService.instance.ocean.saveOceanActivity(activity);
     await _cleanupOldActivities();
   }
 
@@ -222,17 +222,17 @@ class OceanActivityService {
 
   /// Get recent activities for display in UI
   static Future<List<OceanActivity>> getRecentActivities({int limit = 20}) async {
-    return await DatabaseService.getRecentOceanActivities(limit: limit);
+    return await PersistenceService.instance.ocean.getRecentOceanActivities(limit: limit);
   }
 
   /// Get activities by type for specific filtering
   static Future<List<OceanActivity>> getActivitiesByType(OceanActivityType type) async {
-    return await DatabaseService.getActivitiesByType(type);
+    return await PersistenceService.instance.ocean.getActivitiesByType(type);
   }
 
   /// Get activity statistics for analytics
   static Future<Map<String, dynamic>> getActivityStatistics() async {
-    final allActivities = await DatabaseService.getRecentOceanActivities(limit: 1000);
+    final allActivities = await PersistenceService.instance.ocean.getRecentOceanActivities(limit: 1000);
     
     final typeDistribution = <String, int>{};
     final priorityDistribution = <String, int>{};
@@ -268,11 +268,11 @@ class OceanActivityService {
 
   /// Clean up old activities to prevent database bloat
   static Future<void> _cleanupOldActivities() async {
-    final activities = await DatabaseService.getRecentOceanActivities(limit: _maxActivities + 50);
+    final activities = await PersistenceService.instance.ocean.getRecentOceanActivities(limit: _maxActivities + 50);
     
     if (activities.length > _maxActivities) {
       // Use database cleanup to maintain activity limits
-      await DatabaseService.cleanupOldOceanActivities();
+      await PersistenceService.instance.ocean.cleanupOldOceanActivities();
     }
   }
 

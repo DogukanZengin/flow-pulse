@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:flow_pulse/services/ocean_setup_service.dart';
-import 'package:flow_pulse/services/database_service.dart';
+import 'package:flow_pulse/services/persistence/persistence_service.dart';
 import 'package:flow_pulse/models/creature.dart';
 import 'package:flow_pulse/models/aquarium.dart';
 
 // Generate mocks - Note: OceanSetupService has static methods, so we test them directly
-@GenerateMocks([DatabaseService])
+@GenerateMocks([PersistenceService])
 
 void main() {
   group('OceanSetupService Tests', () {

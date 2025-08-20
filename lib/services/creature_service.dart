@@ -3,7 +3,7 @@ import '../models/creature.dart';
 import '../models/coral.dart';
 import '../models/aquarium.dart';
 import '../models/ocean_activity.dart';
-import 'database_service.dart';
+import 'persistence/persistence_service.dart';
 import 'seasonal_events_service.dart';
 
 class CreatureService {
@@ -43,7 +43,7 @@ class CreatureService {
     double discoveryChance = baseDiscoveryChance;
     
     // Add bonuses from corals
-    final corals = await DatabaseService.getAllCorals();
+    final corals = await PersistenceService.instance.ocean.getAllCorals();
     for (final coral in corals) {
       if (coral.isHealthy && coral.stage != CoralStage.polyp) {
         discoveryChance += coralDiscoveryBonuses[coral.type] ?? 0;
@@ -78,7 +78,7 @@ class CreatureService {
   /// Select which creature to discover based on rarity, biome, and depth
   static Future<Creature?> _selectCreatureToDiscover(Aquarium aquarium, double depth, int sessionDuration) async {
     // Get all undiscovered creatures
-    final allCreatures = await DatabaseService.getAllCreatures();
+    final allCreatures = await PersistenceService.instance.ocean.getAllCreatures();
     final undiscoveredCreatures = allCreatures
         .where((c) => !c.isDiscovered)
         .where((c) => aquarium.isBiomeUnlocked(c.habitat))
@@ -131,7 +131,7 @@ class CreatureService {
   /// Mark a creature as discovered and handle related logic
   static Future<void> _discoverCreature(Creature creature, Aquarium aquarium) async {
     // Update creature in database
-    await DatabaseService.discoverCreature(creature.id);
+    await PersistenceService.instance.ocean.discoverCreature(creature.id);
     
     // Log the discovery activity
     final activity = OceanActivity.creatureDiscovered(
@@ -140,7 +140,7 @@ class CreatureService {
       pearlsEarned: creature.pearlValue,
       timestamp: DateTime.now(),
     );
-    await DatabaseService.saveOceanActivity(activity);
+    await PersistenceService.instance.ocean.saveOceanActivity(activity);
     
     // Award pearls for discovery
     final updatedWallet = aquarium.pearlWallet.addPearls(creature.pearlValue);
@@ -154,13 +154,13 @@ class CreatureService {
       stats: updatedStats,
       lastActiveAt: DateTime.now(),
     );
-    await DatabaseService.saveAquarium(updatedAquarium);
+    await PersistenceService.instance.ocean.saveAquarium(updatedAquarium);
   }
   
   /// Get discovery statistics
   static Future<Map<String, dynamic>> getDiscoveryStats() async {
-    final allCreatures = await DatabaseService.getAllCreatures();
-    final discoveredCreatures = await DatabaseService.getDiscoveredCreatures();
+    final allCreatures = await PersistenceService.instance.ocean.getAllCreatures();
+    final discoveredCreatures = await PersistenceService.instance.ocean.getDiscoveredCreatures();
     
     // Calculate stats by rarity
     final statsByRarity = <CreatureRarity, Map<String, int>>{};

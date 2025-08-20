@@ -7,11 +7,13 @@ import 'services/gamification_service.dart';
 import 'services/notification_service.dart';
 import 'services/live_activities_service.dart';
 import 'services/break_rewards_service.dart';
+import 'services/persistence/persistence_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize core services
+  await PersistenceService.instance.initialize();
   await GamificationService.instance.initialize();
   await BreakRewardsService().initialize();
   
