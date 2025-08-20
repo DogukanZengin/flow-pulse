@@ -7,8 +7,10 @@ import '../widgets/dive_computer_widget.dart';
 import '../widgets/research_progress_widget.dart';
 import '../widgets/timer_display.dart';
 import '../services/gamification_service.dart';
+import '../services/persistence/persistence_service.dart';
 import '../rendering/advanced_creature_renderer.dart';
 import '../rendering/biome_environment_renderer.dart';
+import '../widgets/enhanced_research_journal.dart';
 
 /// Full-screen marine biology research station and ocean environment
 /// Replaces the circular timer with an immersive underwater experience
@@ -63,6 +65,9 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
   
   // State for dive computer hover
   bool _isDiveComputerHovered = false;
+  
+  // State for discovered creatures (for research journal)
+  List<Creature> _discoveredCreatures = [];
   
   // Continuous time tracking for smooth animations
   late DateTime _startTime;
@@ -129,6 +134,33 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
       _depthController.forward();
       _timerPulseController.repeat(reverse: true);
     }
+    
+    // Load discovered creatures for research journal
+    _loadDiscoveredCreatures();
+  }
+  
+  /// Load discovered creatures from persistence service
+  Future<void> _loadDiscoveredCreatures() async {
+    try {
+      final discovered = await PersistenceService.instance.ocean.getDiscoveredCreatures();
+      if (mounted) {
+        setState(() {
+          _discoveredCreatures = discovered;
+        });
+      }
+    } catch (e) {
+      // Handle error silently - research journal will show empty state
+    }
+  }
+  
+  /// Open the full research journal
+  void _openResearchJournal() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const EnhancedResearchJournal(),
+        fullscreenDialog: true,
+      ),
+    );
   }
 
   void _initializeFishAnimations() {
@@ -345,7 +377,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                     
                     // Research Progress - hidden during study sessions
                     ResearchProgressWidget(
-                      speciesDiscovered: widget.visibleCreatures.length,
+                      speciesDiscovered: _discoveredCreatures.length,
                       totalSpeciesInCurrentBiome: 12, // TODO: Get from aquarium data
                       researchPapersPublished: 3, // TODO: Get from gamification service
                       certificationProgress: GamificationService.instance.getLevelProgress(),
@@ -678,16 +710,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
           }
         },
         child: GestureDetector(
-          onTap: () {
-            setState(() {
-              _isJournalExpanded = !_isJournalExpanded;
-            });
-            if (_isJournalExpanded) {
-              _journalExpandController.forward();
-            } else {
-              _journalExpandController.reverse();
-            }
-          },
+          onTap: _openResearchJournal,
           child: AnimatedBuilder(
             animation: _journalExpandAnimation,
             builder: (context, child) {
@@ -735,7 +758,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
             color: Colors.amber,
             size: 28,
           ),
-          if (widget.visibleCreatures.isNotEmpty)
+          if (_discoveredCreatures.isNotEmpty)
             Positioned(
               top: 8,
               right: 8,
@@ -749,7 +772,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                 ),
                 child: Center(
                   child: Text(
-                    '${widget.visibleCreatures.length}',
+                    '${_discoveredCreatures.length}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 8,
@@ -797,7 +820,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
             ],
           ),
           const SizedBox(height: 12),
-          if (widget.visibleCreatures.isNotEmpty) ...[
+          if (_discoveredCreatures.isNotEmpty) ...[
             const Text(
               'Recent Discovery:',
               style: TextStyle(
@@ -816,7 +839,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.visibleCreatures.last.name,
+                    _discoveredCreatures.last.name,
                     style: const TextStyle(
                       color: Colors.amber,
                       fontSize: 14,
@@ -833,7 +856,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Depth: ${_getCurrentDepth()}m',
+                        _discoveredCreatures.last.habitat.displayName,
                         style: const TextStyle(
                           color: Colors.white60,
                           fontSize: 11,
@@ -845,14 +868,14 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                   Row(
                     children: [
                       Icon(
-                        Icons.pets,
+                        Icons.star,
                         color: Colors.green.withValues(alpha: 0.8),
                         size: 12,
                       ),
                       const SizedBox(width: 4),
-                      const Text(
-                        'Behavior: Swimming',
-                        style: TextStyle(
+                      Text(
+                        _discoveredCreatures.last.rarity.displayName,
+                        style: const TextStyle(
                           color: Colors.white60,
                           fontSize: 11,
                         ),
@@ -864,7 +887,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
             ),
             const SizedBox(height: 8),
             Text(
-              'Total Discoveries: ${widget.visibleCreatures.length}',
+              'Total Discoveries: ${_discoveredCreatures.length}',
               style: TextStyle(
                 color: Colors.amber.withValues(alpha: 0.8),
                 fontSize: 11,

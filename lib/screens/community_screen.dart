@@ -35,38 +35,38 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
   
   Future<void> _loadSocialData() async {
-    // Create current user profile from gamification service
+    // Create current user profile with clean data
     final userLevel = GamificationService.instance.currentLevel;
     
     _currentUser = ResearcherProfile(
       id: 'current_user',
-      name: 'You', // In production, this would come from user settings
+      name: 'You',
       researchLevel: userLevel,
-      totalDiscoveries: 15, // Mock value - would come from CreatureService
+      totalDiscoveries: 0, // Start with 0 discoveries
       currentStreak: GamificationService.instance.currentStreak,
-      researchEfficiency: 7.5,
-      weeklyDiscoveries: 5,
-      legendaryDiscoveries: 1,
+      researchEfficiency: 0.0, // Start with 0 efficiency
+      weeklyDiscoveries: 0,
+      legendaryDiscoveries: 0,
       specialization: 'Marine Biology Research',
-      joinedDate: DateTime.now().subtract(const Duration(days: 30)),
+      joinedDate: DateTime.now(),
       lastActiveDate: DateTime.now(),
-      achievements: 8,
-      publicationsCount: 3,
-      collaborationsCount: 2,
-      ranking: 0, // Will be set after leaderboard generation
+      achievements: 0,
+      publicationsCount: 0,
+      collaborationsCount: 0,
+      ranking: 1, // Solo player starts at rank 1
     );
     
     setState(() {
-      // Generate leaderboards
+      // Generate empty leaderboards and collaborations
       _leaderboard = SocialResearchService.generateLeaderboards(
         _currentUser,
         _selectedCategory,
       );
       
-      // Get collaboration opportunities
+      // Get empty collaboration opportunities
       _collaborations = SocialResearchService.getCollaborationOpportunities(_currentUser);
       
-      // Get community goals
+      // Get empty community goals
       _communityGoals = SocialResearchService.getCommunityGoals();
       
       _isLoading = false;

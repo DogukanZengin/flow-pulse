@@ -6,8 +6,6 @@ import '../services/marine_biology_achievement_service.dart';
 import '../services/equipment_progression_service.dart';
 import '../services/research_paper_service.dart';
 import '../services/gamification_service.dart';
-import '../services/marine_biology_career_service.dart';
-import '../models/creature.dart';
 
 /// Career Screen - Phase 4 Progression Hub
 /// Houses achievements, equipment, and research papers
@@ -21,7 +19,7 @@ class CareerScreen extends StatefulWidget {
 class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   
-  // Mock data for demonstration - in production, this would come from providers/services
+  // Clean state - no mock data
   final List<MarineBiologyAchievement> _achievements = [];
   final List<ResearchEquipment> _equipment = [];
   final List<ResearchPaper> _availablePapers = [];
@@ -42,53 +40,16 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
   }
   
   Future<void> _loadCareerData() async {
-    // In production, these would fetch from actual services/databases
-    final userLevel = GamificationService.instance.currentLevel;
-    final discoveredCreatures = <Creature>[]; // Would come from CreatureService
-    final unlockedEquipment = <String>[]; // Would come from user preferences
-    
-    // Create mock ResearchMetrics for achievements
-    final metrics = ResearchMetrics(
-      totalDiscoveries: discoveredCreatures.length,
-      discoveriesPerSession: 0.5,
-      discoveriesPerHour: 1.0,
-      recentDiscoveries: 5,
-      diversityIndex: 0.75,
-      researchEfficiency: 0.85,
-      averageSessionTime: 25.0,
-    );
-    
+    // Clean slate - initialize with empty equipment bonuses only
     setState(() {
-      // Load achievements
-      _achievements.addAll(MarineBiologyAchievementService.getAllAchievements(
-        discoveredCreatures,
-        userLevel,
-        1000, // Mock total XP
-        metrics,
-        GamificationService.instance.currentStreak,
-        50, // Mock total sessions
-      ));
-      
-      // Load equipment
-      _equipment.addAll(EquipmentProgressionService.getAllEquipment(
-        userLevel,
-        discoveredCreatures,
-        unlockedEquipment,
-      ));
-      
-      // Calculate equipment bonuses
-      _equipmentBonuses = EquipmentProgressionService.calculateEquipmentBonuses(
-        unlockedEquipment,
-        userLevel,
-        discoveredCreatures,
+      _equipmentBonuses = const EquipmentBonuses(
+        discoveryRateBonus: 0.0,
+        sessionXPBonus: 0.0,
+        equippedCount: 0,
+        availableCount: 0,
+        totalCount: 0,
+        categoryBonuses: {},
       );
-      
-      // Load research papers  
-      _availablePapers.addAll(ResearchPaperService.getAvailablePapers(
-        discoveredCreatures,
-        userLevel,
-        _publishedPapers.map((p) => p.id).toList(),
-      ));
     });
   }
   
