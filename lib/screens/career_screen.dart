@@ -764,12 +764,49 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                       )),
                     ],
                     const Spacer(),
+                    if (equipment.isUnlocked) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (equipment.isEquipped) {
+                              await _unequipItem(equipment);
+                            } else {
+                              await _equipItem(equipment);
+                            }
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: equipment.isEquipped ? Colors.orange : Colors.green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                equipment.isEquipped ? Icons.remove_circle : Icons.add_circle,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(equipment.isEquipped ? 'Unequip' : 'Equip'),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () => Navigator.pop(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.cyan,
+                          backgroundColor: Colors.grey.shade600,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
@@ -787,5 +824,39 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
         ),
       ),
     );
+  }
+
+  Future<void> _equipItem(ResearchEquipment equipment) async {
+    try {
+      final equipmentRepository = PersistenceService.instance.equipment;
+      await equipmentRepository.equipItem(equipment.id);
+      await _loadCareerData(); // Refresh all career data
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to equip ${equipment.name}: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _unequipItem(ResearchEquipment equipment) async {
+    try {
+      final equipmentRepository = PersistenceService.instance.equipment;
+      await equipmentRepository.unequipItem(equipment.id);
+      await _loadCareerData(); // Refresh all career data
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to unequip ${equipment.name}: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

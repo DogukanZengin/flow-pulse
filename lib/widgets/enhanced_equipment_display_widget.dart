@@ -650,7 +650,7 @@ class _MobileEquipmentCategoryViewState extends State<_MobileEquipmentCategoryVi
   
   Widget _buildMobileEquipmentCard(ResearchEquipment equipment) {
     return GestureDetector(
-      onTap: () => widget.onEquipmentTap?.call(equipment),
+      onTap: equipment.isUnlocked ? () => widget.onEquipmentTap?.call(equipment) : null,
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
@@ -663,85 +663,115 @@ class _MobileEquipmentCategoryViewState extends State<_MobileEquipmentCategoryVi
                     equipment.rarityColor.withValues(alpha: 0.1),
                   ]
                 : [
-                    Colors.grey.withValues(alpha: 0.2),
-                    Colors.grey.withValues(alpha: 0.05),
+                    Colors.grey.shade700.withValues(alpha: 0.4),
+                    Colors.grey.shade800.withValues(alpha: 0.6),
                   ],
           ),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: equipment.isUnlocked 
                 ? equipment.rarityColor.withValues(alpha: 0.5)
-                : Colors.grey.withValues(alpha: 0.3),
+                : Colors.grey.shade500.withValues(alpha: 0.6),
             width: equipment.isEquipped ? 2 : 1,
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Equipment Icon
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: equipment.isUnlocked 
-                    ? equipment.rarityColor.withValues(alpha: 0.2)
-                    : Colors.grey.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                equipment.icon,
-                style: TextStyle(
-                  fontSize: 24,
-                  color: equipment.isUnlocked ? null : Colors.grey,
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 8),
-            
-            // Equipment Name
-            Text(
-              equipment.name,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: equipment.isUnlocked ? Colors.white : Colors.grey,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            
-            const SizedBox(height: 4),
-            
-            // Level Requirement
-            Text(
-              'Level ${equipment.unlockLevel}',
-              style: TextStyle(
-                fontSize: 9,
-                color: equipment.isUnlocked 
-                    ? equipment.rarityColor 
-                    : Colors.grey,
-              ),
-            ),
-            
-            // Equipped Indicator
-            if (equipment.isEquipped)
+            if (equipment.isUnlocked) ...[
+              // Revealed Equipment
               Container(
-                margin: const EdgeInsets.only(top: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.2),
+                  color: equipment.rarityColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'EQUIPPED',
+                  equipment.icon,
+                  style: const TextStyle(fontSize: 24),
+                ),
+              ),
+              
+              const SizedBox(height: 8),
+              
+              Text(
+                equipment.name,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              
+              const SizedBox(height: 4),
+              
+              Text(
+                'Level ${equipment.unlockLevel}',
+                style: TextStyle(
+                  fontSize: 9,
+                  color: equipment.rarityColor,
+                ),
+              ),
+              
+              if (equipment.isEquipped)
+                Container(
+                  margin: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'EQUIPPED',
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+                ),
+            ] else ...[
+              // Mystery Equipment
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade600.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.help_outline,
+                  size: 24,
+                  color: Colors.grey.shade300,
+                ),
+              ),
+              
+              const SizedBox(height: 8),
+              
+              const SizedBox(height: 4),
+              
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.orange.withValues(alpha: 0.5),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  'Unlock at Lv${equipment.unlockLevel}',
                   style: TextStyle(
                     fontSize: 8,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
+                    color: Colors.orange.shade300,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
+            ],
           ],
         ),
       ),

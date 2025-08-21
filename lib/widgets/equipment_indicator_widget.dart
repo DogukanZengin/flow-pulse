@@ -144,14 +144,28 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
               scale: isUnlocked ? pulseValue : 1.0,
               child: Container(
                 decoration: BoxDecoration(
-                  color: isUnlocked 
-                      ? equipment['color'].withValues(alpha: 0.8)
-                      : Colors.grey.shade300,
+                  gradient: isUnlocked 
+                      ? LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            equipment['color'].withValues(alpha: 0.9),
+                            equipment['color'].withValues(alpha: 0.6),
+                          ],
+                        )
+                      : LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.grey.shade700.withValues(alpha: 0.8),
+                            Colors.grey.shade800.withValues(alpha: 0.9),
+                          ],
+                        ),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isUnlocked 
                         ? equipment['color']
-                        : Colors.grey.shade400,
+                        : Colors.grey.shade500,
                     width: 2,
                   ),
                   boxShadow: isUnlocked
@@ -162,32 +176,61 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
                             spreadRadius: 2,
                           ),
                         ]
-                      : null,
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 4,
+                            spreadRadius: 1,
+                          ),
+                        ],
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      equipment['icon'],
-                      size: 24,
-                      color: isUnlocked 
-                          ? Colors.white
-                          : Colors.grey.shade600,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      equipment['name'],
-                      style: TextStyle(
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                        color: isUnlocked 
-                            ? Colors.white
-                            : Colors.grey.shade600,
+                    if (isUnlocked) ...[
+                      // Revealed equipment
+                      Icon(
+                        equipment['icon'],
+                        size: 24,
+                        color: Colors.white,
                       ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                      const SizedBox(height: 4),
+                      Text(
+                        equipment['name'],
+                        style: const TextStyle(
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ] else ...[
+                      // Hidden equipment - mystery card
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade600.withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.help_outline,
+                          size: 20,
+                          color: Colors.grey.shade300,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Lv${equipment['requiredLevel']}',
+                        style: TextStyle(
+                          fontSize: 7,
+                          color: Colors.orange.withValues(alpha: 0.8),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
