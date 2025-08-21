@@ -140,17 +140,20 @@ class AchievementDisplayWidget extends StatelessWidget {
                   : Colors.grey.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Text(
-              achievement.icon,
-              style: TextStyle(
-                fontSize: 24,
-                color: achievement.isUnlocked ? null : Colors.grey,
-              ),
-            ),
+            child: achievement.isUnlocked
+                ? Text(
+                    achievement.icon,
+                    style: const TextStyle(fontSize: 24),
+                  )
+                : Icon(
+                    Icons.help_outline,
+                    size: 24,
+                    color: Colors.grey.withValues(alpha: 0.6),
+                  ),
           ),
           const SizedBox(height: 6),
           Text(
-            achievement.title,
+            achievement.isUnlocked ? achievement.title : '???',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
@@ -540,13 +543,16 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                   : Colors.grey.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(
-              achievement.icon,
-              style: TextStyle(
-                fontSize: 24,
-                color: achievement.isUnlocked ? null : Colors.grey,
-              ),
-            ),
+            child: achievement.isUnlocked
+                ? Text(
+                    achievement.icon,
+                    style: const TextStyle(fontSize: 24),
+                  )
+                : Icon(
+                    Icons.help_outline,
+                    size: 24,
+                    color: Colors.grey.withValues(alpha: 0.6),
+                  ),
           ),
           
           const SizedBox(width: 12),
@@ -561,7 +567,7 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                   children: [
                     Expanded(
                       child: Text(
-                        achievement.title,
+                        achievement.isUnlocked ? achievement.title : '???',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -574,14 +580,18 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: achievement.rarityColor.withValues(alpha: 0.2),
+                        color: achievement.isUnlocked 
+                            ? achievement.rarityColor.withValues(alpha: 0.2)
+                            : Colors.grey.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        achievement.rarityDisplayName,
+                        achievement.isUnlocked ? achievement.rarityDisplayName : '???',
                         style: TextStyle(
                           fontSize: 9,
-                          color: achievement.rarityColor,
+                          color: achievement.isUnlocked 
+                              ? achievement.rarityColor 
+                              : Colors.grey.withValues(alpha: 0.6),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -593,12 +603,15 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                 
                 // Description
                 Text(
-                  achievement.description,
+                  achievement.isUnlocked 
+                      ? achievement.description 
+                      : 'Complete marine research activities to unlock this mysterious achievement...',
                   style: TextStyle(
                     fontSize: 12,
                     color: achievement.isUnlocked 
                         ? Colors.white.withValues(alpha: 0.8)
-                        : Colors.grey.withValues(alpha: 0.8),
+                        : Colors.grey.withValues(alpha: 0.6),
+                    fontStyle: achievement.isUnlocked ? FontStyle.normal : FontStyle.italic,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,

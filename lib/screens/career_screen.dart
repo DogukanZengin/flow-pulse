@@ -355,7 +355,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
           ),
           AchievementDisplayWidget(
             achievements: _achievements,
-            showOnlyUnlocked: false,
+            showOnlyUnlocked: false, // Show locked awards as mystery cards for discovery feel
             compactView: false, // Always use full mobile-friendly view
           ),
         ],
