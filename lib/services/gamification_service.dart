@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math' as math;
 import 'persistence/persistence_service.dart';
+import 'marine_biology_career_service.dart';
 
 class GamificationService {
   static GamificationService? _instance;
@@ -119,9 +120,19 @@ class GamificationService {
   Future<GamificationReward> completeSession({
     required int durationMinutes,
     required bool isStudySession,
+    double sessionDepthReached = 0.0,
+    bool sessionCompleted = true,
+    List<dynamic> discoveredCreatures = const [],
   }) async {
     final now = DateTime.now();
     final reward = GamificationReward();
+    
+    // Populate session metrics
+    reward.sessionDurationMinutes = durationMinutes;
+    reward.sessionDepthReached = sessionDepthReached;
+    reward.sessionCompleted = sessionCompleted;
+    reward.isStudySession = isStudySession;
+    reward.allDiscoveredCreatures = List.from(discoveredCreatures);
     
     // Update daily/weekly goals
     await updateDailyWeeklyGoals(
@@ -129,15 +140,15 @@ class GamificationService {
       isStudySession: isStudySession,
     );
     
-    // Calculate XP based on session type and duration
-    int xpGained = 0;
+    // Calculate base XP based on session type and duration
+    int baseXP = 0;
     if (isStudySession) {
-      xpGained = (durationMinutes * 2.5).round(); // 2.5 XP per minute of focus
+      baseXP = (durationMinutes * 2.5).round(); // 2.5 XP per minute of focus
     } else {
-      xpGained = (durationMinutes * 1).round(); // 1 XP per minute of break
+      baseXP = (durationMinutes * 1).round(); // 1 XP per minute of break
     }
     
-    // Streak bonus
+    // Streak calculation and bonus
     if (_isConsecutiveDay(now)) {
       _currentStreak++;
     } else if (_lastSessionDate == null || !_isSameDay(now, _lastSessionDate!)) {
@@ -150,34 +161,76 @@ class GamificationService {
     
     // Apply streak multiplier
     final streakMultiplier = 1.0 + (_currentStreak * 0.1); // 10% bonus per streak day
-    xpGained = (xpGained * streakMultiplier).round();
+    final streakBonusXP = (baseXP * (streakMultiplier - 1.0)).round();
     
-    _totalXP += xpGained;
+    // Apply depth bonus for study sessions
+    int depthBonusXP = 0;
+    if (isStudySession && sessionDepthReached > 0) {
+      double depthMultiplier = 1.0;
+      if (sessionDepthReached > 40) {
+        depthMultiplier = 1.5; // Abyssal zone bonus
+      } else if (sessionDepthReached > 20) {
+        depthMultiplier = 1.3; // Deep ocean bonus
+      } else if (sessionDepthReached > 10) {
+        depthMultiplier = 1.2; // Coral garden bonus
+      }
+      depthBonusXP = (baseXP * (depthMultiplier - 1.0)).round();
+    }
+    
+    // Apply completion bonus
+    int completionBonusXP = 0;
+    if (sessionCompleted) {
+      completionBonusXP = (baseXP * 0.2).round(); // 20% bonus for completion
+    }
+    
+    final totalXPGained = baseXP + streakBonusXP + depthBonusXP + completionBonusXP;
+    
+    _totalXP += totalXPGained;
     _totalSessions++;
     if (isStudySession) {
       _totalFocusTime += durationMinutes * 60;
     }
     
-    reward.xpGained = xpGained;
+    // Populate reward XP breakdown
+    reward.xpGained = totalXPGained;
+    reward.streakBonusXP = streakBonusXP;
+    reward.streakMultiplier = streakMultiplier;
+    reward.depthBonusXP = depthBonusXP;
+    reward.completionBonusXP = completionBonusXP;
     reward.currentStreak = _currentStreak;
     
-    // Check for level up
+    // Career progression tracking
     final oldLevel = _currentLevel;
+    final oldCareerTitle = MarineBiologyCareerService.getCareerTitle(_currentLevel);
+    
     _currentLevel = _calculateLevel(_totalXP);
+    final newCareerTitle = MarineBiologyCareerService.getCareerTitle(_currentLevel);
+    
+    reward.oldLevel = oldLevel;
+    reward.newLevel = _currentLevel;
+    reward.oldCareerTitle = oldCareerTitle;
+    reward.newCareerTitle = newCareerTitle;
+    reward.careerTitleChanged = oldCareerTitle != newCareerTitle;
+    
     if (_currentLevel > oldLevel) {
       reward.leveledUp = true;
-      reward.newLevel = _currentLevel;
       
       // Unlock equipment based on new level
       try {
         final equipmentRepository = PersistenceService.instance.equipment;
         final unlockedEquipment = await equipmentRepository.checkAndUnlockEquipmentByLevel(_currentLevel);
+        reward.unlockedEquipment = unlockedEquipment;
         if (unlockedEquipment.isNotEmpty) {
-          // Add unlocked equipment to reward (we'll need to add this field)
           debugPrint('🎒 Unlocked ${unlockedEquipment.length} new equipment items at level $_currentLevel');
           for (final equipmentId in unlockedEquipment) {
             debugPrint('🎒 Unlocked equipment: $equipmentId');
           }
+        }
+        
+        // Generate next equipment hint
+        final nextEquipmentLevel = _getNextEquipmentUnlockLevel(_currentLevel);
+        if (nextEquipmentLevel > 0) {
+          reward.nextEquipmentHint = "Next research equipment unlocks at Level $nextEquipmentLevel";
         }
       } catch (e) {
         debugPrint('❌ Error unlocking equipment: $e');
@@ -191,11 +244,27 @@ class GamificationService {
           reward.unlockedThemes.add(newTheme);
         }
       }
+    } else {
+      // Still provide next unlock hints even without leveling up
+      final nextEquipmentLevel = _getNextEquipmentUnlockLevel(_currentLevel);
+      if (nextEquipmentLevel > 0) {
+        final xpNeeded = getXPRequiredForLevel(nextEquipmentLevel) - _totalXP;
+        reward.nextEquipmentHint = "Advanced research equipment unlocks at Level $nextEquipmentLevel ($xpNeeded XP needed)";
+      }
+    }
+    
+    // Generate next career milestone hint
+    final nextCareerMilestone = _getNextCareerMilestone(_currentLevel);
+    if (nextCareerMilestone != null) {
+      reward.nextCareerMilestone = nextCareerMilestone;
     }
     
     // Check for achievements
     final newAchievements = _checkAchievements();
     reward.unlockedAchievements.addAll(newAchievements);
+    
+    // Calculate research efficiency
+    reward.researchEfficiency = _calculateResearchEfficiency(durationMinutes, discoveredCreatures, sessionCompleted);
     
     _lastSessionDate = now;
     
@@ -345,16 +414,126 @@ class GamificationService {
     if (_currentStreak >= 1) return Colors.lightGreen;
     return Colors.grey;
   }
+  
+  // Helper method to find next equipment unlock level
+  int _getNextEquipmentUnlockLevel(int currentLevel) {
+    // Common equipment unlock levels (simplified)
+    final equipmentLevels = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+    for (final level in equipmentLevels) {
+      if (level > currentLevel) {
+        return level;
+      }
+    }
+    return 0; // No more unlocks
+  }
+  
+  // Helper method to generate next career milestone hint
+  String? _getNextCareerMilestone(int currentLevel) {
+    final nextMilestone = MarineBiologyCareerService.careerTitles.entries
+        .where((entry) => entry.key > currentLevel)
+        .firstOrNull;
+    
+    if (nextMilestone != null) {
+      final xpNeeded = getXPRequiredForLevel(nextMilestone.key) - _totalXP;
+      return "Next promotion: ${nextMilestone.value} at Level ${nextMilestone.key} ($xpNeeded XP needed)";
+    }
+    return null;
+  }
+  
+  // Calculate research efficiency based on session performance
+  double _calculateResearchEfficiency(int durationMinutes, List<dynamic> discoveredCreatures, bool completed) {
+    double efficiency = 0.0;
+    
+    // Base efficiency from session completion
+    if (completed) {
+      efficiency += 2.0;
+    } else {
+      efficiency += 1.0;
+    }
+    
+    // Bonus for discoveries
+    efficiency += discoveredCreatures.length * 1.5;
+    
+    // Duration efficiency (optimal around 25-45 minutes)
+    if (durationMinutes >= 20 && durationMinutes <= 50) {
+      efficiency += 1.0;
+    } else if (durationMinutes >= 15 && durationMinutes <= 60) {
+      efficiency += 0.5;
+    }
+    
+    return efficiency;
+  }
 }
 
 class GamificationReward {
+  // Basic XP and Level Progression
   int xpGained = 0;
   bool leveledUp = false;
+  int oldLevel = 1;
   int newLevel = 1;
   int currentStreak = 0;
+  
+  // Career Progression
+  String? oldCareerTitle;
+  String? newCareerTitle;
+  bool careerTitleChanged = false;
+  
+  // Equipment and Achievements
   List<String> unlockedThemes = [];
   List<Achievement> unlockedAchievements = [];
+  List<String> unlockedEquipment = [];
+  
+  // Session-specific rewards
   dynamic discoveredCreature; // Can be Creature or null
+  List<dynamic> allDiscoveredCreatures = []; // Multiple creatures per session
+  
+  // Research Progress
+  int researchPapersUnlocked = 0;
+  List<String> researchPaperIds = [];
+  
+  // Session Quality Metrics
+  int sessionDurationMinutes = 0;
+  double sessionDepthReached = 0.0;
+  bool sessionCompleted = true;
+  bool isStudySession = true; // Track whether this was a study session or break session
+  double researchEfficiency = 0.0;
+  
+  // Streak and Bonus Information
+  int streakBonusXP = 0;
+  double streakMultiplier = 1.0;
+  int depthBonusXP = 0;
+  int completionBonusXP = 0;
+  
+  // Progress Hints (for next unlocks without spoiling)
+  String? nextEquipmentHint;
+  String? nextAchievementHint;
+  String? nextCareerMilestone;
+  
+  // Calculate total research value
+  int get totalResearchValue {
+    int total = xpGained;
+    if (discoveredCreature != null) {
+      total += (discoveredCreature.pearlValue ?? 0) as int;
+    }
+    for (final creature in allDiscoveredCreatures) {
+      if (creature?.pearlValue != null) {
+        total += (creature.pearlValue as int);
+      }
+    }
+    return total;
+  }
+  
+  // Check if this session had significant accomplishments
+  bool get hasSignificantAccomplishments {
+    return leveledUp || 
+           careerTitleChanged || 
+           unlockedEquipment.isNotEmpty || 
+           unlockedAchievements.isNotEmpty ||
+           discoveredCreature != null ||
+           allDiscoveredCreatures.isNotEmpty ||
+           researchPapersUnlocked > 0 ||
+           currentStreak >= 7;
+  }
 }
 
 class Achievement {

@@ -248,11 +248,6 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    // Focus session stats and break activities
-                    _buildFocusSessionStats(),
-                    
-                    const SizedBox(height: 12),
-                    
                     // Screen-away break activities
                     _buildScreenAwayActivities(),
                     
@@ -266,26 +261,6 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
             ),
           ],
         ),
-      ),
-    );
-  }
-  
-  Widget _buildStatRow(String label, String value, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          Text(label, style: const TextStyle(fontSize: 11)),
-          const Spacer(),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 12,
-              color: color,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -418,7 +393,7 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildQuickActionButton(
-                widget.isRunning ? '⏸️ Pause' : '▶️ Resume',
+                widget.isRunning ? '⏸️ Pause' : (widget.secondsRemaining == widget.totalBreakSeconds ? '▶️ Start' : '▶️ Resume'),
                 widget.isRunning ? Colors.orange[300]! : Colors.green[300]!,
                 widget.onTap,
                 isSmall: isSmallScreen,
@@ -508,39 +483,6 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
     );
   }
   
-  Widget _buildFocusSessionStats() {
-    return _buildCompactCard(
-      title: '📊 Your Focus Session',
-      child: Column(
-        children: [
-          _buildStatRow('🎯 Last Session', '${widget.lastSessionDuration} minutes', Colors.blue),
-          _buildStatRow('⏰ Today\'s Focus', '${widget.todayFocusTime} minutes', Colors.green),
-          _buildStatRow('🔥 Focus Streak', '${widget.focusStreak} days', Colors.orange),
-          if (widget.recentDiscoveries.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              "Recent Discoveries:",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.blue[800],
-                fontSize: 11,
-              ),
-            ),
-            const SizedBox(height: 4),
-            ...widget.recentDiscoveries.take(2).map(
-              (creature) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 1),
-                child: Text(
-                  '🐠 ${creature.name}',
-                  style: const TextStyle(fontSize: 10),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
   
   Widget _buildScreenAwayActivities() {
     return _buildCompactCard(

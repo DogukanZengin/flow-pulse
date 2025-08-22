@@ -28,6 +28,9 @@ class TimerController extends ChangeNotifier {
   final ValueNotifier<bool> _isRunningNotifier = ValueNotifier(false);
   final ValueNotifier<bool> _isStudySessionNotifier = ValueNotifier(true);
   
+  // Session completion callback
+  void Function(GamificationReward)? onSessionCompleted;
+  
   // Getters
   bool get isRunning => _isRunning;
   bool get isStudySession => _isStudySession;
@@ -247,23 +250,44 @@ class TimerController extends ChangeNotifier {
         ? _timerProvider.focusDuration 
         : (_shouldUseLongBreak() ? _timerProvider.longBreakDuration : _timerProvider.breakDuration);
     
-    // Award XP and rewards
+    // Check for creature discovery after study sessions
+    Creature? discoveredCreature;
+    List<dynamic> allDiscoveredCreatures = [];
+    double sessionDepthReached = 0.0;
+    
+    if (wasStudySession && _oceanSystemController != null) {
+      discoveredCreature = await _oceanSystemController.checkForCreatureDiscovery(sessionDuration);
+      if (discoveredCreature != null) {
+        allDiscoveredCreatures = [discoveredCreature];
+      }
+      
+      // Calculate session depth based on duration (simplified for now)
+      // TODO: Get actual depth from ocean system when method is available
+      if (sessionDuration >= 90) {
+        sessionDepthReached = 45.0; // Abyssal expedition
+      } else if (sessionDuration >= 60) {
+        sessionDepthReached = 30.0; // Deep sea research
+      } else if (sessionDuration >= 30) {
+        sessionDepthReached = 15.0; // Mid-water expedition
+      } else {
+        sessionDepthReached = 8.0; // Shallow water research
+      }
+    }
+    
+    // Award XP and rewards with comprehensive session data
     final reward = await GamificationService.instance.completeSession(
       durationMinutes: sessionDuration,
       isStudySession: wasStudySession,
+      sessionDepthReached: sessionDepthReached,
+      sessionCompleted: true, // Timer completed successfully
+      discoveredCreatures: allDiscoveredCreatures,
     );
+    
+    // Add discovered creature to reward for backward compatibility
+    reward.discoveredCreature = discoveredCreature;
     
     // Save completed session
     await _saveSession(completed: true);
-    
-    // Check for creature discovery after study sessions
-    Creature? discoveredCreature;
-    if (wasStudySession && _oceanSystemController != null) {
-      discoveredCreature = await _oceanSystemController.checkForCreatureDiscovery(sessionDuration);
-    }
-    
-    // Add discovered creature to reward
-    reward.discoveredCreature = discoveredCreature;
     
     // Log ocean activity for the session
     if (wasStudySession) {
@@ -310,6 +334,11 @@ class TimerController extends ChangeNotifier {
     );
     
     notifyListeners();
+    
+    // Notify UI about session completion with comprehensive reward data
+    if (onSessionCompleted != null) {
+      onSessionCompleted!(reward);
+    }
     
     // Return reward for UI to display
     return reward;

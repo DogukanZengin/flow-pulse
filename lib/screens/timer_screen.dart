@@ -8,8 +8,10 @@ import '../widgets/underwater_environment.dart';
 import '../widgets/full_screen_ocean_widget.dart';
 import '../services/break_rewards_service.dart';
 import '../widgets/research_vessel_deck_widget.dart';
+import '../widgets/research_expedition_summary_widget.dart';
 import '../controllers/timer_controller.dart';
 import '../controllers/ocean_system_controller.dart';
+import '../services/gamification_service.dart';
 
 class TimerScreen extends StatefulWidget {
   const TimerScreen({super.key});
@@ -48,6 +50,9 @@ class TimerScreenState extends State<TimerScreen>
     
     // Listen to timer controller changes
     _timerController.addListener(_onTimerUpdate);
+    
+    // Set up session completion callback
+    _timerController.onSessionCompleted = _onSessionCompleted;
   }
 
   @override
@@ -81,9 +86,39 @@ class TimerScreenState extends State<TimerScreen>
     }
   }
   
+  void _onSessionCompleted(GamificationReward reward) {
+    if (mounted) {
+      // Only show research expedition summary dialog for completed study sessions
+      // Break sessions should not trigger the expedition summary
+      if (reward.isStudySession) {
+        _showResearchExpeditionSummary(reward);
+      }
+    }
+  }
+  
+  void _showResearchExpeditionSummary(GamificationReward reward) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return ResearchExpeditionSummaryWidget(
+          reward: reward,
+          onContinue: () {
+            Navigator.of(context).pop();
+          },
+          onSurfaceForBreak: _timerController.isStudySession ? () {
+            Navigator.of(context).pop();
+            _timerController.switchToBreakSession();
+          } : null,
+        );
+      },
+    );
+  }
+  
   @override
   void dispose() {
     _timerController.removeListener(_onTimerUpdate);
+    _timerController.onSessionCompleted = null; // Clear callback to prevent retention cycles
     _timerController.dispose();
     _oceanSystemController.dispose();
     _progressAnimationController.dispose();
