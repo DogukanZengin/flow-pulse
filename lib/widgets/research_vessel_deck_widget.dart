@@ -16,6 +16,9 @@ class ResearchVesselDeckWidget extends StatefulWidget {
   final Function(String activity)? onActivityComplete;
   final bool isActualBreakSession; // true only during legitimate break sessions
   final bool followsWorkSession; // true only if this break follows a completed work session
+  final int lastSessionDuration; // Duration of last focus session in minutes
+  final int todayFocusTime; // Total focus time today in minutes
+  final int focusStreak; // Current focus streak
 
   const ResearchVesselDeckWidget({
     super.key,
@@ -29,6 +32,9 @@ class ResearchVesselDeckWidget extends StatefulWidget {
     this.onActivityComplete,
     this.isActualBreakSession = true, // default to true for backwards compatibility
     this.followsWorkSession = true, // default to true for backwards compatibility
+    this.lastSessionDuration = 25, // default 25 minutes
+    this.todayFocusTime = 0, // default 0 minutes
+    this.focusStreak = 0, // default 0 streak
   });
 
   @override
@@ -48,22 +54,11 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
   // Surface wildlife that appears during breaks
   final List<SurfaceWildlife> _surfaceWildlife = [];
   
-  // Activity tracking to prevent exploitation
-  final Set<String> _completedActivitiesThisBreak = {};
-  bool _breakSessionInitialized = false;
-  
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
     _initializeSurfaceWildlife();
-    _initializeBreakSession();
-  }
-  
-  void _initializeBreakSession() {
-    // Reset activities for this new break session
-    _completedActivitiesThisBreak.clear();
-    _breakSessionInitialized = true;
   }
   
   void _initializeAnimations() {
@@ -253,51 +248,18 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    // Main deck activity area - responsive layout
-                    screenSize.width > 400 
-                      ? Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Left side - Equipment station
-                            Expanded(
-                              child: _buildCompactEquipmentStation(),
-                            ),
-                            
-                            const SizedBox(width: 12),
-                            
-                            // Right side - Observation deck
-                            Expanded(
-                              child: _buildCompactObservationDeck(),
-                            ),
-                          ],
-                        )
-                      : Column(
-                          children: [
-                            _buildCompactEquipmentStation(),
-                            const SizedBox(height: 12),
-                            _buildCompactObservationDeck(),
-                          ],
-                        ),
+                    // Focus session stats and break activities
+                    _buildFocusSessionStats(),
                     
                     const SizedBox(height: 12),
                     
-                    // Bottom row - Journal and weather (responsive)
-                    screenSize.width > 400
-                      ? Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(child: _buildCompactResearchJournal()),
-                            const SizedBox(width: 12),
-                            Expanded(child: _buildCompactWeatherStation()),
-                          ],
-                        )
-                      : Column(
-                          children: [
-                            _buildCompactResearchJournal(),
-                            const SizedBox(height: 12),
-                            _buildCompactWeatherStation(),
-                          ],
-                        ),
+                    // Screen-away break activities
+                    _buildScreenAwayActivities(),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Break encouragement message
+                    _buildBreakEncouragementMessage(),
                   ],
                 ),
               ),
@@ -308,65 +270,18 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
     );
   }
   
-  Widget _buildEquipmentItem(String name, String status, Color statusColor) {
+  Widget _buildStatRow(String label, String value, Color color) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
-          Text(name, style: const TextStyle(fontSize: 14)),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              status,
-              style: TextStyle(
-                fontSize: 12,
-                color: statusColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildWildlifeObservation(String name, String observation) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        children: [
-          Text(name, style: const TextStyle(fontSize: 14)),
-          const Spacer(),
-          Text(
-            observation,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.blue[600],
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildWeatherInfo(String condition, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        children: [
-          Text(condition, style: const TextStyle(fontSize: 14)),
+          Text(label, style: const TextStyle(fontSize: 11)),
           const Spacer(),
           Text(
             value,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.blue[600],
+              color: color,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -374,59 +289,37 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
       ),
     );
   }
-
-  void _completeActivity(String activityType) {
-    // This method should only be called when activities are allowed
-    // Button disabling prevents invalid calls, but adding safety check
-    if (!_areActivitiesAllowed() || _completedActivitiesThisBreak.contains(activityType)) {
-      return; // Silent fail - buttons should be disabled
-    }
-
-    // Initialize break session tracking if needed
-    if (!_breakSessionInitialized) {
-      _breakSessionInitialized = true;
-      _completedActivitiesThisBreak.clear();
-    }
-
-    // Mark activity as completed for this break
-    _completedActivitiesThisBreak.add(activityType);
-    
-    widget.onActivityComplete?.call(activityType);
-    
-    // Show only positive feedback for successful completions
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_getActivityCompletionMessage(activityType)),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
+  
+  Widget _buildActivitySuggestion(String activity, String description) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              activity,
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              description,
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.blue[600],
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+        ],
       ),
     );
   }
-  
-  bool _areActivitiesAllowed() {
-    // Activities are only allowed during actual break sessions that follow work sessions
-    return widget.isActualBreakSession && widget.followsWorkSession;
-  }
-  
-  bool _isActivityCompletedThisBreak(String activityType) {
-    return _completedActivitiesThisBreak.contains(activityType);
-  }
-  
-  
-  String _getActivityCompletionMessage(String activityType) {
-    switch (activityType) {
-      case 'equipment_maintenance':
-        return '🔧 Equipment maintained! Next dive will have +10% discovery rate';
-      case 'wildlife_observation':
-        return '🐬 Wildlife observed! +5 Surface Species XP earned';
-      case 'journal_review':
-        return '📖 Journal reviewed! +10 Research XP earned';
-      case 'weather_monitoring':
-        return '🌤️ Weather logged! Seasonal migration data unlocked';
-      default:
-        return '✅ Activity completed! Break rewards earned';
-    }
-  }
+
+  // Removed activity completion system as we're focusing on screen-away breaks
+  // No more clickable activities that provide in-app rewards
 
   // Break timer display - the core Pomodoro timer functionality
   Widget _buildBreakTimer(bool isSmallScreen) {
@@ -530,14 +423,6 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
                 widget.onTap,
                 isSmall: isSmallScreen,
               ),
-              // Reset button - only show when timer is not at full time
-              if (widget.secondsRemaining < widget.totalBreakSeconds && widget.onReset != null)
-                _buildQuickActionButton(
-                  '🔄 Reset',
-                  Colors.orange[400]!,
-                  widget.onReset!,
-                  isSmall: isSmallScreen,
-                ),
               _buildQuickActionButton(
                 '🤿 End Break',
                 Colors.blue[300]!,
@@ -574,15 +459,17 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
   }
   
   void _endBreakEarly() {
-    // Could implement early break ending logic here
+    // End break early and reset timer to prepare for next work session
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('🤿 Break ended early - back to diving!'),
+        content: Text('🤿 Break ended early - ready for next dive!'),
         backgroundColor: Colors.blue,
         duration: Duration(seconds: 2),
       ),
     );
-    widget.onTap(); // End the break
+    
+    // Call the reset function if available to reset the timer
+    widget.onReset?.call();
   }
 
   // Compact responsive methods for mobile screens  
@@ -621,88 +508,102 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
     );
   }
   
-  Widget _buildCompactEquipmentStation() {
+  Widget _buildFocusSessionStats() {
     return _buildCompactCard(
-      title: '🔧 Equipment',
+      title: '📊 Your Focus Session',
       child: Column(
         children: [
-          _buildEquipmentItem('🤿 Dive Gear', 'Ready', Colors.green),
-          _buildEquipmentItem('📷 Camera', 'Clean', Colors.blue),
-          const SizedBox(height: 8),
-          _buildCompactActivityButton(
-            '🔧 Maintain',
-            () => _completeActivity('equipment_maintenance'),
-            activityType: 'equipment_maintenance',
-          ),
+          _buildStatRow('🎯 Last Session', '${widget.lastSessionDuration} minutes', Colors.blue),
+          _buildStatRow('⏰ Today\'s Focus', '${widget.todayFocusTime} minutes', Colors.green),
+          _buildStatRow('🔥 Focus Streak', '${widget.focusStreak} days', Colors.orange),
+          if (widget.recentDiscoveries.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              "Recent Discoveries:",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[800],
+                fontSize: 11,
+              ),
+            ),
+            const SizedBox(height: 4),
+            ...widget.recentDiscoveries.take(2).map(
+              (creature) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 1),
+                child: Text(
+                  '🐠 ${creature.name}',
+                  style: const TextStyle(fontSize: 10),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
   
-  Widget _buildCompactObservationDeck() {
+  Widget _buildScreenAwayActivities() {
     return _buildCompactCard(
-      title: '🔭 Wildlife',
-      child: Column(
-        children: [
-          _buildWildlifeObservation('🐬 Dolphins', 'Spotted'),
-          _buildWildlifeObservation('🐦 Seabirds', 'Flying'),
-          const SizedBox(height: 8),
-          _buildCompactActivityButton(
-            '📝 Observe',
-            () => _completeActivity('wildlife_observation'),
-            activityType: 'wildlife_observation',
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildCompactResearchJournal() {
-    return _buildCompactCard(
-      title: '📖 Journal',
+      title: '🌱 Step Away from Screen',
       child: Column(
         children: [
           Text(
-            "Today's Discoveries:",
+            'Suggested break activities:',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.blue[800],
               fontSize: 11,
             ),
           ),
-          const SizedBox(height: 4),
-          ...widget.recentDiscoveries.take(2).map(
-            (creature) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 1),
-              child: Text(
-                '🐠 ${creature.name}',
-                style: const TextStyle(fontSize: 10),
-              ),
-            ),
-          ),
           const SizedBox(height: 8),
-          _buildCompactActivityButton(
-            '📖 Review',
-            () => _completeActivity('journal_review'),
-            activityType: 'journal_review',
-          ),
+          _buildActivitySuggestion('🚶‍♂️ Take a walk', 'Fresh air & movement'),
+          _buildActivitySuggestion('💧 Hydrate', 'Drink water or tea'),
+          _buildActivitySuggestion('👀 Look outside', '20 feet away for 20 seconds'),
+          _buildActivitySuggestion('🧘 Deep breathing', '5 deep breaths'),
+          _buildActivitySuggestion('🤸‍♂️ Stretch', 'Gentle body movement'),
         ],
       ),
     );
   }
   
-  Widget _buildCompactWeatherStation() {
-    return _buildCompactCard(
-      title: '🌤️ Weather',
+  Widget _buildBreakEncouragementMessage() {
+    final messages = [
+      '🌊 Rest your mind like calm waters restore their depths',
+      '🐠 Even fish need to pause in the current',
+      '🌞 The ocean surface brings fresh perspective',
+      '⚡ Recharge for your next deep dive',
+      '🧠 Your brain processes discoveries during breaks',
+    ];
+    
+    final randomMessage = messages[DateTime.now().millisecond % messages.length];
+    
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blue[50]!.withAlpha(230), // 0.9 opacity
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.blue[200]!,
+          width: 1,
+        ),
+      ),
       child: Column(
         children: [
-          _buildWeatherInfo('☀️ Sunny', '78°F'),
-          _buildWeatherInfo('🌊 Waves', '1-2ft'),
-          const SizedBox(height: 8),
-          _buildCompactActivityButton(
-            '🌤️ Monitor',
-            () => _completeActivity('weather_monitoring'),
-            activityType: 'weather_monitoring',
+          Icon(
+            Icons.eco,
+            color: Colors.green[600],
+            size: 16,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            randomMessage,
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.blue[800],
+              fontStyle: FontStyle.italic,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -741,41 +642,6 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
           const SizedBox(height: 6),
           child,
         ],
-      ),
-    );
-  }
-  
-  Widget _buildCompactActivityButton(String title, VoidCallback onTap, {String? activityType}) {
-    final isDisabled = !_areActivitiesAllowed() || 
-                      (activityType != null && _isActivityCompletedThisBreak(activityType));
-    final isCompleted = activityType != null && _isActivityCompletedThisBreak(activityType);
-    
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: isDisabled ? null : onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isCompleted 
-              ? Colors.green[400] // Green for completed
-              : isDisabled 
-                  ? Colors.grey[300] // Light grey for not available
-                  : Colors.blue[600], // Blue for available
-          foregroundColor: isDisabled ? Colors.grey[600] : Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          textStyle: const TextStyle(fontSize: 10),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          elevation: isDisabled ? 0 : 2,
-        ),
-        child: Text(
-          isCompleted ? '$title ✅' : title,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-            color: isDisabled ? Colors.grey[600] : Colors.white,
-          ),
-        ),
       ),
     );
   }
