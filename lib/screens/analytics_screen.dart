@@ -217,8 +217,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           const SeasonalEventsDisplayWidget(),
           SizedBox(height: _getResponsiveSpacing()),
           _buildWeeklyChart(),
-          SizedBox(height: _getResponsiveSpacing()),
-          _buildCompletionRateChart(),
         ],
       ),
     );
@@ -432,61 +430,106 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
       future: _getLastWeekData(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.teal.withValues(alpha: 0.2),
+                  Colors.blue.withValues(alpha: 0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.teal.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: const SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
+          );
         }
 
         final data = snapshot.data!;
-        final theme = Theme.of(context);
 
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
-          child: ClipRRect(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.teal.withValues(alpha: 0.2),
+                Colors.blue.withValues(alpha: 0.1),
+              ],
+            ),
             borderRadius: BorderRadius.circular(16),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    width: 1.5,
+            border: Border.all(
+              color: Colors.teal.withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.timeline, color: Colors.teal, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Weekly Dive Hours',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '📊 Weekly Dive Hours',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontSize: _getResponsiveFontSize(18),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 200,
-                      child: LineChart(
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 200,
+                child: data.isEmpty || data.every((d) => d.totalFocusTime == 0)
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.scuba_diving,
+                              size: 48,
+                              color: Colors.white.withValues(alpha: 0.5),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Complete research expeditions\nto see weekly dive hours',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                fontSize: _getResponsiveFontSize(14),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : LineChart(
                         LineChartData(
                           gridData: FlGridData(show: false),
                           titlesData: FlTitlesData(
                             bottomTitles: AxisTitles(
                               sideTitles: SideTitles(
                                 showTitles: true,
+                                reservedSize: 30,
                                 getTitlesWidget: (value, meta) {
-                                  if (value.toInt() < data.length) {
+                                  if (value.toInt() < data.length && value.toInt() >= 0) {
                                     return Text(
                                       DateFormat('E').format(data[value.toInt()].date),
-                                      style: const TextStyle(fontSize: 12),
+                                      style: TextStyle(
+                                        fontSize: _getResponsiveFontSize(10),
+                                        color: Colors.white.withValues(alpha: 0.7),
+                                      ),
                                     );
                                   }
                                   return const Text('');
@@ -496,8 +539,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                             leftTitles: AxisTitles(
                               sideTitles: SideTitles(
                                 showTitles: true,
+                                reservedSize: 40,
                                 getTitlesWidget: (value, meta) {
-                                  return Text('${value.toInt()}m');
+                                  final hours = value / 60;
+                                  return Text(
+                                    hours >= 1 ? '${hours.toStringAsFixed(0)}h' : '${value.toInt()}m',
+                                    style: TextStyle(
+                                      fontSize: _getResponsiveFontSize(10),
+                                      color: Colors.white.withValues(alpha: 0.7),
+                                    ),
+                                  );
                                 },
                               ),
                             ),
@@ -511,210 +562,35 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                 return FlSpot(entry.key.toDouble(), entry.value.totalFocusTime.toDouble());
                               }).toList(),
                               isCurved: true,
-                              color: theme.colorScheme.primary,
+                              color: Colors.cyan,
                               barWidth: 3,
                               belowBarData: BarAreaData(
                                 show: true,
-                                color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                                color: Colors.cyan.withValues(alpha: 0.1),
                               ),
-                              dotData: const FlDotData(show: false),
+                              dotData: FlDotData(
+                                show: true,
+                                getDotPainter: (spot, percent, barData, index) {
+                                  return FlDotCirclePainter(
+                                    radius: 3,
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                    strokeColor: Colors.cyan,
+                                  );
+                                },
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
-                ),
               ),
-            ),
+            ],
           ),
         );
       },
     );
   }
 
-  Widget _buildCompletionRateChart() {
-    return FutureBuilder<List<AnalyticsData>>(
-      future: _getLastWeekData(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
-        }
-
-        final data = snapshot.data!;
-        final avgCompletionRate = data.isEmpty ? 0.0 : 
-            data.map((d) => d.completionRate).reduce((a, b) => a + b) / data.length;
-
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '🎯 Average Expedition Success Rate',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        // Pie Chart
-                        Expanded(
-                          flex: 2,
-                          child: SizedBox(
-                            height: 120,
-                            child: PieChart(
-                              PieChartData(
-                                sectionsSpace: 3,
-                                centerSpaceRadius: 30,
-                                startDegreeOffset: -90,
-                                sections: [
-                                  PieChartSectionData(
-                                    value: avgCompletionRate * 100,
-                                    color: Colors.green.withValues(alpha: 0.8),
-                                    title: '',
-                                    radius: 35,
-                                    borderSide: BorderSide(
-                                      color: Colors.white.withValues(alpha: 0.3),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  PieChartSectionData(
-                                    value: (1 - avgCompletionRate) * 100,
-                                    color: Colors.white.withValues(alpha: 0.1),
-                                    title: '',
-                                    radius: 35,
-                                    borderSide: BorderSide(
-                                      color: Colors.white.withValues(alpha: 0.2),
-                                      width: 1,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        // Statistics Text
-                        Expanded(
-                          flex: 3,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Expedition Success Rate',
-                                style: TextStyle(
-                                  fontSize: _getResponsiveFontSize(16),
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 12,
-                                    height: 12,
-                                    decoration: BoxDecoration(
-                                      color: Colors.green.withValues(alpha: 0.8),
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Successful Dives: ${(avgCompletionRate * 100).round()}%',
-                                    style: TextStyle(
-                                      fontSize: _getResponsiveFontSize(14),
-                                      color: Colors.white.withValues(alpha: 0.8),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 12,
-                                    height: 12,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.3),
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Aborted Dives: ${((1 - avgCompletionRate) * 100).round()}%',
-                                    style: TextStyle(
-                                      fontSize: _getResponsiveFontSize(14),
-                                      color: Colors.white.withValues(alpha: 0.8),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Text(
-                                  avgCompletionRate >= 0.8
-                                      ? 'Excellent! 🎉'
-                                      : avgCompletionRate >= 0.6
-                                          ? 'Good progress! 👍'
-                                          : avgCompletionRate >= 0.4
-                                              ? 'Keep improving! 💪'
-                                              : 'Focus on consistency! 🎯',
-                                  style: TextStyle(
-                                    fontSize: _getResponsiveFontSize(12),
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   Widget _buildMonthlyTrendChart() {
     return Container(
@@ -1135,9 +1011,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   Future<List<AnalyticsData>> _getLastWeekData() async {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    // Get exactly 7 days: 6 previous days + today
     return await _analyticsService.getAnalyticsData(
-      startDate: now.subtract(const Duration(days: 7)),
-      endDate: now,
+      startDate: today.subtract(const Duration(days: 6)),
+      endDate: today.add(const Duration(days: 1)), // Add 1 day to include today
     );
   }
   
@@ -1150,26 +1028,59 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
   }
   
   Widget _buildStreakRewardsSection() {
-    final currentStreak = GamificationService.instance.currentStreak;
-    final currentTier = StreakRewardsService.getCurrentStreakTier(currentStreak);
-    final availableRewards = StreakRewardsService.getStreakRewards(currentStreak);
-    
-    // Create a daily reward for display
-    final baseXP = 50;
-    final streakBonusXP = currentStreak * 5;
-    final todaysReward = currentStreak > 0 
-        ? DailyStreakReward(
-            baseXP: baseXP,
-            streakBonusXP: streakBonusXP,
-            timeBonusXP: 0,
-            totalXP: baseXP + streakBonusXP,
-            tier: currentTier,
-            sessionsCompleted: 0,
-            focusTimeMinutes: 0,
-            discoveryRateBonus: currentStreak >= 7 ? 0.1 : 0.0,
-          )
-        : null;
-    
+    // Use analytics service streak calculation (database-based) for consistency
+    return FutureBuilder<AnalyticsData>(
+      future: _analyticsService.getTodayAnalytics(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.orange.withValues(alpha: 0.2),
+                  Colors.red.withValues(alpha: 0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.orange.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        }
+        
+        final currentStreak = snapshot.data!.streak;
+        final currentTier = StreakRewardsService.getCurrentStreakTier(currentStreak);
+        final availableRewards = StreakRewardsService.getStreakRewards(currentStreak);
+        
+        // Create a daily reward for display
+        final baseXP = 50;
+        final streakBonusXP = currentStreak * 5;
+        final todaysReward = currentStreak > 0 
+            ? DailyStreakReward(
+                baseXP: baseXP,
+                streakBonusXP: streakBonusXP,
+                timeBonusXP: 0,
+                totalXP: baseXP + streakBonusXP,
+                tier: currentTier,
+                sessionsCompleted: 0,
+                focusTimeMinutes: 0,
+                discoveryRateBonus: currentStreak >= 7 ? 0.1 : 0.0,
+              )
+            : null;
+
+        return _buildStreakRewardsContainer(currentStreak, currentTier, availableRewards, todaysReward);
+      },
+    );
+  }
+
+  Widget _buildStreakRewardsContainer(int currentStreak, StreakTier currentTier, List<StreakReward> availableRewards, DailyStreakReward? todaysReward) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),

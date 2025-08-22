@@ -250,33 +250,34 @@ class AnalyticsService {
 
   /// Calculate analytics for a single day
   Future<AnalyticsData> _calculateDayAnalytics(DateTime date, List<Session> sessions) async {
-    int totalFocusTime = 0; // in minutes
+    int totalFocusTime = 0; // in minutes - includes both completed and abandoned focus sessions
     int totalBreakTime = 0; // in minutes
-    int completedSessions = 0;
-    int totalSessions = sessions.length;
+    int completedFocusSessions = 0;
+    int totalFocusSessions = 0;
 
     for (final session in sessions) {
       final minutes = (session.duration / 60).round();
       
       if (session.type == SessionType.focus) {
-        totalFocusTime += minutes;
+        totalFocusTime += minutes; // Include both completed and abandoned focus sessions
+        totalFocusSessions++;
+        if (session.completed) {
+          completedFocusSessions++;
+        }
       } else {
         totalBreakTime += minutes;
       }
-
-      if (session.completed) {
-        completedSessions++;
-      }
     }
 
-    final completionRate = totalSessions == 0 ? 0.0 : completedSessions / totalSessions;
+    // Success rate calculation: only consider focus sessions
+    final completionRate = totalFocusSessions == 0 ? 0.0 : completedFocusSessions / totalFocusSessions;
     final streak = await _calculateCurrentStreak(date);
 
     return AnalyticsData(
       date: date,
       totalFocusTime: totalFocusTime,
       totalBreakTime: totalBreakTime,
-      sessionsCompleted: completedSessions,
+      sessionsCompleted: completedFocusSessions, // Only completed focus sessions
       completionRate: completionRate,
       streak: streak,
     );
