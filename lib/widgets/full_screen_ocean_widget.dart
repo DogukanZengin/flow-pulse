@@ -25,6 +25,7 @@ class FullScreenOceanWidget extends StatefulWidget {
   final int secondsRemaining;
   final int totalSessionSeconds;
   final VoidCallback onTap;
+  final VoidCallback? onReset;
   
   // Optional ValueNotifiers for efficient updates
   final ValueNotifier<int>? secondsRemainingNotifier;
@@ -41,6 +42,7 @@ class FullScreenOceanWidget extends StatefulWidget {
     required this.secondsRemaining,
     required this.totalSessionSeconds,
     required this.onTap,
+    this.onReset,
     this.secondsRemainingNotifier,
     this.isRunningNotifier,
   });
@@ -665,42 +667,95 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
   }
 
   Widget _buildCentralControl(Size screenSize) {
+    // Check if timer needs reset (not at full time)
+    final needsReset = widget.secondsRemaining < widget.totalSessionSeconds;
+    
     return Positioned(
       bottom: screenSize.height * 0.25,
-      left: screenSize.width / 2 - 40,
-      child: Container(
-        width: 80,
+      left: screenSize.width / 2 - 60,
+      child: SizedBox(
+        width: 120,
         height: 80,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              widget.isStudySession 
-                ? const Color(0xFF00CED1).withValues(alpha: 0.9)
-                : const Color(0xFFFF8C00).withValues(alpha: 0.9),
-              widget.isStudySession 
-                ? const Color(0xFF008B8B).withValues(alpha: 0.7)
-                : const Color(0xFFFF6347).withValues(alpha: 0.7),
-            ],
-          ),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.6),
-            width: 3,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: (widget.isStudySession 
-                ? const Color(0xFF00CED1)
-                : const Color(0xFFFF8C00)).withValues(alpha: 0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Main play/pause button
+            Center(
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      widget.isStudySession 
+                        ? const Color(0xFF00CED1).withValues(alpha: 0.9)
+                        : const Color(0xFFFF8C00).withValues(alpha: 0.9),
+                      widget.isStudySession 
+                        ? const Color(0xFF008B8B).withValues(alpha: 0.7)
+                        : const Color(0xFFFF6347).withValues(alpha: 0.7),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    width: 3,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (widget.isStudySession 
+                        ? const Color(0xFF00CED1)
+                        : const Color(0xFFFF8C00)).withValues(alpha: 0.4),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  widget.isRunning ? Icons.pause : Icons.play_arrow,
+                  size: 40,
+                  color: Colors.white,
+                ),
+              ),
             ),
+            // Reset button - appears when timer has been started
+            if (needsReset && widget.onReset != null)
+              Positioned(
+                left: 0,
+                bottom: 10,
+                child: GestureDetector(
+                  onTap: widget.onReset,
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.orange.shade400.withValues(alpha: 0.8),
+                          Colors.orange.shade600.withValues(alpha: 0.6),
+                        ],
+                      ),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.4),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.orange.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.refresh,
+                      size: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
           ],
-        ),
-        child: Icon(
-          widget.isRunning ? Icons.pause : Icons.play_arrow,
-          size: 40,
-          color: Colors.white,
         ),
       ),
     );

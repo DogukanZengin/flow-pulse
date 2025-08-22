@@ -12,6 +12,7 @@ class ResearchVesselDeckWidget extends StatefulWidget {
   final bool isRunning;
   final List<Creature> recentDiscoveries;
   final VoidCallback onTap;
+  final VoidCallback? onReset;
   final Function(String activity)? onActivityComplete;
   final bool isActualBreakSession; // true only during legitimate break sessions
   final bool followsWorkSession; // true only if this break follows a completed work session
@@ -24,6 +25,7 @@ class ResearchVesselDeckWidget extends StatefulWidget {
     required this.isRunning,
     required this.recentDiscoveries,
     required this.onTap,
+    this.onReset,
     this.onActivityComplete,
     this.isActualBreakSession = true, // default to true for backwards compatibility
     this.followsWorkSession = true, // default to true for backwards compatibility
@@ -528,6 +530,14 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
                 widget.onTap,
                 isSmall: isSmallScreen,
               ),
+              // Reset button - only show when timer is not at full time
+              if (widget.secondsRemaining < widget.totalBreakSeconds && widget.onReset != null)
+                _buildQuickActionButton(
+                  '🔄 Reset',
+                  Colors.orange[400]!,
+                  widget.onReset!,
+                  isSmall: isSmallScreen,
+                ),
               _buildQuickActionButton(
                 '🤿 End Break',
                 Colors.blue[300]!,

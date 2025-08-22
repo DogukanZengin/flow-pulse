@@ -94,6 +94,117 @@ class TimerScreenState extends State<TimerScreen>
     _timerController.toggleTimer();
   }
   
+  void _showResetConfirmation() {
+    if (!_timerController.isRunning && _timerController.secondsRemaining == 
+        (_timerController.isStudySession 
+            ? context.read<TimerProvider>().focusDuration * 60
+            : (_timerController.completedSessions > 0 && 
+               _timerController.completedSessions % context.read<TimerProvider>().sessionsUntilLongBreak == 0
+               ? context.read<TimerProvider>().longBreakDuration * 60
+               : context.read<TimerProvider>().breakDuration * 60))) {
+      // Timer already at full time and not running, no need to reset
+      return;
+    }
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1B4D72),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(
+              color: Colors.blue.shade300.withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                _timerController.isStudySession ? Icons.anchor : Icons.sailing,
+                color: Colors.orange.shade300,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Abandon Session?',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            _timerController.isStudySession 
+                ? 'Abandoning a research dive will be recorded as incomplete and may affect your ocean ecosystem health.'
+                : 'This break session will be marked as incomplete.',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.9),
+              fontSize: 14,
+              height: 1.4,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Continue Session',
+                style: TextStyle(
+                  color: Colors.blue.shade300,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _timerController.resetTimer();
+                
+                // Show feedback
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          color: Colors.orange.shade300,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _timerController.isStudySession 
+                              ? 'Session abandoned - Ocean health affected'
+                              : 'Break session abandoned',
+                        ),
+                      ],
+                    ),
+                    backgroundColor: const Color(0xFF2E86AB),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              },
+              child: Text(
+                'Abandon',
+                style: TextStyle(
+                  color: Colors.orange.shade300,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
   
   void _onBreakActivityComplete(String activityType) async {
     _oceanSystemController.addCompletedBreakActivity(activityType);
@@ -386,6 +497,7 @@ class TimerScreenState extends State<TimerScreen>
                                       isRunning: _timerController.isRunning,
                                       recentDiscoveries: _oceanSystemController.visibleCreatures.where((c) => c.isDiscovered).toList(),
                                       onTap: _toggleTimer,
+                                      onReset: _showResetConfirmation,
                                       onActivityComplete: _onBreakActivityComplete,
                                     )
                                   : Container(
@@ -419,6 +531,7 @@ class TimerScreenState extends State<TimerScreen>
                                       secondsRemaining: _timerController.secondsRemaining,
                                       totalSessionSeconds: totalSeconds,
                                       onTap: _toggleTimer,
+                                      onReset: _showResetConfirmation,
                                       // Pass ValueNotifiers for efficient timer updates
                                       secondsRemainingNotifier: _timerController.secondsRemainingNotifier,
                                       isRunningNotifier: _timerController.isRunningNotifier,
