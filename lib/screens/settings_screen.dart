@@ -47,31 +47,22 @@ class SettingsScreen extends StatelessWidget {
               centerTitle: true,
             ),
             Expanded(
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 120), // Space for floating nav
                 child: ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-          // Premium status and upgrade
-          const _PremiumSection(),
+          // Timer Presets
+          const _PresetSection(),
           const SizedBox(height: 24),
           
-          // Core timer settings
-          const _TimerSection(),
+          // Automation settings
+          const _AutoStartSection(),
           const SizedBox(height: 24),
           
           // Fast forward controls for testing
           const FastForwardControlWidget(),
-          const SizedBox(height: 24),
-                    
-                    // Original settings
-                    const _AutoStartSection(),
-                    const SizedBox(height: 24),
-                    const _PresetSection(),
                   ],
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -79,159 +70,6 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-class _TimerSection extends StatelessWidget {
-  const _TimerSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final timerProvider = context.watch<TimerProvider>();
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.2),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '🤿 Diving Equipment Settings',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-            const SizedBox(height: 16),
-            _TimerSlider(
-              title: 'Dive Duration',
-              subtitle: '${timerProvider.focusDuration} minutes',
-              value: timerProvider.focusDuration.toDouble(),
-              min: 1,
-              max: 120,
-              divisions: 119,
-              onChanged: (value) {
-                context.read<TimerProvider>().setFocusDuration(value.round());
-              },
-            ),
-            const SizedBox(height: 16),
-            _TimerSlider(
-              title: 'Surface Rest',
-              subtitle: '${timerProvider.breakDuration} minutes',
-              value: timerProvider.breakDuration.toDouble(),
-              min: 1,
-              max: 30,
-              divisions: 29,
-              onChanged: (value) {
-                context.read<TimerProvider>().setBreakDuration(value.round());
-              },
-            ),
-            const SizedBox(height: 16),
-            _TimerSlider(
-              title: 'Lab Analysis',
-              subtitle: '${timerProvider.longBreakDuration} minutes',
-              value: timerProvider.longBreakDuration.toDouble(),
-              min: 5,
-              max: 60,
-              divisions: 55,
-              onChanged: (value) {
-                context.read<TimerProvider>().setLongBreakDuration(value.round());
-              },
-            ),
-            const SizedBox(height: 16),
-            _TimerSlider(
-              title: 'Dives Until Lab Analysis',
-              subtitle: '${timerProvider.sessionsUntilLongBreak} expeditions',
-              value: timerProvider.sessionsUntilLongBreak.toDouble(),
-              min: 1,
-              max: 10,
-              divisions: 9,
-              onChanged: (value) {
-                context.read<TimerProvider>().setSessionsUntilLongBreak(value.round());
-              },
-            ),
-          ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TimerSlider extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final double value;
-  final double min;
-  final double max;
-  final int divisions;
-  final ValueChanged<double> onChanged;
-
-  const _TimerSlider({
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.divisions,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: Colors.white,
-              ),
-            ),
-            Text(
-              subtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        Slider(
-          value: value,
-          min: min,
-          max: max,
-          divisions: divisions,
-          onChanged: onChanged,
-        ),
-      ],
-    );
-  }
-}
 
 
 class _AutoStartSection extends StatelessWidget {
@@ -492,107 +330,4 @@ class _PresetButtonState extends State<_PresetButton> with SingleTickerProviderS
   }
 }
 
-class _PremiumSection extends StatelessWidget {
-  const _PremiumSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    // final subscriptionService = SubscriptionService.instance; // Removed subscription service
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.2),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.star_border,
-                      color: Colors.amber,
-                      size: 28,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Free Plan',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    // Premium functionality removed
-                  },
-                  icon: const Icon(Icons.science),
-                  label: Text('Enable Premium'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Unlock Premium Features:',
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            _buildFeatureList([
-              '25+ premium ambient sounds',
-              'Advanced sound mixing & layering',
-              'Premium animated themes',
-              'Custom backgrounds',
-              'Enhanced achievements',
-            ]),
-          ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildFeatureList(List<String> features) {
-    return Column(
-      children: features.map((feature) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Row(
-          children: [
-            const Icon(Icons.check, color: Colors.green, size: 16),
-            const SizedBox(width: 8),
-            Text(feature),
-          ],
-        ),
-      )).toList(),
-    );
-  }
-}
 
