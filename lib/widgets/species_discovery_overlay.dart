@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/creature.dart';
+import '../themes/ocean_theme.dart';
 
 /// Full-screen discovery celebration overlay according to Master Plan
 class SpeciesDiscoveryOverlay extends StatefulWidget {
@@ -112,13 +113,13 @@ class _SpeciesDiscoveryOverlayState extends State<SpeciesDiscoveryOverlay>
   Color _getRarityColor() {
     switch (widget.discoveredCreature.rarity) {
       case CreatureRarity.common:
-        return Colors.green;
+        return OceanTheme.commonGreen;
       case CreatureRarity.uncommon:
-        return Colors.blue;
+        return OceanTheme.uncommonBlue;
       case CreatureRarity.rare:
-        return Colors.purple;
+        return OceanTheme.rarePurple;
       case CreatureRarity.legendary:
-        return Colors.orange;
+        return OceanTheme.legendaryOrange;
     }
   }
 
@@ -154,7 +155,7 @@ class _SpeciesDiscoveryOverlayState extends State<SpeciesDiscoveryOverlay>
     final rarityColor = _getRarityColor();
 
     return Scaffold(
-      backgroundColor: Colors.black.withValues(alpha: 0.8),
+      backgroundColor: OceanTheme.overlayBackground,
       body: AnimatedBuilder(
         animation: Listenable.merge([_fadeAnimation, _slideAnimation, _scaleAnimation, _sparkleAnimation]),
         builder: (context, child) {

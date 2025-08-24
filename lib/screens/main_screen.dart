@@ -5,6 +5,7 @@ import 'career_screen.dart';
 import 'community_screen.dart';
 import 'settings_screen.dart';
 import '../widgets/ocean_navigation_bar.dart';
+import '../themes/ocean_theme.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -33,7 +34,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF4A8FA0), // Match navigation bar bottom color
+      backgroundColor: OceanTheme.oceanSurface, // Match navigation bar bottom color
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         transitionBuilder: (Widget child, Animation<double> animation) {

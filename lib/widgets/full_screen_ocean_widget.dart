@@ -12,6 +12,8 @@ import '../rendering/advanced_creature_renderer.dart';
 import '../rendering/biome_environment_renderer.dart';
 import '../widgets/enhanced_research_journal.dart';
 import '../data/comprehensive_species_database.dart';
+import '../themes/ocean_theme.dart';
+import '../constants/timer_constants.dart';
 
 /// Full-screen marine biology research station and ocean environment
 /// Replaces the circular timer with an immersive underwater experience
@@ -555,11 +557,11 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     final timeString = '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
     
     // Determine urgency level for visual feedback
-    final urgencyColor = widget.secondsRemaining < 60 
-      ? Colors.redAccent 
-      : widget.secondsRemaining < 300 
-        ? Colors.orange 
-        : Colors.white;
+    final urgencyColor = widget.secondsRemaining < TimerConstants.criticalThreshold.inSeconds 
+      ? OceanTheme.timerCritical 
+      : widget.secondsRemaining < TimerConstants.warningThreshold.inSeconds 
+        ? OceanTheme.timerWarning 
+        : OceanTheme.timerNormal;
     
     return AnimatedBuilder(
       animation: _timerPulseAnimation,

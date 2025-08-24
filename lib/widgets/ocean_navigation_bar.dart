@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/ui_sound_service.dart';
+import '../themes/ocean_theme.dart';
 
 class OceanNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -21,9 +22,9 @@ class OceanNavigationBar extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF1B4D72), // Deep ocean blue
-            Color(0xFF2E6B7A), // Mid ocean blue
-            Color(0xFF4A8FA0), // Lighter ocean blue
+            OceanTheme.deepOceanBlue, // Deep ocean blue
+            OceanTheme.midOcean, // Mid ocean blue
+            OceanTheme.oceanSurface, // Lighter ocean blue
           ],
           stops: [0.0, 0.6, 1.0],
         ),
@@ -33,15 +34,15 @@ class OceanNavigationBar extends StatelessWidget {
         ),
         border: const Border(
           top: BorderSide(
-            color: Color(0xFF5DADE2), // Ocean surface cyan
+            color: OceanTheme.selectedTab, // Ocean surface cyan
             width: 2.0,
           ),
           left: BorderSide(
-            color: Color(0xFF5DADE2),
+            color: OceanTheme.selectedTab,
             width: 0.5,
           ),
           right: BorderSide(
-            color: Color(0xFF5DADE2),
+            color: OceanTheme.selectedTab,
             width: 0.5,
           ),
         ),

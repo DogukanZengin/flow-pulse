@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import '../themes/ocean_theme.dart';
+import '../constants/timer_constants.dart';
 
 /// Marine biology research dive computer component
 /// Displays depth progression, oxygen supply (time), and dive status
@@ -98,13 +100,13 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
 
   Color _getDepthColor() {
     if (widget.currentDepthMeters >= 40) {
-      return const Color(0xFF191970); // Abyssal - midnight blue
+      return OceanTheme.abyssal; // Abyssal zone
     } else if (widget.currentDepthMeters >= 20) {
-      return const Color(0xFF000080); // Deep ocean - navy blue
+      return OceanTheme.deepOceanBlue; // Deep ocean
     } else if (widget.currentDepthMeters >= 10) {
-      return const Color(0xFF40E0D0); // Coral garden - turquoise
+      return OceanTheme.coralGardenTeal; // Coral garden
     } else {
-      return const Color(0xFF00BFFF); // Shallow waters - tropical blue
+      return OceanTheme.shallowWaterBlue; // Shallow waters
     }
   }
 
@@ -130,8 +132,8 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  const Color(0xFF1A1A2E).withValues(alpha: 0.9),
-                  const Color(0xFF16213E).withValues(alpha: 0.9),
+                  OceanTheme.cardBackground.withValues(alpha: 0.9),
+                  OceanTheme.containerBackground.withValues(alpha: 0.9),
                 ],
               ),
               border: Border.all(
@@ -222,7 +224,9 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                     children: [
                       Icon(
                         Icons.air,
-                        color: widget.oxygenTimeSeconds < 300 ? Colors.orange : Colors.lightBlue,
+                        color: widget.oxygenTimeSeconds < TimerConstants.warningThreshold.inSeconds 
+                            ? OceanTheme.warningOrange 
+                            : OceanTheme.oxygenBlue,
                         size: 14,
                       ),
                       const SizedBox(width: 6),
@@ -233,7 +237,9 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                                 return Text(
                                   'O₂ Time: ${_formatTime(oxygenTime)}',
                                   style: TextStyle(
-                                    color: oxygenTime < 300 ? Colors.orange : Colors.lightBlue,
+                                    color: oxygenTime < TimerConstants.warningThreshold.inSeconds 
+                                        ? OceanTheme.warningOrange 
+                                        : OceanTheme.oxygenBlue,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -243,7 +249,9 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                           : Text(
                               'O₂ Time: ${_formatTime(widget.oxygenTimeSeconds)}',
                               style: TextStyle(
-                                color: widget.oxygenTimeSeconds < 300 ? Colors.orange : Colors.lightBlue,
+                                color: widget.oxygenTimeSeconds < TimerConstants.warningThreshold.inSeconds 
+                            ? OceanTheme.warningOrange 
+                            : OceanTheme.oxygenBlue,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/gamification_service.dart';
+import '../themes/ocean_theme.dart';
 
 /// Marine biology research progress display
 /// Shows current research level, species discovered, papers published, and certification progress
@@ -61,11 +62,11 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
 
   Color _getLevelColor() {
     final level = GamificationService.instance.currentLevel;
-    if (level >= 76) return const Color(0xFF9C27B0); // Purple
-    if (level >= 51) return const Color(0xFF2196F3); // Blue
-    if (level >= 26) return const Color(0xFF00796B); // Teal
-    if (level >= 11) return const Color(0xFF4CAF50); // Green
-    return const Color(0xFF03A9F4); // Light blue
+    if (level >= 76) return OceanTheme.rarePurple; // Master level - purple
+    if (level >= 51) return OceanTheme.uncommonBlue; // Expert level - blue
+    if (level >= 26) return OceanTheme.diveTeal; // Advanced level - teal
+    if (level >= 11) return OceanTheme.successGreen; // Intermediate level - green
+    return OceanTheme.shallowWaterBlue; // Beginner level - light blue
   }
 
   @override
@@ -95,8 +96,8 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                const Color(0xFF1A1A2E).withValues(alpha: 0.9),
-                const Color(0xFF16213E).withValues(alpha: 0.9),
+                OceanTheme.cardBackground.withValues(alpha: 0.9),
+                OceanTheme.containerBackground.withValues(alpha: 0.9),
               ],
             ),
             border: Border.all(
@@ -173,7 +174,7 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                             value: speciesProgress.clamp(0.0, 1.0),
                             backgroundColor: Colors.white.withValues(alpha: 0.1),
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              const Color(0xFF4CAF50),
+                              OceanTheme.successGreen,
                             ),
                             minHeight: 2,
                           ),
