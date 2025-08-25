@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/streak_rewards_service.dart';
+import '../utils/responsive_helper.dart';
 
 /// Streak Rewards Display Widget for Phase 4
 /// Shows current streak, tier, rewards, and motivation
@@ -22,27 +23,27 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (showCompact) {
-      return _buildCompactView();
+      return _buildCompactView(context);
     }
     
     return Column(
       children: [
-        _buildCurrentStreakCard(),
+        _buildCurrentStreakCard(context),
         const SizedBox(height: 16),
-        _buildTierProgressCard(),
+        _buildTierProgressCard(context),
         const SizedBox(height: 16),
         if (todaysReward != null) ...[
-          _buildTodaysRewardCard(),
-          const SizedBox(height: 16),
+          _buildTodaysRewardCard(context),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
         ],
-        _buildUpcomingRewardsSection(),
+        _buildUpcomingRewardsSection(context),
       ],
     );
   }
   
-  Widget _buildCompactView() {
+  Widget _buildCompactView(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -68,7 +69,7 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
               style: const TextStyle(fontSize: 24),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,13 +78,13 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
                   children: [
                     Text(
                       '$currentStreak Day${currentStreak == 1 ? '' : 's'}',
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
@@ -93,7 +94,7 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
                       child: Text(
                         '${(currentTier.xpMultiplier * 100).toInt()}% XP',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                           color: currentTier.color,
                           fontWeight: FontWeight.w600,
                         ),
@@ -139,7 +140,7 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
     );
   }
   
-  Widget _buildCurrentStreakCard() {
+  Widget _buildCurrentStreakCard(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -160,7 +161,7 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
                 decoration: BoxDecoration(
                   color: currentTier.color.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(16),
@@ -196,11 +197,11 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
           Text(
             currentTier.name,
-            style: const TextStyle(
-              fontSize: 22,
+            style: TextStyle(
+              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
               fontWeight: FontWeight.w700,
               color: Colors.white,
             ),
@@ -214,17 +215,19 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildBenefitChip(
+                context,
                 '${(currentTier.xpMultiplier * 100).toInt()}%',
                 'XP Bonus',
                 Icons.trending_up,
                 currentTier.color,
               ),
               _buildBenefitChip(
+                context,
                 '+${(currentTier.discoveryBonus * 100).toInt()}%',
                 'Discovery Rate',
                 Icons.search,
@@ -237,7 +240,7 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
     );
   }
   
-  Widget _buildBenefitChip(String value, String label, IconData icon, Color color) {
+  Widget _buildBenefitChip(BuildContext context, String value, String label, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -270,18 +273,18 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
     );
   }
   
-  Widget _buildTierProgressCard() {
+  Widget _buildTierProgressCard(BuildContext context) {
     final nextTier = StreakRewardsService.getNextStreakTier(currentStreak);
     
     if (nextTier == null) {
-      return _buildMaxTierCard();
+      return _buildMaxTierCard(context);
     }
     
     final progress = currentTier.getProgressToNext(currentStreak, nextTier);
     final daysRemaining = nextTier.minStreak - currentStreak;
     
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -320,14 +323,14 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           LinearProgressIndicator(
             value: progress,
             backgroundColor: Colors.grey.withValues(alpha: 0.3),
             valueColor: AlwaysStoppedAnimation<Color>(nextTier.color),
             borderRadius: BorderRadius.circular(4),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           Row(
             children: [
               Container(
@@ -341,7 +344,7 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
                   style: const TextStyle(fontSize: 16),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -371,9 +374,9 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
     );
   }
   
-  Widget _buildMaxTierCard() {
+  Widget _buildMaxTierCard(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -396,7 +399,7 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
             ),
             child: const Text('👑', style: TextStyle(fontSize: 24)),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,9 +427,9 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
     );
   }
   
-  Widget _buildTodaysRewardCard() {
+  Widget _buildTodaysRewardCard(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -465,11 +468,12 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           Row(
             children: [
               Expanded(
                 child: _buildRewardStat(
+                  context,
                   'Sessions',
                   todaysReward!.sessionsCompleted.toString(),
                   Icons.timer,
@@ -477,6 +481,7 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
               ),
               Expanded(
                 child: _buildRewardStat(
+                  context,
                   'Focus Time',
                   '${todaysReward!.focusTimeMinutes}m',
                   Icons.psychology,
@@ -484,6 +489,7 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
               ),
               Expanded(
                 child: _buildRewardStat(
+                  context,
                   'Bonus Rate',
                   '+${(todaysReward!.discoveryRateBonus * 100).toInt()}%',
                   Icons.search,
@@ -496,7 +502,7 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
     );
   }
   
-  Widget _buildRewardStat(String label, String value, IconData icon) {
+  Widget _buildRewardStat(BuildContext context, String label, String value, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -527,7 +533,7 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
     );
   }
   
-  Widget _buildUpcomingRewardsSection() {
+  Widget _buildUpcomingRewardsSection(BuildContext context) {
     final upcomingRewards = availableRewards
         .where((r) => !r.isUnlocked && r.requiredStreak <= currentStreak + 30) // Show next 30 days
         .take(3) // Show next 3 rewards
@@ -546,13 +552,13 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
             color: Colors.white,
           ),
         ),
-        const SizedBox(height: 12),
-        ...upcomingRewards.map((reward) => _buildUpcomingRewardCard(reward)),
+        SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
+        ...upcomingRewards.map((reward) => _buildUpcomingRewardCard(context, reward)),
       ],
     );
   }
   
-  Widget _buildUpcomingRewardCard(StreakReward reward) {
+  Widget _buildUpcomingRewardCard(BuildContext context, StreakReward reward) {
     final daysRemaining = reward.getDaysRemaining(currentStreak);
     
     return Container(
@@ -576,7 +582,7 @@ class StreakRewardsDisplayWidget extends StatelessWidget {
               style: const TextStyle(fontSize: 16),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/creature.dart';
 import '../themes/ocean_theme.dart';
+import '../utils/responsive_helper.dart';
 
 /// Full-screen discovery celebration overlay according to Master Plan
 class SpeciesDiscoveryOverlay extends StatefulWidget {
@@ -189,9 +190,9 @@ class _SpeciesDiscoveryOverlayState extends State<SpeciesDiscoveryOverlay>
                     child: ScaleTransition(
                       scale: _scaleAnimation,
                       child: Container(
-                        width: screenSize.width * 0.9,
-                        padding: const EdgeInsets.all(32),
-                        margin: const EdgeInsets.all(20),
+                        width: ResponsiveHelper.isMobile(context) ? screenSize.width * 0.95 : screenSize.width * 0.9,
+                        padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'screen')),
+                        margin: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
@@ -227,7 +228,7 @@ class _SpeciesDiscoveryOverlayState extends State<SpeciesDiscoveryOverlay>
                                   child: Text(
                                     _getRarityTitle(),
                                     style: TextStyle(
-                                      fontSize: 28,
+                                      fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
                                       fontWeight: FontWeight.bold,
                                       color: rarityColor,
                                       shadows: [
@@ -243,12 +244,12 @@ class _SpeciesDiscoveryOverlayState extends State<SpeciesDiscoveryOverlay>
                               },
                             ),
 
-                            const SizedBox(height: 24),
+                            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
 
                             // Creature icon/representation
                             Container(
-                              width: 120,
-                              height: 120,
+                              width: ResponsiveHelper.isMobile(context) ? 100 : 120,
+                              height: ResponsiveHelper.isMobile(context) ? 100 : 120,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: RadialGradient(
@@ -270,7 +271,7 @@ class _SpeciesDiscoveryOverlayState extends State<SpeciesDiscoveryOverlay>
                                       angle: _sparkleController.value * 0.1,
                                       child: Text(
                                         _getCreatureEmoji(),
-                                        style: const TextStyle(fontSize: 60),
+                                        style: TextStyle(fontSize: ResponsiveHelper.getIconSize(context, 'hero')),
                                       ),
                                     );
                                   },
@@ -278,37 +279,37 @@ class _SpeciesDiscoveryOverlayState extends State<SpeciesDiscoveryOverlay>
                               ),
                             ),
 
-                            const SizedBox(height: 24),
+                            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
 
                             // Creature name
                             Text(
                               widget.discoveredCreature.name,
-                              style: const TextStyle(
-                                fontSize: 32,
+                              style: TextStyle(
+                                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'hero'),
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
                               textAlign: TextAlign.center,
                             ),
 
-                            const SizedBox(height: 8),
+                            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
 
                             // Scientific name
                             Text(
                               widget.discoveredCreature.species,
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
                                 fontStyle: FontStyle.italic,
                                 color: Colors.white.withValues(alpha: 0.8),
                               ),
                               textAlign: TextAlign.center,
                             ),
 
-                            const SizedBox(height: 16),
+                            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
 
                             // Rarity indicator
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: EdgeInsets.symmetric(horizontal: ResponsiveHelper.getResponsiveSpacing(context, 'card'), vertical: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                               decoration: BoxDecoration(
                                 color: rarityColor.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(20),
@@ -320,31 +321,31 @@ class _SpeciesDiscoveryOverlayState extends State<SpeciesDiscoveryOverlay>
                               child: Text(
                                 'Rarity: ${widget.discoveredCreature.rarity.displayName} ${_getRarityStars()}',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                                   fontWeight: FontWeight.w600,
                                   color: rarityColor,
                                 ),
                               ),
                             ),
 
-                            const SizedBox(height: 16),
+                            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
 
                             // Habitat info
                             Text(
                               'Habitat: ${widget.discoveredCreature.habitat.displayName}',
-                              style: const TextStyle(
-                                fontSize: 16,
+                              style: TextStyle(
+                                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                                 color: Colors.white,
                               ),
                             ),
 
-                            const SizedBox(height: 8),
+                            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
 
                             // Description
                             Text(
                               widget.discoveredCreature.description,
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                                 color: Colors.white.withValues(alpha: 0.9),
                               ),
                               textAlign: TextAlign.center,
@@ -352,11 +353,11 @@ class _SpeciesDiscoveryOverlayState extends State<SpeciesDiscoveryOverlay>
                               overflow: TextOverflow.ellipsis,
                             ),
 
-                            const SizedBox(height: 24),
+                            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
 
                             // Research value
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: EdgeInsets.symmetric(horizontal: ResponsiveHelper.getResponsiveSpacing(context, 'card'), vertical: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                               decoration: BoxDecoration(
                                 color: Colors.amber.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(15),
@@ -369,11 +370,11 @@ class _SpeciesDiscoveryOverlayState extends State<SpeciesDiscoveryOverlay>
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   const Text('💎', style: TextStyle(fontSize: 16)),
-                                  const SizedBox(width: 8),
+                                  SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                                   Text(
                                     'Research Value: +${widget.discoveredCreature.pearlValue} XP',
-                                    style: const TextStyle(
-                                      fontSize: 16,
+                                    style: TextStyle(
+                                      fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                                       fontWeight: FontWeight.w600,
                                       color: Colors.amber,
                                     ),
@@ -382,7 +383,7 @@ class _SpeciesDiscoveryOverlayState extends State<SpeciesDiscoveryOverlay>
                               ),
                             ),
 
-                            const SizedBox(height: 32),
+                            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'screen')),
 
                             // Action buttons
                             Row(
@@ -392,13 +393,13 @@ class _SpeciesDiscoveryOverlayState extends State<SpeciesDiscoveryOverlay>
                                     child: ElevatedButton.icon(
                                       onPressed: widget.onAddToJournal,
                                       icon: const Icon(Icons.book, color: Colors.white),
-                                      label: const Text(
+                                      label: Text(
                                         'Add to Journal',
-                                        style: TextStyle(color: Colors.white),
+                                        style: TextStyle(color: Colors.white, fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body')),
                                       ),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.teal,
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        padding: EdgeInsets.symmetric(vertical: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(25),
                                         ),
@@ -411,7 +412,7 @@ class _SpeciesDiscoveryOverlayState extends State<SpeciesDiscoveryOverlay>
                                     onPressed: widget.onDismiss,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: rarityColor,
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      padding: EdgeInsets.symmetric(vertical: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(25),
                                       ),
@@ -513,7 +514,7 @@ class _SpeciesDetectionPanelState extends State<SpeciesDetectionPanel>
       animation: _pulseAnimation,
       builder: (context, child) {
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -545,26 +546,26 @@ class _SpeciesDetectionPanelState extends State<SpeciesDetectionPanel>
                     color: Colors.cyan.withValues(alpha: _pulseAnimation.value),
                     size: 20,
                   ),
-                  const SizedBox(width: 8),
-                  const Text(
+                  SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
+                  Text(
                     '🔍 SPECIES DETECTED',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 16,
+                      fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
               
-              const SizedBox(height: 12),
+              SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
               
               if (widget.detectedCreature != null) ...[
                 Text(
                   'Sonar Contact: ${widget.detectedCreature!.name}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -595,16 +596,16 @@ class _SpeciesDetectionPanelState extends State<SpeciesDetectionPanel>
                 ),
               ],
               
-              const SizedBox(height: 16),
+              SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
               
               // Focus to approach button
               if (widget.onFocusToApproach != null)
                 ElevatedButton.icon(
                   onPressed: widget.onFocusToApproach,
-                  icon: const Icon(Icons.center_focus_strong, color: Colors.white),
-                  label: const Text(
+                  icon: Icon(Icons.center_focus_strong, color: Colors.white, size: ResponsiveHelper.getIconSize(context, 'medium')),
+                  label: Text(
                     '🎯 Focus to Approach',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Colors.white, fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body')),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyan,
@@ -614,7 +615,7 @@ class _SpeciesDetectionPanelState extends State<SpeciesDetectionPanel>
                   ),
                 ),
               
-              const SizedBox(height: 12),
+              SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
               
               // Estimated time
               Text(

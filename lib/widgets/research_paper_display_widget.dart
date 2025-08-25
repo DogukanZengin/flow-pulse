@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/research_paper_service.dart';
 import '../models/creature.dart';
+import '../utils/responsive_helper.dart';
 
 /// Research Paper Display Widget - Phase 4 Scientific Documentation UI
 /// Displays available research papers with publication interface
@@ -95,7 +96,7 @@ class ResearchPaperDisplayWidget extends StatelessWidget {
                   ? () => _showPublishDialog(context, paper)
                   : null,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -105,17 +106,17 @@ class ResearchPaperDisplayWidget extends StatelessWidget {
                         Icon(
                           paper.categoryIcon,
                           color: paper.categoryColor,
-                          size: 24,
+                          size: ResponsiveHelper.getIconSize(context, 'medium'),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 paper.title,
-                                style: const TextStyle(
-                                  fontSize: 16,
+                                style: TextStyle(
+                                  fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
@@ -124,7 +125,7 @@ class ResearchPaperDisplayWidget extends StatelessWidget {
                                 Text(
                                   paper.biome!.displayName,
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                                     color: paper.categoryColor,
                                   ),
                                 ),

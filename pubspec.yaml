@@ -46,6 +46,10 @@ dependencies:
   provider: ^6.1.1
   path: ^1.9.0
   
+  # Responsive design
+  flutter_screenutil: ^5.9.0
+  responsive_builder: ^0.7.0
+  
   # Premium features and subscriptions
   purchases_flutter: ^9.2.0
   

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'providers/timer_provider.dart';
 import 'screens/main_screen.dart';
 import 'services/gamification_service.dart';
@@ -9,7 +10,7 @@ import 'services/live_activities_service.dart';
 import 'services/break_rewards_service.dart';
 import 'services/persistence/persistence_service.dart';
 import 'services/efficient_background_timer_service.dart';
-import 'widgets/lifecycle_manager.dart';
+import 'services/lifecycle_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,17 +35,24 @@ class FlowPulseApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => TimerProvider()..loadSettings(),
-      child: MaterialApp(
-        title: 'FlowPulse',
-        theme: ThemeData.light(useMaterial3: true),
-        darkTheme: ThemeData.dark(useMaterial3: true),
-        themeMode: ThemeMode.system, // Follow system theme
-        home: const LifecycleManager(
-          child: MainScreen(),
-        ),
-      ),
+    return ScreenUtilInit(
+      designSize: const Size(390, 844), // iPhone 14 design reference
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return ChangeNotifierProvider(
+          create: (context) => TimerProvider()..loadSettings(),
+          child: MaterialApp(
+            title: 'FlowPulse',
+            theme: ThemeData.light(useMaterial3: true),
+            darkTheme: ThemeData.dark(useMaterial3: true),
+            themeMode: ThemeMode.system, // Follow system theme
+            home: const LifecycleManager(
+              child: MainScreen(),
+            ),
+          ),
+        );
+      },
     );
   }
 }

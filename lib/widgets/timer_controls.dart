@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/ui_sound_service.dart';
+import '../utils/responsive_helper.dart';
 
 class ElasticPlayButton extends StatefulWidget {
   final bool isRunning;
@@ -104,8 +105,8 @@ class _ElasticPlayButtonState extends State<ElasticPlayButton>
           child: GestureDetector(
             onTap: _handleTap,
             child: Container(
-              width: 80,
-              height: 80,
+              width: ResponsiveHelper.getButtonSize(context, 'large'),
+              height: ResponsiveHelper.getButtonSize(context, 'large'),
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
               ),
@@ -208,8 +209,13 @@ class _CompactStreakBarState extends State<CompactStreakBar>
       animation: _glowAnimation,
       builder: (context, child) {
         return Container(
-          width: 110,
-          height: 32,
+          width: ResponsiveHelper.responsiveValue(
+            context: context,
+            mobile: 110.0,
+            tablet: 130.0,
+            desktop: 150.0,
+          ),
+          height: ResponsiveHelper.getButtonSize(context, 'small'),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             color: Colors.white.withValues(alpha: 0.1),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/creature.dart';
 import '../services/marine_biology_career_service.dart';
+import '../utils/responsive_helper.dart';
 
 /// Marine Biology Career Progression Widget
 /// Shows current level, title, XP progress, certifications, and achievements
@@ -137,7 +138,7 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
     return GestureDetector(
       onTap: widget.onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -170,8 +171,8 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                 ScaleTransition(
                   scale: _scaleAnimation,
                   child: Container(
-                    width: 50,
-                    height: 50,
+                    width: ResponsiveHelper.isMobile(context) ? 45 : 50,
+                    height: ResponsiveHelper.isMobile(context) ? 45 : 50,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
@@ -188,9 +189,9 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                     child: Center(
                       child: Text(
                         '$_currentLevel',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 18,
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -198,7 +199,7 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                   ),
                 ),
                 
-                const SizedBox(width: 16),
+                SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
                 
                 Expanded(
                   child: Column(
@@ -206,9 +207,9 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                     children: [
                       Text(
                         _careerTitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 18,
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -220,7 +221,7 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                           fontStyle: FontStyle.italic,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
                       Text(
                         '${widget.totalXP.toStringAsFixed(0)} XP',
                         style: TextStyle(
@@ -235,7 +236,7 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                 
                 if (_certifications.isNotEmpty) ...[
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                     decoration: BoxDecoration(
                       color: Colors.amber.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
@@ -243,12 +244,12 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.verified,
                           color: Colors.amber,
-                          size: 16,
+                          size: ResponsiveHelper.getIconSize(context, 'small'),
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
                         Text(
                           '${_certifications.length}',
                           style: const TextStyle(
@@ -264,7 +265,7 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
               ],
             ),
             
-            const SizedBox(height: 16),
+            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
             
             // XP Progress Bar
             Row(
@@ -287,7 +288,7 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
               ],
             ),
             
-            const SizedBox(height: 8),
+            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
             
             AnimatedBuilder(
               animation: _progressAnimation,
@@ -301,7 +302,7 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
               },
             ),
             
-            const SizedBox(height: 4),
+            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
             
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -310,14 +311,14 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                   '${widget.totalXP - _currentLevelXP} / ${_nextLevelXP - _currentLevelXP} XP',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.7),
-                    fontSize: 10,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                   ),
                 ),
                 Text(
                   '${(progressToNextLevel * 100).toStringAsFixed(1)}%',
                   style: TextStyle(
                     color: _getLevelColor(),
-                    fontSize: 10,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -325,11 +326,11 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
             ),
             
             if (_metrics != null) ...[
-              const SizedBox(height: 16),
+              SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
               
               // Research Metrics
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(8),
@@ -338,12 +339,12 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                   children: [
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.analytics,
                           color: Colors.cyan,
-                          size: 16,
+                          size: ResponsiveHelper.getIconSize(context, 'small'),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                         const Text(
                           'Research Metrics',
                           style: TextStyle(
@@ -355,7 +356,7 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                       ],
                     ),
                     
-                    const SizedBox(height: 12),
+                    SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                     
                     Row(
                       children: [
@@ -392,7 +393,7 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
             
             // Recent Certifications Preview
             if (_certifications.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
               Row(
                 children: [
                   const Icon(
@@ -425,7 +426,7 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
               ),
             ],
             
-            const SizedBox(height: 8),
+            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
             
             // Tap indicator
             Row(
@@ -441,7 +442,7 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                   'Tap for details',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.5),
-                    fontSize: 10,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                   ),
                 ),
               ],
@@ -458,9 +459,9 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
         Icon(
           icon,
           color: color,
-          size: 20,
+          size: ResponsiveHelper.getIconSize(context, 'small'),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
         Text(
           value,
           style: TextStyle(
@@ -621,15 +622,15 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     '📊 Detailed Research Metrics',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 20,
+                      fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
                   
                   _buildDetailedMetric(
                     'Total Discoveries',
@@ -673,8 +674,8 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
 
   Widget _buildDetailedMetric(String title, String value, String description, IconData icon, Color color) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(10),
@@ -686,8 +687,8 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: ResponsiveHelper.isMobile(context) ? 35 : 40,
+            height: ResponsiveHelper.isMobile(context) ? 35 : 40,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
@@ -695,10 +696,10 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
             child: Icon(
               icon,
               color: color,
-              size: 20,
+              size: ResponsiveHelper.getIconSize(context, 'small'),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -725,7 +726,7 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
             value,
             style: TextStyle(
               color: color,
-              fontSize: 20,
+              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -747,8 +748,8 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
 
   Widget _buildCertificationCard(ResearchCertification certification) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -765,8 +766,8 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
       child: Row(
         children: [
           Container(
-            width: 50,
-            height: 50,
+            width: ResponsiveHelper.isMobile(context) ? 45 : 50,
+            height: ResponsiveHelper.isMobile(context) ? 45 : 50,
             decoration: BoxDecoration(
               color: Colors.amber.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
@@ -774,11 +775,11 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
             child: Center(
               child: Text(
                 certification.icon,
-                style: const TextStyle(fontSize: 24),
+                style: TextStyle(fontSize: ResponsiveHelper.getIconSize(context, 'large')),
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -798,7 +799,7 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
                     fontSize: 14,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
                 Text(
                   'Earned: ${certification.earnedAt}',
                   style: const TextStyle(
@@ -828,8 +829,8 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
 
   Widget _buildAchievementCard(ResearchAchievement achievement) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -850,9 +851,9 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
             children: [
               Text(
                 achievement.icon,
-                style: const TextStyle(fontSize: 24),
+                style: TextStyle(fontSize: ResponsiveHelper.getIconSize(context, 'large')),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -885,7 +886,7 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           LinearProgressIndicator(
             value: achievement.progress,
             backgroundColor: Colors.white.withValues(alpha: 0.2),

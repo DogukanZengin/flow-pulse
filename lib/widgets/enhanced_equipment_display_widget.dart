@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/equipment_progression_service.dart';
+import '../utils/responsive_helper.dart';
 
 /// Enhanced Equipment Display Widget for Phase 4
 /// Shows comprehensive equipment progression with categories and bonuses
@@ -25,9 +26,9 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
     
     return Column(
       children: [
-        _buildEquipmentSummary(),
-        const SizedBox(height: 16),
-        _buildCategoryTabs(),
+        _buildEquipmentSummary(context),
+        SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
+        _buildCategoryTabs(context),
       ],
     );
   }
@@ -48,9 +49,9 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
     );
   }
   
-  Widget _buildEquipmentSummary() {
+  Widget _buildEquipmentSummary(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -82,21 +83,21 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
               Text(
                 '${bonuses.equippedCount}/${bonuses.availableCount}',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                   color: Colors.white.withValues(alpha: 0.8),
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           LinearProgressIndicator(
             value: bonuses.equippedPercentage,
             backgroundColor: Colors.grey.withValues(alpha: 0.3),
             valueColor: const AlwaysStoppedAnimation<Color>(Colors.cyan),
             borderRadius: BorderRadius.circular(3),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           Row(
             children: [
               Expanded(
@@ -107,7 +108,7 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
                   Colors.green,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
               Expanded(
                 child: _buildBonusChip(
                   '+${(bonuses.sessionXPBonus * 100).toInt()}%',
@@ -116,7 +117,7 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
                   Colors.purple,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
               Expanded(
                 child: _buildBonusChip(
                   '${(bonuses.completionPercentage * 100).toInt()}%',
@@ -164,7 +165,7 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
     );
   }
   
-  Widget _buildCategoryTabs() {
+  Widget _buildCategoryTabs(BuildContext context) {
     // Group equipment by category
     final groupedEquipment = <EquipmentCategory, List<ResearchEquipment>>{};
     for (final eq in equipment) {
@@ -547,7 +548,7 @@ class _MobileEquipmentCategoryViewState extends State<_MobileEquipmentCategoryVi
                           size: 20,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

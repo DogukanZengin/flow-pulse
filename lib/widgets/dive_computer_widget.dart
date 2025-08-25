@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../themes/ocean_theme.dart';
 import '../constants/timer_constants.dart';
+import '../utils/responsive_helper.dart';
 
 /// Marine biology research dive computer component
 /// Displays depth progression, oxygen supply (time), and dive status
@@ -163,11 +164,11 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                         size: 16,
                       ),
                       const SizedBox(width: 6),
-                      const Text(
+                      Text(
                         'DIVE COMPUTER',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.0,
                         ),
@@ -188,16 +189,16 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                               'Current: ${widget.currentDepthMeters}m',
                               style: TextStyle(
                                 color: _getDepthColor(),
-                                fontSize: 14,
+                                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               'Target: ${widget.targetDepthMeters}m',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white70,
-                                fontSize: 12,
+                                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                               ),
                             ),
                           ],
@@ -205,8 +206,18 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                       ),
                       // Depth gauge
                       SizedBox(
-                        width: 60,
-                        height: 40,
+                        width: ResponsiveHelper.responsiveValue(
+                          context: context,
+                          mobile: 60.0,
+                          tablet: 70.0,
+                          desktop: 80.0,
+                        ),
+                        height: ResponsiveHelper.responsiveValue(
+                          context: context,
+                          mobile: 40.0,
+                          tablet: 45.0,
+                          desktop: 50.0,
+                        ),
                         child: CustomPaint(
                           painter: DepthGaugePainter(
                             progress: widget.depthProgress,
@@ -240,7 +251,7 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                                     color: oxygenTime < TimerConstants.warningThreshold.inSeconds 
                                         ? OceanTheme.warningOrange 
                                         : OceanTheme.oxygenBlue,
-                                    fontSize: 13,
+                                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 );
@@ -252,7 +263,7 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                                 color: widget.oxygenTimeSeconds < TimerConstants.warningThreshold.inSeconds 
                             ? OceanTheme.warningOrange 
                             : OceanTheme.oxygenBlue,
-                                fontSize: 13,
+                                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -286,7 +297,7 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                         widget.diveStatus,
                         style: TextStyle(
                           color: widget.isDiving ? Colors.green : Colors.grey,
-                          fontSize: 12,
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                           fontWeight: FontWeight.w600,
                         ),
                       ),

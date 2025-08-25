@@ -490,20 +490,14 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
   }
   
   Widget _buildMobileAchievementGrid(List<MarineBiologyAchievement> achievements) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: MediaQuery.of(context).size.width < 400 ? 1 : 2,
-        childAspectRatio: MediaQuery.of(context).size.width < 400 ? 3.2 : 2.8, // Increased aspect ratios to give more height
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      itemCount: achievements.length,
-      itemBuilder: (context, index) {
-        final achievement = achievements[index];
-        return _buildMobileAchievementCard(achievement);
-      },
+    // Always use Column with individual cards to avoid any grid constraints
+    return Column(
+      children: achievements.map((achievement) => 
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: _buildMobileAchievementCard(achievement),
+        ),
+      ).toList(),
     );
   }
   
@@ -511,7 +505,8 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
     final screenWidth = MediaQuery.of(context).size.width;
     final isCompactScreen = screenWidth < 400;
     
-    return Container(
+    return IntrinsicHeight(
+      child: Container(
       padding: EdgeInsets.all(isCompactScreen ? 10 : 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -563,6 +558,7 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
           // Achievement Details
           Expanded(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Title and Rarity
@@ -602,30 +598,35 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                   ],
                 ),
                 
-                const SizedBox(height: 4),
+                SizedBox(height: isCompactScreen ? 2 : 4),
                 
                 // Description
-                Text(
-                  achievement.isUnlocked 
-                      ? achievement.description 
-                      : 'Complete marine research activities to unlock this mysterious achievement...',
-                  style: TextStyle(
-                    fontSize: isCompactScreen ? 10 : 12,
-                    color: achievement.isUnlocked 
-                        ? Colors.white.withValues(alpha: 0.8)
-                        : Colors.grey.withValues(alpha: 0.6),
-                    fontStyle: achievement.isUnlocked ? FontStyle.normal : FontStyle.italic,
+                Flexible(
+                  child: Text(
+                    achievement.isUnlocked 
+                        ? achievement.description 
+                        : 'Complete marine research activities to unlock this mysterious achievement...',
+                    style: TextStyle(
+                      fontSize: isCompactScreen ? 10 : 12,
+                      color: achievement.isUnlocked 
+                          ? Colors.white.withValues(alpha: 0.8)
+                          : Colors.grey.withValues(alpha: 0.6),
+                      fontStyle: achievement.isUnlocked ? FontStyle.normal : FontStyle.italic,
+                    ),
+                    maxLines: isCompactScreen ? 1 : 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
                 
-                SizedBox(height: isCompactScreen ? 6 : 8),
+                SizedBox(height: isCompactScreen ? 3 : 6),
                 
                 // Progress or Reward
                 if (achievement.isUnlocked) ...[
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isCompactScreen ? 4 : 8, 
+                      vertical: isCompactScreen ? 2 : 4
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.green.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
@@ -633,13 +634,13 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.check_circle, color: Colors.green, size: 12),
-                        const SizedBox(width: 4),
+                        Icon(Icons.check_circle, color: Colors.green, size: isCompactScreen ? 10 : 12),
+                        SizedBox(width: isCompactScreen ? 2 : 4),
                         Flexible(
                           child: Text(
                             'Unlocked • +${achievement.researchValue} XP',
-                            style: const TextStyle(
-                              fontSize: 10,
+                            style: TextStyle(
+                              fontSize: isCompactScreen ? 8 : 10,
                               color: Colors.green,
                               fontWeight: FontWeight.w600,
                             ),
@@ -686,6 +687,7 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
             ),
           ),
         ],
+      ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/ui_sound_service.dart';
 import '../themes/ocean_theme.dart';
+import '../utils/responsive_helper.dart';
 
 class OceanNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -15,7 +16,7 @@ class OceanNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 68, // Increased from 60 to 68 to accommodate content
+      height: ResponsiveHelper.getNavigationHeight(context),
       decoration: BoxDecoration(
         // Ocean depth gradient - darker blue to lighter ocean blue
         gradient: const LinearGradient(
@@ -74,13 +75,13 @@ class OceanNavigationBar extends StatelessWidget {
           // Navigation items
           LayoutBuilder(
             builder: (context, constraints) {
-              final screenWidth = MediaQuery.of(context).size.width;
-              final isNarrowScreen = screenWidth < 400;
+              final isCompact = ResponsiveHelper.isCompactScreen(context);
+              final spacing = ResponsiveHelper.getResponsiveSpacing(context, 'navigation');
               
               return Padding(
                 padding: EdgeInsets.symmetric(
-                  horizontal: isNarrowScreen ? 4 : 8,
-                  vertical: 4, // Reduced from 8 to 4 to prevent overflow
+                  horizontal: spacing,
+                  vertical: spacing / 2,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -92,17 +93,17 @@ class OceanNavigationBar extends StatelessWidget {
                         index: 0,
                         isSelected: currentIndex == 0,
                         onTap: () => onTap(0),
-                        isCompact: isNarrowScreen,
+                        isCompact: isCompact,
                       ),
                     ),
                     Expanded(
                       child: _NavItem(
                         icon: Icons.analytics,
-                        label: isNarrowScreen ? 'Data' : 'Data Log',
+                        label: isCompact ? 'Data' : 'Data Log',
                         index: 1,
                         isSelected: currentIndex == 1,
                         onTap: () => onTap(1),
-                        isCompact: isNarrowScreen,
+                        isCompact: isCompact,
                       ),
                     ),
                     Expanded(
@@ -112,17 +113,17 @@ class OceanNavigationBar extends StatelessWidget {
                         index: 2,
                         isSelected: currentIndex == 2,
                         onTap: () => onTap(2),
-                        isCompact: isNarrowScreen,
+                        isCompact: isCompact,
                       ),
                     ),
                     Expanded(
                       child: _NavItem(
                         icon: Icons.groups,
-                        label: isNarrowScreen ? 'Social' : 'Community',
+                        label: isCompact ? 'Social' : 'Community',
                         index: 3,
                         isSelected: currentIndex == 3,
                         onTap: () => onTap(3),
-                        isCompact: isNarrowScreen,
+                        isCompact: isCompact,
                       ),
                     ),
                     Expanded(
@@ -132,7 +133,7 @@ class OceanNavigationBar extends StatelessWidget {
                         index: 4,
                         isSelected: currentIndex == 4,
                         onTap: () => onTap(4),
-                        isCompact: isNarrowScreen,
+                        isCompact: isCompact,
                       ),
                     ),
                   ],
@@ -317,8 +318,8 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: EdgeInsets.symmetric(
-                  vertical: widget.isCompact ? 2 : 3, // Further reduced padding to prevent overflow
-                  horizontal: widget.isCompact ? 4 : 8, // Further reduced horizontal padding
+                  vertical: ResponsiveHelper.getResponsiveSpacing(context, 'navigation') / 2,
+                  horizontal: ResponsiveHelper.getResponsiveSpacing(context, 'navigation'),
                 ),
                 decoration: BoxDecoration(
                   color: widget.isSelected 
@@ -345,19 +346,17 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
                       child: Icon(
                         widget.icon,
                         color: Colors.white.withValues(alpha: widget.isSelected ? 1.0 : 0.7),
-                        size: widget.isCompact 
-                            ? (widget.isSelected ? 20 : 18) // Reduced icon size
-                            : (widget.isSelected ? 24 : 22), // Reduced icon size
+                        size: ResponsiveHelper.getIconSize(context, 'medium') * 
+                              (widget.isSelected ? 1.0 : 0.9)
                       ),
                     ),
-                    SizedBox(height: widget.isCompact ? 0 : 1), // Reduced spacing
+                    SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation') / 4),
                     AnimatedDefaultTextStyle(
                       duration: const Duration(milliseconds: 200),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: widget.isSelected ? 1.0 : 0.7),
-                        fontSize: widget.isCompact 
-                            ? (widget.isSelected ? 8 : 7) // Reduced font size
-                            : (widget.isSelected ? 10 : 8), // Reduced font size
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'navigation') * 
+                                  (widget.isSelected ? 1.1 : 1.0),
                         fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
                       ),
                       child: Text(

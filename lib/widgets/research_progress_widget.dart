@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/gamification_service.dart';
 import '../themes/ocean_theme.dart';
+import '../utils/responsive_helper.dart';
 
 /// Marine biology research progress display
 /// Shows current research level, species discovered, papers published, and certification progress
@@ -77,18 +78,17 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
         ? widget.speciesDiscovered / widget.totalSpeciesInCurrentBiome 
         : 0.0;
 
-    // Make responsive to screen width - balance with DiveComputer size
-    final screenWidth = MediaQuery.of(context).size.width;
-    final availableWidth = screenWidth - 40; // Account for left/right padding  
-    final diveComputerWidth = screenWidth * 0.45;
-    final maxWidth = availableWidth - diveComputerWidth - 16; // Space for Spacer
-    final widgetWidth = maxWidth.clamp(160.0, 200.0);
-
     return AnimatedBuilder(
       animation: _glowAnimation,
       builder: (context, child) {
         return Container(
-          width: widgetWidth,
+          constraints: const BoxConstraints(
+            maxWidth: 250,
+            minWidth: 180,
+            maxHeight: 150,
+            minHeight: 120,
+          ),
+          width: MediaQuery.of(context).size.width * 0.45,
           height: MediaQuery.of(context).size.height * 0.18,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
@@ -113,9 +113,10 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // Header
                 Row(
@@ -128,26 +129,26 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        widgetWidth < 190 ? 'RESEARCH' : 'RESEARCH PROGRESS',
+                        'RESEARCH PROGRESS',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: widgetWidth < 190 ? 10 : 11,
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                           fontWeight: FontWeight.bold,
-                          letterSpacing: widgetWidth < 190 ? 0.6 : 1.0,
+                          letterSpacing: ResponsiveHelper.isMobile(context) ? 0.6 : 1.0,
                         ),
                       ),
                     ),
                   ],
                 ),
                 
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 
                 // Level and title
                 Text(
                   'Level $level: ${_getResearcherTitle()}',
                   style: TextStyle(
                     color: levelColor,
-                    fontSize: widgetWidth < 190 ? 11 : 12,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                     fontWeight: FontWeight.w600,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -156,38 +157,41 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                 const SizedBox(height: 4),
                 
                 // Species progress
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                Flexible(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                           Text(
                             'Species: ${widget.speciesDiscovered}/${widget.totalSpeciesInCurrentBiome}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white70,
-                              fontSize: 11,
+                              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                             ),
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 2),
                           LinearProgressIndicator(
                             value: speciesProgress.clamp(0.0, 1.0),
                             backgroundColor: Colors.white.withValues(alpha: 0.1),
                             valueColor: AlwaysStoppedAnimation<Color>(
                               OceanTheme.successGreen,
                             ),
-                            minHeight: 2,
+                            minHeight: ResponsiveHelper.isMobile(context) ? 2 : 3,
                           ),
                         ],
                       ),
                     ),
                   ],
+                  ),
                 ),
                 
-                const SizedBox(height: 3),
+                const SizedBox(height: 4),
                 
                 // Papers and certification
-                Row(
+                Flexible(
+                  child: Row(
                   children: [
                     Expanded(
                       child: Column(
@@ -195,33 +199,33 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                         children: [
                           Text(
                             'Papers: ${widget.researchPapersPublished}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white70,
-                              fontSize: 11,
+                              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                             ),
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 2),
                           Text(
                             'Next Level: ${(widget.certificationProgress * 100).round()}%',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white70,
-                              fontSize: 11,
+                              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                             ),
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 2),
                           LinearProgressIndicator(
                             value: widget.certificationProgress.clamp(0.0, 1.0),
                             backgroundColor: Colors.white.withValues(alpha: 0.1),
                             valueColor: AlwaysStoppedAnimation<Color>(levelColor),
-                            minHeight: 2,
+                            minHeight: ResponsiveHelper.isMobile(context) ? 2 : 3,
                           ),
                         ],
                       ),
                     ),
                     // Level badge
                     Container(
-                      width: 36,
-                      height: 36,
+                      width: ResponsiveHelper.isMobile(context) ? 32 : 36,
+                      height: ResponsiveHelper.isMobile(context) ? 32 : 36,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
@@ -238,15 +242,16 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                       child: Center(
                         child: Text(
                           '$level',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 13,
+                            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
                   ],
+                  ),
                 ),
               ],
             ),

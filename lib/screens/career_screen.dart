@@ -8,6 +8,7 @@ import '../services/research_paper_service.dart';
 import '../services/gamification_service.dart';
 import '../services/persistence/persistence_service.dart';
 import '../services/marine_biology_career_service.dart';
+import '../utils/responsive_helper.dart';
 
 /// Career Screen - Phase 4 Progression Hub
 /// Houses achievements, equipment, and research papers
@@ -134,29 +135,29 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
         child: SafeArea(
           child: Column(
             children: [
-              // Compact Mobile Header
+              // Responsive Header
               Container(
                 padding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width * 0.04,
-                  vertical: 12,
+                  horizontal: ResponsiveHelper.getResponsiveSpacing(context, 'screen'),
+                  vertical: ResponsiveHelper.getResponsiveSpacing(context, 'screen') * 0.75,
                 ),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Colors.amber, Colors.orange],
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.military_tech,
                         color: Colors.white,
-                        size: 20,
+                        size: ResponsiveHelper.getIconSize(context, 'small'),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +165,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                           Text(
                             'Marine Research Career',
                             style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.width < 400 ? 16 : 18,
+                              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -172,7 +173,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                           Text(
                             'Level ${GamificationService.instance.currentLevel} Marine Biologist',
                             style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.width < 400 ? 11 : 12,
+                              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
                               color: Colors.cyan,
                               fontWeight: FontWeight.w500,
                             ),
@@ -206,12 +207,17 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                 ),
               ),
               
-              // Clean Tab Bar
+              // Responsive Tab Bar
               Container(
                 margin: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width * 0.04,
+                  horizontal: ResponsiveHelper.getResponsiveSpacing(context, 'screen'),
                 ),
-                height: 48,
+                height: ResponsiveHelper.responsiveValue(
+                  context: context,
+                  mobile: 48.0,
+                  tablet: 56.0,
+                  desktop: 64.0,
+                ),
                 child: TabBar(
                   controller: _tabController,
                   indicatorColor: Colors.cyan,
@@ -221,11 +227,11 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                   labelColor: Colors.cyan,
                   unselectedLabelColor: Colors.white60,
                   labelStyle: TextStyle(
-                    fontSize: MediaQuery.of(context).size.width < 400 ? 11 : 12,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                     fontWeight: FontWeight.w600,
                   ),
                   unselectedLabelStyle: TextStyle(
-                    fontSize: MediaQuery.of(context).size.width < 400 ? 10 : 11,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption') * 0.9,
                     fontWeight: FontWeight.w400,
                   ),
                   labelPadding: const EdgeInsets.symmetric(horizontal: 4),
@@ -233,21 +239,41 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                   tabs: [
                     Tab(
                       icon: Icon(Icons.emoji_events, 
-                        size: MediaQuery.of(context).size.width < 400 ? 18 : 20),
-                      text: MediaQuery.of(context).size.width < 400 ? 'Awards' : 'Achievements',
-                      height: 48,
+                        size: ResponsiveHelper.getIconSize(context, 'small')),
+                      text: ResponsiveHelper.responsiveValue(
+                        context: context,
+                        mobile: 'Awards',
+                        tablet: 'Achievements',
+                        desktop: 'Achievements',
+                      ),
+                      height: ResponsiveHelper.responsiveValue(
+                        context: context,
+                        mobile: 48.0,
+                        tablet: 56.0,
+                        desktop: 64.0,
+                      ),
                     ),
                     Tab(
                       icon: Icon(Icons.construction, 
-                        size: MediaQuery.of(context).size.width < 400 ? 18 : 20),
+                        size: ResponsiveHelper.getIconSize(context, 'small')),
                       text: 'Equipment',
-                      height: 48,
+                      height: ResponsiveHelper.responsiveValue(
+                        context: context,
+                        mobile: 48.0,
+                        tablet: 56.0,
+                        desktop: 64.0,
+                      ),
                     ),
                     Tab(
                       icon: Icon(Icons.article, 
-                        size: MediaQuery.of(context).size.width < 400 ? 18 : 20),
+                        size: ResponsiveHelper.getIconSize(context, 'small')),
                       text: 'Research',
-                      height: 48,
+                      height: ResponsiveHelper.responsiveValue(
+                        context: context,
+                        mobile: 48.0,
+                        tablet: 56.0,
+                        desktop: 64.0,
+                      ),
                     ),
                   ],
                 ),

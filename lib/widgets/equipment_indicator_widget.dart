@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import '../utils/responsive_helper.dart';
 
 class EquipmentIndicatorWidget extends StatefulWidget {
   final int userLevel;
@@ -46,7 +47,7 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -70,10 +71,10 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildHeader(),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
           _buildEquipmentGrid(),
           if (widget.showCertifications) ...[
-            const SizedBox(height: 16),
+            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
             _buildCertificationBadges(),
           ],
         ],
@@ -87,9 +88,9 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
         Icon(
           Icons.build_circle,
           color: Colors.blue.shade700,
-          size: 28,
+          size: ResponsiveHelper.getIconSize(context, 'large'),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,7 +98,7 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
               Text(
                 'Research Equipment',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
                   fontWeight: FontWeight.bold,
                   color: Colors.blue.shade800,
                 ),
@@ -105,7 +106,7 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
               Text(
                 'Level ${widget.userLevel} • ${widget.unlockedEquipment.length} items',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                   color: Colors.blue.shade600,
                 ),
               ),
@@ -120,14 +121,14 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
     final equipmentData = _getEquipmentData();
     
     return SizedBox(
-      height: 200, // Constrain height to prevent overflow
+      height: ResponsiveHelper.isMobile(context) ? 180 : 200, // Responsive height to prevent overflow
       child: GridView.builder(
         shrinkWrap: true,
         physics: const AlwaysScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: ResponsiveHelper.isMobile(context) ? 4 : 6,
+          crossAxisSpacing: ResponsiveHelper.getResponsiveSpacing(context, 'navigation'),
+          mainAxisSpacing: ResponsiveHelper.getResponsiveSpacing(context, 'navigation'),
           childAspectRatio: 1,
         ),
       itemCount: equipmentData.length,
@@ -191,14 +192,14 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
                       // Revealed equipment
                       Icon(
                         equipment['icon'],
-                        size: 24,
+                        size: ResponsiveHelper.getIconSize(context, 'medium'),
                         color: Colors.white,
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
                       Text(
                         equipment['name'],
-                        style: const TextStyle(
-                          fontSize: 8,
+                        style: TextStyle(
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -209,23 +210,23 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
                     ] else ...[
                       // Hidden equipment - mystery card
                       Container(
-                        padding: const EdgeInsets.all(6),
+                        padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'element')),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade600.withValues(alpha: 0.7),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
                           Icons.help_outline,
-                          size: 20,
+                          size: ResponsiveHelper.getIconSize(context, 'small'),
                           color: Colors.grey.shade300,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      const SizedBox(height: 2),
+                      SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
+                      SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
                       Text(
                         'Lv${equipment['requiredLevel']}',
                         style: TextStyle(
-                          fontSize: 7,
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption') * 0.8,
                           color: Colors.orange.withValues(alpha: 0.8),
                           fontWeight: FontWeight.w600,
                         ),
@@ -250,7 +251,7 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
 
     if (earnedCertifications.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
         decoration: BoxDecoration(
           color: Colors.grey.shade100,
           borderRadius: BorderRadius.circular(8),
@@ -258,7 +259,7 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
         child: Row(
           children: [
             Icon(Icons.emoji_events_outlined, color: Colors.grey.shade500),
-            const SizedBox(width: 8),
+            SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
             Text(
               'No certifications earned yet',
               style: TextStyle(color: Colors.grey.shade600),
@@ -274,12 +275,12 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
         Text(
           'Certifications',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
             fontWeight: FontWeight.bold,
             color: Colors.blue.shade800,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -290,9 +291,9 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
                 final shimmerValue = _certificationController.value;
                 
                 return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: ResponsiveHelper.getResponsiveSpacing(context, 'navigation'),
+                    vertical: ResponsiveHelper.getResponsiveSpacing(context, 'element'),
                   ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -317,14 +318,14 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
                     children: [
                       Icon(
                         cert['icon'],
-                        size: 16,
+                        size: ResponsiveHelper.getIconSize(context, 'small'),
                         color: Colors.white,
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
                       Text(
                         cert['name'],
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),

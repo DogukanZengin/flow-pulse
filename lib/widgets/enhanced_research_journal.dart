@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/creature.dart';
 import '../data/comprehensive_species_database.dart';
 import '../services/persistence/persistence_service.dart';
+import '../utils/responsive_helper.dart';
 
 /// Enhanced Research Journal Widget for Phase 2 of Ocean Gamification Master Plan
 /// Provides comprehensive species tracking, discovery statistics, and research progress
@@ -96,22 +97,22 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
       backgroundColor: Colors.black.withValues(alpha: 0.9),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A237E),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.menu_book, color: Colors.white),
-            SizedBox(width: 12),
+            Icon(Icons.menu_book, color: Colors.white, size: ResponsiveHelper.getIconSize(context, 'medium')),
+            SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
             Text(
               '🔬 Research Journal',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 20,
+                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
                 fontWeight: FontWeight.bold,
               ),
             ),
           ],
         ),
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: Icon(Icons.close, color: Colors.white, size: ResponsiveHelper.getIconSize(context, 'medium')),
           onPressed: widget.onClose ?? () => Navigator.of(context).pop(),
         ),
         bottom: TabBar(
@@ -171,7 +172,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
         children: [
           // Research Progress Header
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'screen')),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -187,23 +188,23 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
             ),
             child: Column(
               children: [
-                const Text(
+                Text(
                   '🌊 Marine Biology Research Progress',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 24,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
                 
                 // Overall Progress Circle
                 Stack(
                   alignment: Alignment.center,
                   children: [
                     SizedBox(
-                      width: 120,
-                      height: 120,
+                      width: ResponsiveHelper.isMobile(context) ? 100 : 120,
+                      height: ResponsiveHelper.isMobile(context) ? 100 : 120,
                       child: CircularProgressIndicator(
                         value: completionPercentage / 100,
                         strokeWidth: 8,
@@ -221,9 +222,9 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                       children: [
                         Text(
                           '${completionPercentage.toStringAsFixed(1)}%',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 18,
+                            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -231,7 +232,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                           '$_totalDiscovered/$totalSpecies',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.8),
-                            fontSize: 12,
+                            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                           ),
                         ),
                       ],
@@ -239,12 +240,12 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                   ],
                 ),
                 
-                const SizedBox(height: 20),
+                SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
                 Text(
                   _getResearcherTitle(completionPercentage),
                   style: TextStyle(
                     color: Colors.cyan,
-                    fontSize: 18,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -252,33 +253,33 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
             ),
           ),
           
-          const SizedBox(height: 24),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
           
           // Biome Progress Cards
-          const Text(
+          Text(
             '🏝️ Biome Exploration Progress',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
           
           ...BiomeType.values.map((biome) => _buildBiomeProgressCard(biome)),
           
-          const SizedBox(height: 24),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
           
           // Rarity Statistics
-          const Text(
+          Text(
             '⭐ Rarity Collection Status',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
           
           ...CreatureRarity.values.map((rarity) => _buildRarityProgressCard(rarity)),
         ],
@@ -338,8 +339,8 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
     final progress = totalInBiome > 0 ? discoveredInBiome / totalInBiome : 0.0;
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
       decoration: BoxDecoration(
         color: const Color(0xFF1A237E).withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(10),
@@ -352,35 +353,35 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
       child: Row(
         children: [
           Container(
-            width: 12,
+            width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation'),
             height: 40,
             decoration: BoxDecoration(
               color: Color(int.parse(biome.primaryColors.first.substring(1), radix: 16) + 0xFF000000),
               borderRadius: BorderRadius.circular(6),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   biome.displayName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
                 Text(
                   '$discoveredInBiome/$totalInBiome species discovered',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 12,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                 LinearProgressIndicator(
                   value: progress,
                   backgroundColor: Colors.white.withValues(alpha: 0.2),
@@ -425,8 +426,8 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
     }
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
       decoration: BoxDecoration(
         color: const Color(0xFF1A237E).withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(10),
@@ -440,9 +441,9 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
           Icon(
             Icons.star,
             color: rarityColor,
-            size: 24,
+            size: ResponsiveHelper.getIconSize(context, 'medium'),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
           Expanded(
             child: Text(
               '${rarity.displayName}: $discoveredOfRarity/$totalOfRarity',
@@ -464,7 +465,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                 '$discoveredOfRarity',
                 style: TextStyle(
                   color: rarityColor,
-                  fontSize: 12,
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -479,8 +480,8 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
     final discoveredInBiome = _discoveredCreatures.where((c) => c.habitat == biome).length;
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(20),
+      margin: EdgeInsets.only(bottom: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'screen')),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -503,18 +504,18 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
             children: [
               Text(
                 _getBiomeEmoji(biome),
-                style: const TextStyle(fontSize: 28),
+                style: TextStyle(fontSize: ResponsiveHelper.getIconSize(context, 'large')),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       biome.displayName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 22,
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -522,7 +523,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                       biome.description,
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 14,
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                       ),
                     ),
                   ],
@@ -531,7 +532,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
             ],
           ),
           
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
           
           Text(
             'Progress: $discoveredInBiome/${biomeSpecies.length} species',
@@ -542,7 +543,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
             ),
           ),
           
-          const SizedBox(height: 12),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           
           // Rarity breakdown for this biome
           Wrap(
@@ -570,7 +571,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
               }
               
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: ResponsiveHelper.getResponsiveSpacing(context, 'navigation'), vertical: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
                 decoration: BoxDecoration(
                   color: rarityColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
@@ -583,7 +584,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                   '${rarity.displayName}: $discoveredCount/$rarityCount',
                   style: TextStyle(
                     color: rarityColor,
-                    fontSize: 10,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -600,12 +601,12 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
     final discoveredIds = _discoveredCreatures.map((c) => c.id).toSet();
     
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: ResponsiveHelper.isMobile(context) ? 2 : 3,
         childAspectRatio: 0.8,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+        crossAxisSpacing: ResponsiveHelper.getResponsiveSpacing(context, 'navigation'),
+        mainAxisSpacing: ResponsiveHelper.getResponsiveSpacing(context, 'navigation'),
       ),
       itemCount: biomeSpecies.length,
       itemBuilder: (context, index) {
@@ -648,14 +649,14 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Species icon/emoji
             Container(
               width: double.infinity,
-              height: 60,
+              height: ResponsiveHelper.isMobile(context) ? 50 : 60,
               decoration: BoxDecoration(
                 color: isDiscovered 
                     ? rarityColor.withValues(alpha: 0.2)
@@ -665,26 +666,26 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
               child: Center(
                 child: Text(
                   isDiscovered ? _getCreatureEmoji(species.habitat) : '❓',
-                  style: const TextStyle(fontSize: 32),
+                  style: TextStyle(fontSize: ResponsiveHelper.getIconSize(context, 'large')),
                 ),
               ),
             ),
             
-            const SizedBox(height: 8),
+            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
             
             // Species name
             Text(
               isDiscovered ? species.name : '???',
               style: TextStyle(
                 color: isDiscovered ? Colors.white : Colors.grey,
-                fontSize: 14,
+                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                 fontWeight: FontWeight.w600,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
             
-            const SizedBox(height: 4),
+            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
             
             // Scientific name
             if (isDiscovered)
@@ -692,14 +693,14 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                 species.species,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: 10,
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                   fontStyle: FontStyle.italic,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             
-            const Spacer(),
+            Spacer(),
             
             // Rarity indicator
             Row(
@@ -707,14 +708,14 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                 Icon(
                   Icons.star,
                   color: isDiscovered ? rarityColor : Colors.grey,
-                  size: 16,
+                  size: ResponsiveHelper.getIconSize(context, 'small'),
                 ),
                 const SizedBox(width: 4),
                 Text(
                   isDiscovered ? species.rarity.displayName : 'Unknown',
                   style: TextStyle(
                     color: isDiscovered ? rarityColor : Colors.grey,
-                    fontSize: 10,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -744,8 +745,8 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
     }
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -762,8 +763,8 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
       child: Row(
         children: [
           Container(
-            width: 60,
-            height: 60,
+            width: ResponsiveHelper.isMobile(context) ? 50 : 60,
+            height: ResponsiveHelper.isMobile(context) ? 50 : 60,
             decoration: BoxDecoration(
               color: rarityColor.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
@@ -771,12 +772,12 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
             child: Center(
               child: Text(
                 _getCreatureEmoji(creature.habitat),
-                style: const TextStyle(fontSize: 28),
+                style: TextStyle(fontSize: ResponsiveHelper.getIconSize(context, 'large')),
               ),
             ),
           ),
           
-          const SizedBox(width: 16),
+          SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
           
           Expanded(
             child: Column(
@@ -784,7 +785,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
               children: [
                 Text(
                   creature.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -794,11 +795,11 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                   creature.species,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 12,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                     fontStyle: FontStyle.italic,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
                 Row(
                   children: [
                     Icon(
@@ -811,11 +812,11 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                       creature.rarity.displayName,
                       style: TextStyle(
                         color: rarityColor,
-                        fontSize: 12,
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                     Icon(
                       Icons.place,
                       color: Colors.cyan,
@@ -824,9 +825,9 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                     const SizedBox(width: 4),
                     Text(
                       creature.habitat.displayName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.cyan,
-                        fontSize: 12,
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                       ),
                     ),
                   ],
@@ -844,10 +845,10 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                     : 'Unknown',
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: 10,
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
@@ -856,9 +857,9 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                 ),
                 child: Text(
                   '+${creature.pearlValue} XP',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.amber,
-                    fontSize: 10,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                     fontWeight: FontWeight.bold,
                   ),
                 ),

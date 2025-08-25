@@ -6,6 +6,7 @@ import '../services/analytics_service.dart';
 import '../widgets/streak_rewards_display_widget.dart';
 import '../widgets/seasonal_events_display_widget.dart';
 import '../services/streak_rewards_service.dart';
+import '../utils/responsive_helper.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -62,11 +63,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
         child: SafeArea(
           child: Column(
             children: [
-              // Compact Mobile Header - matching Career Tab style
+              // Responsive Header - adapts to screen size
               Container(
                 padding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width * 0.04,
-                  vertical: 12,
+                  horizontal: ResponsiveHelper.getResponsiveSpacing(context, 'screen'),
+                  vertical: ResponsiveHelper.getResponsiveSpacing(context, 'screen') * 0.75,
                 ),
                 child: Row(
                   children: [
@@ -92,9 +93,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                           Text(
                             'Marine Research Data Log',
                             style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.width < 400
-                                  ? 16
-                                  : 18,
+                              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
@@ -102,9 +101,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                           Text(
                             'Expedition Analytics & Performance',
                             style: TextStyle(
-                              fontSize: MediaQuery.of(context).size.width < 400
-                                  ? 11
-                                  : 12,
+                              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
                               color: Colors.cyan,
                               fontWeight: FontWeight.w500,
                             ),
@@ -114,8 +111,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                     ),
                     // Export Action Button
                     Container(
-                      constraints:
-                          const BoxConstraints(minHeight: 44, minWidth: 44),
+                      constraints: BoxConstraints(
+                        minHeight: ResponsiveHelper.getButtonSize(context, 'medium'),
+                        minWidth: ResponsiveHelper.getButtonSize(context, 'medium'),
+                      ),
                       child: IconButton(
                         icon: const Icon(Icons.file_download,
                             color: Colors.white),
@@ -130,12 +129,17 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                 ),
               ),
 
-              // Clean Tab Bar - matching Career Tab style
+              // Responsive Tab Bar - adapts to screen size
               Container(
                 margin: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width * 0.04,
+                  horizontal: ResponsiveHelper.getResponsiveSpacing(context, 'screen'),
                 ),
-                height: 48,
+                height: ResponsiveHelper.responsiveValue(
+                  context: context,
+                  mobile: 48.0,
+                  tablet: 56.0,
+                  desktop: 64.0,
+                ),
                 child: TabBar(
                   controller: _tabController,
                   indicatorColor: Colors.cyan,
@@ -145,11 +149,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   labelColor: Colors.cyan,
                   unselectedLabelColor: Colors.white60,
                   labelStyle: TextStyle(
-                    fontSize: MediaQuery.of(context).size.width < 400 ? 11 : 12,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                     fontWeight: FontWeight.w600,
                   ),
                   unselectedLabelStyle: TextStyle(
-                    fontSize: MediaQuery.of(context).size.width < 400 ? 10 : 11,
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption') * 0.9,
                     fontWeight: FontWeight.w400,
                   ),
                   labelPadding: const EdgeInsets.symmetric(horizontal: 4),
@@ -157,33 +161,51 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   tabs: [
                     Tab(
                       icon: Icon(Icons.scuba_diving,
-                          size: MediaQuery.of(context).size.width < 400
-                              ? 18
-                              : 20),
-                      text: MediaQuery.of(context).size.width < 400
-                          ? 'Performance'
-                          : 'Dive Performance',
-                      height: 48,
+                          size: ResponsiveHelper.getIconSize(context, 'small')),
+                      text: ResponsiveHelper.responsiveValue(
+                        context: context,
+                        mobile: 'Performance',
+                        tablet: 'Dive Performance',
+                        desktop: 'Dive Performance',
+                      ),
+                      height: ResponsiveHelper.responsiveValue(
+                        context: context,
+                        mobile: 48.0,
+                        tablet: 56.0,
+                        desktop: 64.0,
+                      ),
                     ),
                     Tab(
                       icon: Icon(Icons.trending_up,
-                          size: MediaQuery.of(context).size.width < 400
-                              ? 18
-                              : 20),
-                      text: MediaQuery.of(context).size.width < 400
-                          ? 'Trends'
-                          : 'Discovery Trends',
-                      height: 48,
+                          size: ResponsiveHelper.getIconSize(context, 'small')),
+                      text: ResponsiveHelper.responsiveValue(
+                        context: context,
+                        mobile: 'Trends',
+                        tablet: 'Discovery Trends',
+                        desktop: 'Discovery Trends',
+                      ),
+                      height: ResponsiveHelper.responsiveValue(
+                        context: context,
+                        mobile: 48.0,
+                        tablet: 56.0,
+                        desktop: 64.0,
+                      ),
                     ),
                     Tab(
                       icon: Icon(Icons.lightbulb,
-                          size: MediaQuery.of(context).size.width < 400
-                              ? 18
-                              : 20),
-                      text: MediaQuery.of(context).size.width < 400
-                          ? 'Insights'
-                          : 'Research Insights',
-                      height: 48,
+                          size: ResponsiveHelper.getIconSize(context, 'small')),
+                      text: ResponsiveHelper.responsiveValue(
+                        context: context,
+                        mobile: 'Insights',
+                        tablet: 'Research Insights',
+                        desktop: 'Research Insights',
+                      ),
+                      height: ResponsiveHelper.responsiveValue(
+                        context: context,
+                        mobile: 48.0,
+                        tablet: 56.0,
+                        desktop: 64.0,
+                      ),
                     ),
                   ],
                 ),

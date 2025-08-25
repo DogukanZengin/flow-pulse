@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import '../models/aquarium.dart';
 import '../models/creature.dart';
+import '../utils/responsive_helper.dart';
 
 /// Research vessel deck environment for break sessions
 /// Provides a bright, restful surface experience with rewards
@@ -230,18 +231,18 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
     
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
+        padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, isSmallScreen ? 'navigation' : 'card')),
         child: Column(
           children: [
             // Compact header
             _buildCompactHeader(),
             
-            SizedBox(height: isSmallScreen ? 8 : 12),
+            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
             
             // Prominent break timer
             _buildBreakTimer(isSmallScreen),
             
-            SizedBox(height: isSmallScreen ? 12 : 16),
+            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
             
             // Main content in scrollable area
             Expanded(
@@ -251,7 +252,7 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
                     // Screen-away break activities
                     _buildScreenAwayActivities(),
                     
-                    const SizedBox(height: 12),
+                    SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
                     
                     // Break encouragement message
                     _buildBreakEncouragementMessage(),
@@ -267,21 +268,24 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
   
   Widget _buildActivitySuggestion(String activity, String description) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: EdgeInsets.symmetric(vertical: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
       child: Row(
         children: [
           Expanded(
             child: Text(
               activity,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
           Expanded(
             child: Text(
               description,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption') * 0.9,
                 color: Colors.blue[600],
                 fontStyle: FontStyle.italic,
               ),
@@ -304,7 +308,7 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
     
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'screen')),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -314,7 +318,7 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
+        borderRadius: BorderRadius.circular(ResponsiveHelper.getResponsiveSpacing(context, 'screen')),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(38), // 0.15 opacity
@@ -333,34 +337,34 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
           Text(
             '☕ Break Time',
             style: TextStyle(
-              fontSize: isSmallScreen ? 16 : 18,
+              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
           
-          SizedBox(height: isSmallScreen ? 8 : 12),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           
           // Large timer display
           Text(
             '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
             style: TextStyle(
-              fontSize: isSmallScreen ? 36 : 48,
+              fontSize: ResponsiveHelper.isMobile(context) ? 36 : 48,
               fontWeight: FontWeight.bold,
               color: Colors.white,
               fontFamily: 'monospace',
             ),
           ),
           
-          SizedBox(height: isSmallScreen ? 8 : 12),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           
           // Progress bar
           Container(
             width: double.infinity,
-            height: isSmallScreen ? 6 : 8,
+            height: ResponsiveHelper.isMobile(context) ? 6 : 8,
             decoration: BoxDecoration(
               color: Colors.white.withAlpha(77), // 0.3 opacity
-              borderRadius: BorderRadius.circular(isSmallScreen ? 3 : 4),
+              borderRadius: BorderRadius.circular(ResponsiveHelper.isMobile(context) ? 3 : 4),
             ),
             child: FractionallySizedBox(
               alignment: Alignment.centerLeft,
@@ -368,25 +372,25 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(isSmallScreen ? 3 : 4),
+                  borderRadius: BorderRadius.circular(ResponsiveHelper.isMobile(context) ? 3 : 4),
                 ),
               ),
             ),
           ),
           
-          SizedBox(height: isSmallScreen ? 6 : 8),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
           
           // Break session info
           Text(
             'Relax and recharge on deck • ${widget.totalBreakSeconds ~/ 60} min break',
             style: TextStyle(
-              fontSize: isSmallScreen ? 11 : 13,
+              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
               color: Colors.white.withAlpha(230), // 0.9 opacity
             ),
             textAlign: TextAlign.center,
           ),
           
-          SizedBox(height: isSmallScreen ? 8 : 12),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           
           // Quick action buttons
           Row(
@@ -396,13 +400,13 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
                 widget.isRunning ? '⏸️ Pause' : (widget.secondsRemaining == widget.totalBreakSeconds ? '▶️ Start' : '▶️ Resume'),
                 widget.isRunning ? Colors.orange[300]! : Colors.green[300]!,
                 widget.onTap,
-                isSmall: isSmallScreen,
+                isSmall: ResponsiveHelper.isMobile(context),
               ),
               _buildQuickActionButton(
                 '🤿 End Break',
                 Colors.blue[300]!,
                 () => _endBreakEarly(),
-                isSmall: isSmallScreen,
+                isSmall: ResponsiveHelper.isMobile(context),
               ),
             ],
           ),
@@ -418,15 +422,15 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
         backgroundColor: color,
         foregroundColor: Colors.white,
         padding: EdgeInsets.symmetric(
-          horizontal: isSmall ? 12 : 16, 
-          vertical: isSmall ? 8 : 10,
+          horizontal: ResponsiveHelper.getResponsiveSpacing(context, isSmall ? 'navigation' : 'card'), 
+          vertical: ResponsiveHelper.getResponsiveSpacing(context, 'navigation'),
         ),
         textStyle: TextStyle(
-          fontSize: isSmall ? 11 : 13,
+          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
           fontWeight: FontWeight.bold,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(isSmall ? 12 : 15),
+          borderRadius: BorderRadius.circular(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
         ),
       ),
       child: Text(text),
@@ -450,7 +454,10 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
   // Compact responsive methods for mobile screens  
   Widget _buildCompactHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      padding: EdgeInsets.symmetric(
+        vertical: ResponsiveHelper.getResponsiveSpacing(context, 'navigation'), 
+        horizontal: ResponsiveHelper.getResponsiveSpacing(context, 'card')
+      ),
       decoration: BoxDecoration(
         color: Colors.white.withAlpha(153), // 0.6 opacity to show background
         borderRadius: BorderRadius.circular(12),
@@ -465,13 +472,13 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.wb_sunny, color: Colors.orange, size: 18),
-          const SizedBox(width: 6),
+          Icon(Icons.wb_sunny, color: Colors.orange, size: ResponsiveHelper.getIconSize(context, 'small')),
+          SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
           Flexible(
             child: Text(
               '🌞 Vessel Deck Break 🌊',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                 fontWeight: FontWeight.bold,
                 color: Colors.blue[800],
               ),
@@ -494,10 +501,10 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.blue[800],
-              fontSize: 11,
+              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           _buildActivitySuggestion('🚶‍♂️ Take a walk', 'Fresh air & movement'),
           _buildActivitySuggestion('💧 Hydrate', 'Drink water or tea'),
           _buildActivitySuggestion('👀 Look outside', '20 feet away for 20 seconds'),
@@ -537,11 +544,11 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
             color: Colors.green[600],
             size: 16,
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
           Text(
             randomMessage,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
               color: Colors.blue[800],
               fontStyle: FontStyle.italic,
             ),
@@ -576,12 +583,12 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
           Text(
             title,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
               fontWeight: FontWeight.bold,
               color: Colors.blue[800],
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
           child,
         ],
       ),

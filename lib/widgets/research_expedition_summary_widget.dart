@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import '../services/gamification_service.dart';
 import '../models/creature.dart';
+import '../utils/responsive_helper.dart';
 
 /// Research Expedition Summary Widget - Session Completion Celebration
 /// Displays comprehensive session rewards and accomplishments with marine biology theme
@@ -301,12 +302,12 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
                     scale: 1.0 + (1.0 - progress) * 0.5,
                     child: Icon(
                       Icons.keyboard_double_arrow_up,
-                      size: 48 + (1.0 - progress) * 24,
+                      size: ResponsiveHelper.getIconSize(context, 'large') + (1.0 - progress) * ResponsiveHelper.getResponsiveSpacing(context, 'navigation'),
                       color: Colors.white.withValues(alpha: 1.0 - progress),
                     ),
                   ),
                   
-                  SizedBox(height: 16 + (1.0 - progress) * 8),
+                  SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card') + (1.0 - progress) * ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                   
                   // Animated expedition complete text
                   Transform.scale(
@@ -316,7 +317,7 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
                           ? '🏆 SURFACING WITH DISCOVERIES! 🏆'
                           : '🌊 SURFACING FROM EXPEDITION 🌊',
                       style: TextStyle(
-                        fontSize: 20 + (1.0 - progress) * 8,
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle') + (1.0 - progress) * ResponsiveHelper.getResponsiveFontSize(context, 'navigation'),
                         fontWeight: FontWeight.bold,
                         color: Colors.white.withValues(alpha: 1.0 - progress),
                         letterSpacing: 2.0,
@@ -326,13 +327,13 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
                   ),
                   
                   // Depth indicator with fade
-                  SizedBox(height: 12 + (1.0 - progress) * 8),
+                  SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation') + (1.0 - progress) * ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                   
                   if (widget.reward.sessionDepthReached > 0)
                     FadeTransition(
                       opacity: AlwaysStoppedAnimation(1.0 - progress),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: EdgeInsets.symmetric(horizontal: ResponsiveHelper.getResponsiveSpacing(context, 'card'), vertical: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.4),
                           borderRadius: BorderRadius.circular(15),
@@ -344,12 +345,12 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.straighten, color: Colors.cyan, size: 16),
-                            const SizedBox(width: 8),
+                            Icon(Icons.straighten, color: Colors.cyan, size: ResponsiveHelper.getIconSize(context, 'small')),
+                            SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                             Text(
                               'Max Depth: ${widget.reward.sessionDepthReached.toStringAsFixed(1)}m',
-                              style: const TextStyle(
-                                fontSize: 14,
+                              style: TextStyle(
+                                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                                 color: Colors.white,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -384,14 +385,14 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: Container(
-          width: screenSize.width * 0.92,
+          width: ResponsiveHelper.isMobile(context) ? screenSize.width * 0.95 : screenSize.width * 0.92,
           height: screenSize.height * 0.85, // Limit height for smaller screens
           constraints: BoxConstraints(
             maxWidth: isSmallScreen ? 380 : 600,
             maxHeight: screenSize.height * 0.9,
           ),
           margin: EdgeInsets.all(isSmallScreen ? 12 : 20),
-          padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
+          padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'screen')),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -477,7 +478,7 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
                   ? '🏆 EXPEDITION COMPLETE! 🏆'
                   : '⚓ RESEARCH DIVE COMPLETE ⚓',
               style: TextStyle(
-                fontSize: isSmallScreen ? 18 : 24,
+                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
                 fontWeight: FontWeight.bold,
                 color: widget.reward.hasSignificantAccomplishments 
                     ? Colors.amber 
@@ -519,7 +520,7 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
                         child: Text(
                           '${widget.reward.sessionDurationMinutes} minutes',
                           style: TextStyle(
-                            fontSize: isSmallScreen ? 14 : 16,
+                            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                             color: Colors.white,
                             fontWeight: FontWeight.w500,
                           ),
@@ -538,7 +539,7 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
                           child: Text(
                             'Depth: ${widget.reward.sessionDepthReached.toStringAsFixed(1)}m',
                             style: TextStyle(
-                              fontSize: isSmallScreen ? 12 : 14,
+                              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                               color: Colors.cyan,
                               fontWeight: FontWeight.w500,
                             ),
@@ -592,13 +593,13 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('💎', style: TextStyle(fontSize: isSmallScreen ? 20 : 24)),
+                            Text('💎', style: TextStyle(fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'))),
                             SizedBox(width: isSmallScreen ? 8 : 12),
                             Flexible(
                               child: Text(
                                 '+${widget.reward.xpGained} Research XP',
                                 style: TextStyle(
-                                  fontSize: isSmallScreen ? 20 : 24,
+                                  fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
@@ -634,7 +635,7 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
 
   Widget _buildXPBreakdown({required bool isSmallScreen}) {
     return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(10),
@@ -663,13 +664,13 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
                 Expanded(
                   child: Text(
                     '🔥 Consistency Streak (${widget.reward.currentStreak} days)',
-                    style: TextStyle(fontSize: isSmallScreen ? 10 : 12, color: Colors.white),
+                    style: TextStyle(fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'), color: Colors.white),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Text(
                   '+${widget.reward.streakBonusXP} XP',
-                  style: TextStyle(fontSize: isSmallScreen ? 10 : 12, color: Colors.orange),
+                  style: TextStyle(fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'), color: Colors.orange),
                 ),
               ],
             ),
@@ -682,13 +683,13 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
                 Expanded(
                   child: Text(
                     '🌊 Deep Research Bonus (${widget.reward.sessionDepthReached.toStringAsFixed(1)}m)',
-                    style: TextStyle(fontSize: isSmallScreen ? 10 : 12, color: Colors.white),
+                    style: TextStyle(fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'), color: Colors.white),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Text(
                   '+${widget.reward.depthBonusXP} XP',
-                  style: TextStyle(fontSize: isSmallScreen ? 10 : 12, color: Colors.blue),
+                  style: TextStyle(fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'), color: Colors.blue),
                 ),
               ],
             ),
@@ -701,13 +702,13 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
                 Expanded(
                   child: Text(
                     '✅ Session Completion',
-                    style: TextStyle(fontSize: isSmallScreen ? 10 : 12, color: Colors.white),
+                    style: TextStyle(fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'), color: Colors.white),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Text(
                   '+${widget.reward.completionBonusXP} XP',
-                  style: TextStyle(fontSize: isSmallScreen ? 10 : 12, color: Colors.green),
+                  style: TextStyle(fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'), color: Colors.green),
                 ),
               ],
             ),
@@ -761,7 +762,7 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(qualityEmoji, style: TextStyle(fontSize: isSmallScreen ? 16 : 20)),
+          Text(qualityEmoji, style: TextStyle(fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'))),
           SizedBox(width: isSmallScreen ? 6 : 8),
           Flexible(
             child: Text(
@@ -814,8 +815,8 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
                   Flexible(
                     child: Text(
                       widget.reward.leveledUp ? '🚀 RESEARCH ADVANCEMENT!' : '📋 CAREER UPDATE',
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
                         fontWeight: FontWeight.bold,
                         color: Colors.amber,
                       ),
@@ -867,7 +868,7 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
             children: [
               // Old level
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: EdgeInsets.symmetric(horizontal: ResponsiveHelper.getResponsiveSpacing(context, 'navigation'), vertical: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
                 decoration: BoxDecoration(
                   color: Colors.grey.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(8),
@@ -908,7 +909,7 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
                   return Transform.scale(
                     scale: 1.0 + (_statsAnimation.value * (0.2 + _celebrationIntensity * 0.15)),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: EdgeInsets.symmetric(horizontal: ResponsiveHelper.getResponsiveSpacing(context, 'navigation'), vertical: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
@@ -1126,8 +1127,8 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
                   Flexible(
                     child: Text(
                       '🐠 SPECIES DISCOVERED! 🐠',
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
                         fontWeight: FontWeight.bold,
                         color: Colors.teal,
                       ),
@@ -1449,8 +1450,8 @@ class _ResearchExpeditionSummaryWidgetState extends State<ResearchExpeditionSumm
                   Flexible(
                     child: Text(
                       '🎒 RESEARCH PROGRESS 🎒',
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
                         fontWeight: FontWeight.bold,
                         color: Colors.purple,
                       ),
