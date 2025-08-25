@@ -110,12 +110,54 @@ class NotificationService {
   
   void _onNotificationTapped(NotificationResponse response) {
     final payload = response.payload;
-    if (payload != null) {
-      // Handle notification tap - could navigate to specific screen
-      if (kDebugMode) {
-        print('Notification tapped with payload: $payload');
-      }
+    final actionId = response.actionId;
+    
+    if (kDebugMode) {
+      print('Notification interaction: actionId=$actionId, payload=$payload');
     }
+    
+    // Handle notification actions
+    if (actionId != null) {
+      _handleNotificationAction(actionId, payload);
+    } else if (payload != null) {
+      // Handle notification tap
+      _handleNotificationTap(payload);
+    }
+  }
+
+  void _handleNotificationAction(String actionId, String? payload) {
+    // These actions will be handled by the timer controller
+    // through a callback system we'll implement
+    switch (actionId) {
+      case 'pause':
+      case 'play':
+        _notifyTimerAction('toggle_timer', payload);
+        break;
+      case 'reset':
+        _notifyTimerAction('reset_timer', payload);
+        break;
+      case 'open':
+        _notifyTimerAction('open_app', payload);
+        break;
+    }
+  }
+
+  void _handleNotificationTap(String payload) {
+    switch (payload) {
+      case 'timer_completed':
+        _notifyTimerAction('timer_completed', payload);
+        break;
+      default:
+        _notifyTimerAction('open_app', payload);
+        break;
+    }
+  }
+
+  // Callback system for timer actions
+  void Function(String action, String? payload)? onTimerAction;
+  
+  void _notifyTimerAction(String action, String? payload) {
+    onTimerAction?.call(action, payload);
   }
   
   Future<void> showTimerNotification({

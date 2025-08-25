@@ -8,6 +8,8 @@ import 'services/notification_service.dart';
 import 'services/live_activities_service.dart';
 import 'services/break_rewards_service.dart';
 import 'services/persistence/persistence_service.dart';
+import 'services/efficient_background_timer_service.dart';
+import 'widgets/lifecycle_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +23,7 @@ void main() async {
   if (!kIsWeb) {
     await NotificationService().initialize();
     await LiveActivitiesService().initialize();
+    await EfficientBackgroundTimerService().initialize();
   }
   
   runApp(const FlowPulseApp());
@@ -38,7 +41,9 @@ class FlowPulseApp extends StatelessWidget {
         theme: ThemeData.light(useMaterial3: true),
         darkTheme: ThemeData.dark(useMaterial3: true),
         themeMode: ThemeMode.system, // Follow system theme
-        home: const MainScreen(),
+        home: const LifecycleManager(
+          child: MainScreen(),
+        ),
       ),
     );
   }

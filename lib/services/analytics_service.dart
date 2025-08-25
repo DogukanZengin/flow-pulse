@@ -193,32 +193,66 @@ class AnalyticsService {
       endDate: now.subtract(const Duration(days: 7)),
     );
 
-    // Calculate trends
-    final thisWeekAvg = lastWeekData.isEmpty ? 0.0 : 
-        lastWeekData.map((d) => d.totalFocusTime).reduce((a, b) => a + b) / lastWeekData.length;
-    final prevWeekAvg = previousWeekData.isEmpty ? 0.0 :
-        previousWeekData.map((d) => d.totalFocusTime).reduce((a, b) => a + b) / previousWeekData.length;
+    // Calculate trends (with safety checks)
+    double thisWeekAvg = 0.0;
+    if (lastWeekData.isNotEmpty) {
+      final sum = lastWeekData.map((d) => d.totalFocusTime).reduce((a, b) => a + b);
+      thisWeekAvg = sum / lastWeekData.length;
+      // Safety check for NaN or Infinity
+      if (thisWeekAvg.isNaN || thisWeekAvg.isInfinite) {
+        thisWeekAvg = 0.0;
+      }
+    }
+    
+    double prevWeekAvg = 0.0;
+    if (previousWeekData.isNotEmpty) {
+      final sum = previousWeekData.map((d) => d.totalFocusTime).reduce((a, b) => a + b);
+      prevWeekAvg = sum / previousWeekData.length;
+      // Safety check for NaN or Infinity
+      if (prevWeekAvg.isNaN || prevWeekAvg.isInfinite) {
+        prevWeekAvg = 0.0;
+      }
+    }
 
-    // Trend analysis
-    if (thisWeekAvg > prevWeekAvg * 1.1) {
+    // Trend analysis (only if we have previous week data to compare)
+    if (prevWeekAvg > 0) {
+      if (thisWeekAvg > prevWeekAvg * 1.1) {
+        final percentChange = ((thisWeekAvg - prevWeekAvg) / prevWeekAvg * 100).round();
+        insights.add(ProductivityInsight(
+          title: "Productivity Trend ↗️",
+          description: "Your focus time increased by $percentChange% this week!",
+          type: InsightType.positive,
+          impact: 0.8,
+        ));
+      } else if (thisWeekAvg < prevWeekAvg * 0.9) {
+        final percentChange = ((prevWeekAvg - thisWeekAvg) / prevWeekAvg * 100).round();
+        insights.add(ProductivityInsight(
+          title: "Focus Time Declining ↘️",
+          description: "Your focus time decreased by $percentChange% this week.",
+          type: InsightType.negative,
+          impact: 0.7,
+        ));
+      }
+    } else if (thisWeekAvg > 0) {
+      // No previous week data, but we have current week data
       insights.add(ProductivityInsight(
-        title: "Productivity Trend ↗️",
-        description: "Your focus time increased by ${((thisWeekAvg - prevWeekAvg) / prevWeekAvg * 100).round()}% this week!",
+        title: "Getting Started 🚀",
+        description: "Great job starting your focus journey! Keep building momentum.",
         type: InsightType.positive,
-        impact: 0.8,
-      ));
-    } else if (thisWeekAvg < prevWeekAvg * 0.9) {
-      insights.add(ProductivityInsight(
-        title: "Focus Time Declining ↘️",
-        description: "Your focus time decreased by ${((prevWeekAvg - thisWeekAvg) / prevWeekAvg * 100).round()}% this week.",
-        type: InsightType.negative,
-        impact: 0.7,
+        impact: 0.6,
       ));
     }
 
-    // Completion rate insights
-    final avgCompletionRate = lastWeekData.isEmpty ? 0.0 :
-        lastWeekData.map((d) => d.completionRate).reduce((a, b) => a + b) / lastWeekData.length;
+    // Completion rate insights (with safety checks)
+    double avgCompletionRate = 0.0;
+    if (lastWeekData.isNotEmpty) {
+      final sum = lastWeekData.map((d) => d.completionRate).reduce((a, b) => a + b);
+      avgCompletionRate = sum / lastWeekData.length;
+      // Safety check for NaN or Infinity
+      if (avgCompletionRate.isNaN || avgCompletionRate.isInfinite) {
+        avgCompletionRate = 0.0;
+      }
+    }
     
     if (avgCompletionRate > 0.85) {
       insights.add(ProductivityInsight(
@@ -256,6 +290,10 @@ class AnalyticsService {
     int totalFocusSessions = 0;
 
     for (final session in sessions) {
+      // Ensure duration is valid before converting to minutes
+      if (session.duration.isNaN || session.duration.isInfinite) {
+        continue; // Skip invalid sessions
+      }
       final minutes = (session.duration / 60).round();
       
       if (session.type == SessionType.focus) {

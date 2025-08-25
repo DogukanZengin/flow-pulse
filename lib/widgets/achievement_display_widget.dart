@@ -495,7 +495,7 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: MediaQuery.of(context).size.width < 400 ? 1 : 2,
-        childAspectRatio: MediaQuery.of(context).size.width < 400 ? 2.5 : 2.0,
+        childAspectRatio: MediaQuery.of(context).size.width < 400 ? 3.2 : 2.8, // Increased aspect ratios to give more height
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
       ),
@@ -508,8 +508,11 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
   }
   
   Widget _buildMobileAchievementCard(MarineBiologyAchievement achievement) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompactScreen = screenWidth < 400;
+    
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(isCompactScreen ? 10 : 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -536,26 +539,26 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
         children: [
           // Achievement Icon
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(isCompactScreen ? 8 : 10),
             decoration: BoxDecoration(
               color: achievement.isUnlocked 
                   ? achievement.rarityColor.withValues(alpha: 0.2)
                   : Colors.grey.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(isCompactScreen ? 8 : 10),
             ),
             child: achievement.isUnlocked
                 ? Text(
                     achievement.icon,
-                    style: const TextStyle(fontSize: 24),
+                    style: TextStyle(fontSize: isCompactScreen ? 20 : 24),
                   )
                 : Icon(
                     Icons.help_outline,
-                    size: 24,
+                    size: isCompactScreen ? 20 : 24,
                     color: Colors.grey.withValues(alpha: 0.6),
                   ),
           ),
           
-          const SizedBox(width: 12),
+          SizedBox(width: isCompactScreen ? 8 : 12),
           
           // Achievement Details
           Expanded(
@@ -569,7 +572,7 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                       child: Text(
                         achievement.isUnlocked ? achievement.title : '???',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: isCompactScreen ? 12 : 14,
                           fontWeight: FontWeight.w600,
                           color: achievement.isUnlocked ? Colors.white : Colors.grey,
                         ),
@@ -607,7 +610,7 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                       ? achievement.description 
                       : 'Complete marine research activities to unlock this mysterious achievement...',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: isCompactScreen ? 10 : 12,
                     color: achievement.isUnlocked 
                         ? Colors.white.withValues(alpha: 0.8)
                         : Colors.grey.withValues(alpha: 0.6),
@@ -617,7 +620,7 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                   overflow: TextOverflow.ellipsis,
                 ),
                 
-                const SizedBox(height: 8),
+                SizedBox(height: isCompactScreen ? 6 : 8),
                 
                 // Progress or Reward
                 if (achievement.isUnlocked) ...[
@@ -632,12 +635,15 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                       children: [
                         Icon(Icons.check_circle, color: Colors.green, size: 12),
                         const SizedBox(width: 4),
-                        Text(
-                          'Unlocked • +${achievement.researchValue} XP',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Colors.green,
-                            fontWeight: FontWeight.w600,
+                        Flexible(
+                          child: Text(
+                            'Unlocked • +${achievement.researchValue} XP',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: Colors.green,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

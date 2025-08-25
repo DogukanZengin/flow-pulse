@@ -75,6 +75,15 @@
 	<array>
 		<string>audio</string>
 		<string>fetch</string>
+		<string>background-processing</string>
+		<string>background-app-refresh</string>
+	</array>
+	
+	<!-- Background Task Identifiers -->
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.flowpulse.timer-sync</string>
+		<string>com.flowpulse.session-backup</string>
 	</array>
 </dict>
 </plist>

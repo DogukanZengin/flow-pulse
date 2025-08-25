@@ -15,7 +15,7 @@ class OceanNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 60,
+      height: 68, // Increased from 60 to 68 to accommodate content
       decoration: BoxDecoration(
         // Ocean depth gradient - darker blue to lighter ocean blue
         gradient: const LinearGradient(
@@ -317,8 +317,8 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: EdgeInsets.symmetric(
-                  vertical: widget.isCompact ? 4 : 6, // Reduced padding to prevent overflow
-                  horizontal: widget.isCompact ? 6 : 12, // Slightly reduced horizontal padding
+                  vertical: widget.isCompact ? 2 : 3, // Further reduced padding to prevent overflow
+                  horizontal: widget.isCompact ? 4 : 8, // Further reduced horizontal padding
                 ),
                 decoration: BoxDecoration(
                   color: widget.isSelected 
@@ -346,18 +346,18 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
                         widget.icon,
                         color: Colors.white.withValues(alpha: widget.isSelected ? 1.0 : 0.7),
                         size: widget.isCompact 
-                            ? (widget.isSelected ? 22 : 20)
-                            : (widget.isSelected ? 28 : 24),
+                            ? (widget.isSelected ? 20 : 18) // Reduced icon size
+                            : (widget.isSelected ? 24 : 22), // Reduced icon size
                       ),
                     ),
-                    SizedBox(height: widget.isCompact ? 1 : 2),
+                    SizedBox(height: widget.isCompact ? 0 : 1), // Reduced spacing
                     AnimatedDefaultTextStyle(
                       duration: const Duration(milliseconds: 200),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: widget.isSelected ? 1.0 : 0.7),
                         fontSize: widget.isCompact 
-                            ? (widget.isSelected ? 9 : 8)
-                            : (widget.isSelected ? 11 : 9),
+                            ? (widget.isSelected ? 8 : 7) // Reduced font size
+                            : (widget.isSelected ? 10 : 8), // Reduced font size
                         fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
                       ),
                       child: Text(

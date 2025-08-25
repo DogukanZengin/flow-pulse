@@ -10,6 +10,7 @@ import '../services/live_activities_service.dart';
 import '../services/ocean_activity_service.dart';
 import '../services/ocean_audio_service.dart';
 import '../services/fast_forward_service.dart';
+import '../services/efficient_background_timer_service.dart';
 import '../models/coral.dart';
 import '../models/aquarium.dart';
 import '../models/creature.dart';
@@ -46,12 +47,66 @@ class TimerController extends ChangeNotifier {
   final TimerProvider _timerProvider;
   final Aquarium? _aquarium;
   final OceanSystemController? _oceanSystemController;
+  final EfficientBackgroundTimerService _backgroundService = EfficientBackgroundTimerService();
   
   TimerController(this._timerProvider, this._aquarium, [this._oceanSystemController]) {
     _initializeTimer();
+    _setupBackgroundService();
     _secondsRemainingNotifier.value = _secondsRemaining;
     _isRunningNotifier.value = _isRunning;
     _isStudySessionNotifier.value = _isStudySession;
+  }
+
+  void _setupBackgroundService() {
+    // Set up callbacks for background service
+    _backgroundService.onTimerTick = (remainingSeconds) {
+      _secondsRemaining = remainingSeconds;
+      _secondsRemainingNotifier.value = _secondsRemaining;
+      notifyListeners();
+    };
+
+    _backgroundService.onTimerComplete = () {
+      // Timer completed in background
+      _completeSession();
+    };
+
+    _backgroundService.onAppLifecycleChanged = (state) {
+      // Handle app lifecycle changes for UI updates
+      notifyListeners();
+    };
+
+    // Set up notification action handling
+    NotificationService().onTimerAction = (action, payload) {
+      _handleNotificationAction(action, payload);
+    };
+
+    // Initialize background service
+    _backgroundService.initialize();
+  }
+
+  void _handleNotificationAction(String action, String? payload) {
+    debugPrint('Handling notification action: $action');
+    
+    switch (action) {
+      case 'toggle_timer':
+        if (_isRunning) {
+          pauseTimer();
+        } else {
+          resumeTimer();
+        }
+        break;
+      case 'reset_timer':
+        resetTimer();
+        break;
+      case 'timer_completed':
+        // Timer was completed in background, ensure UI is updated
+        notifyListeners();
+        break;
+      case 'open_app':
+        // App is being opened via notification
+        // UI will automatically update when app becomes active
+        break;
+    }
   }
   
   void _initializeTimer() {
@@ -106,6 +161,13 @@ class TimerController extends ChangeNotifier {
       );
     }
     
+    // Start background service for timer continuity (timestamp-based)
+    _backgroundService.startTimer(
+      durationSeconds: _secondsRemaining,
+      isStudySession: _isStudySession,
+      sessionTitle: _getSessionTitle(),
+    );
+    
     // Show notification with timer controls
     NotificationService().showTimerWithActions(
       title: _getSessionTitle(),
@@ -113,7 +175,7 @@ class TimerController extends ChangeNotifier {
       isRunning: true,
     );
     
-    // Schedule background timer check
+    // Schedule background timer check as backup
     NotificationService().scheduleBackgroundTimerCheck(
       durationSeconds: _secondsRemaining,
       isStudySession: _isStudySession,
@@ -144,6 +206,8 @@ class TimerController extends ChangeNotifier {
           _secondsRemaining = 0;
         }
         _secondsRemainingNotifier.value = _secondsRemaining;
+        
+        // Background service automatically handles state via timestamps
         
         // Update notification every 30 seconds to avoid spam
         if (_secondsRemaining % 30 == 0) {
@@ -177,6 +241,9 @@ class TimerController extends ChangeNotifier {
   
   void _pauseTimer() {
     _timer?.cancel();
+    
+    // Pause background service (timestamp-based)
+    _backgroundService.pauseTimer();
     
     // Cancel background timer check
     NotificationService().cancelBackgroundTimerCheck();
@@ -214,6 +281,9 @@ class TimerController extends ChangeNotifier {
         );
       }
     }
+    
+    // Stop background service
+    _backgroundService.stopTimer();
     
     // Cancel notifications and background tasks
     NotificationService().cancelBackgroundTimerCheck();
@@ -449,6 +519,7 @@ class TimerController extends ChangeNotifier {
   @override
   void dispose() {
     _timer?.cancel();
+    _backgroundService.dispose();
     _secondsRemainingNotifier.dispose();
     _isRunningNotifier.dispose();
     _isStudySessionNotifier.dispose();
