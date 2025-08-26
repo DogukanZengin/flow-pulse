@@ -99,8 +99,7 @@ class _ResearchExpeditionSummaryControllerState
       );
     }).toList();
 
-    // Listen for phase transitions
-    _masterController.addListener(_onMasterAnimationTick);
+    // Master controller is now only used for overall timing, not automatic transitions
   }
 
   void _startCelebrationSequence() async {
@@ -110,36 +109,19 @@ class _ResearchExpeditionSummaryControllerState
     // Start with surfacing animation
     _surfacingController.forward();
     
-    // Wait for surfacing to complete partially before starting main sequence
-    await Future.delayed(const Duration(milliseconds: 800));
-    
-    // Start main celebration sequence
-    _masterController.forward();
+    // Start particle effects
     _particleController.forward();
     
-    // Start first phase
-    if (_celebrationConfig.phases.isNotEmpty) {
-      _startPhase(0);
+    // Wait for surfacing animation to complete, then show first content page automatically
+    await Future.delayed(const Duration(milliseconds: 1000));
+    
+    // Start with phase 1 (Data Collection) instead of phase 0 (Surfacing)
+    if (_celebrationConfig.phases.length > 1 && mounted) {
+      _startPhase(1);
     }
   }
 
-  void _onMasterAnimationTick() {
-    final elapsed = Duration(
-      milliseconds: (_masterController.value * _celebrationConfig.totalDuration.inMilliseconds).round()
-    );
-    
-    // Check for phase transitions
-    for (int i = _currentPhaseIndex; i < _celebrationConfig.phases.length; i++) {
-      final phase = _celebrationConfig.phases[i];
-      
-      if (elapsed >= phase.startTime && 
-          elapsed <= phase.endTime && 
-          _currentPhase != phase) {
-        _startPhase(i);
-        break;
-      }
-    }
-  }
+  // Removed automatic phase transitions - now purely user controlled
 
   void _startPhase(int phaseIndex) {
     if (phaseIndex >= _celebrationConfig.phases.length) return;
@@ -158,25 +140,18 @@ class _ResearchExpeditionSummaryControllerState
   void _skipToEnd() {
     if (!_canSkip) return;
     
-    debugPrint('DEBUG: Skip tapped - current phase: $_currentPhaseIndex/${_celebrationConfig.phases.length - 1}');
+    debugPrint('DEBUG: User tapped - current phase: $_currentPhaseIndex/${_celebrationConfig.phases.length - 1}');
     
     // Advance to next phase or complete if we're on the last phase
     if (_currentPhaseIndex < _celebrationConfig.phases.length - 1) {
       // Advance to next phase
       final nextPhaseIndex = _currentPhaseIndex + 1;
-      final nextPhase = _celebrationConfig.phases[nextPhaseIndex];
-      
-      debugPrint('DEBUG: Advancing from phase $_currentPhaseIndex to $nextPhaseIndex (${nextPhase.name})');
-      
-      // Jump master controller to the start of next phase
-      final nextPhaseProgress = nextPhase.startTime.inMilliseconds / _celebrationConfig.totalDuration.inMilliseconds;
-      debugPrint('DEBUG: Setting master controller to progress: $nextPhaseProgress');
-      _masterController.animateTo(nextPhaseProgress, duration: const Duration(milliseconds: 200));
+      debugPrint('DEBUG: Advancing to phase $nextPhaseIndex');
       
       // Complete current phase controller
       _phaseControllers[_currentPhaseIndex].animateTo(1.0, duration: const Duration(milliseconds: 200));
       
-      // Directly start the next phase instead of relying on the animation listener
+      // Start the next phase
       _startPhase(nextPhaseIndex);
       
       // Temporarily disable skip to prevent rapid tapping
@@ -185,7 +160,7 @@ class _ResearchExpeditionSummaryControllerState
       });
       
       // Re-enable skip after a short delay
-      Future.delayed(const Duration(milliseconds: 500), () {
+      Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted) {
           setState(() {
             _canSkip = true;
@@ -198,8 +173,7 @@ class _ResearchExpeditionSummaryControllerState
         _canSkip = false;
       });
       
-      // Fast forward all controllers to completion
-      _masterController.animateTo(1.0, duration: const Duration(milliseconds: 200));
+      // Complete all controllers
       _surfacingController.animateTo(1.0, duration: const Duration(milliseconds: 200));
       _particleController.animateTo(1.0, duration: const Duration(milliseconds: 200));
       
@@ -267,8 +241,16 @@ class _ResearchExpeditionSummaryControllerState
             ),
           ),
             
-          // Layer 6: Skip indicator (visual only)
-          if (_canSkip)
+          // Layer 6: Progress Indicator - show current phase progress
+          if (_currentPhase != null)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              left: 16,
+              child: _buildProgressIndicator(),
+            ),
+            
+          // Layer 7: Skip indicator (visual only) - only show after first phase starts
+          if (_canSkip && _currentPhase != null)
             Positioned(
               top: MediaQuery.of(context).padding.top + 16,
               right: 16,
@@ -294,7 +276,7 @@ class _ResearchExpeditionSummaryControllerState
                     Text(
                       _currentPhaseIndex < _celebrationConfig.phases.length - 1 
                           ? 'Tap to advance'
-                          : 'Tap to skip',
+                          : 'Tap to continue',
                       style: const TextStyle(
                         color: Colors.cyan,
                         fontSize: 14,
@@ -352,6 +334,53 @@ class _ResearchExpeditionSummaryControllerState
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  Widget _buildProgressIndicator() {
+    // Calculate content phases (excluding surfacing)
+    final contentPhases = _celebrationConfig.phases.where((phase) => phase.name != 'Surfacing').toList();
+    final currentContentPhaseIndex = _currentPhaseIndex > 0 ? _currentPhaseIndex - 1 : 0;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.amber.withValues(alpha: 0.5), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '${currentContentPhaseIndex + 1} of ${contentPhases.length}',
+            style: const TextStyle(
+              color: Colors.amber,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: 8),
+          ...List.generate(contentPhases.length, (index) {
+            final isCompleted = index < currentContentPhaseIndex;
+            final isCurrent = index == currentContentPhaseIndex;
+            
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 2),
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isCompleted
+                    ? Colors.amber
+                    : isCurrent
+                        ? Colors.amber.withValues(alpha: 0.7)
+                        : Colors.grey.withValues(alpha: 0.4),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
   }
 
   @override
@@ -461,16 +490,33 @@ class _ResearchExpeditionSummaryControllerState
     final depth = reward.sessionDepthReached;
     final duration = reward.sessionDurationMinutes;
     final dataPoints = reward.xpGained;
+    final streakBonus = reward.streakBonusXP;
     
+    String baseNarrative;
+    String conservationImpact;
+    
+    // Enhanced depth-based narratives with conservation impact
     if (depth > 50) {
-      return '🌊 Your deep-sea research expedition collected $dataPoints valuable data samples from the ${depth.toStringAsFixed(1)}m abyssal zone during your $duration-minute dive.';
+      baseNarrative = '📊 Your dive team collected $dataPoints new data samples from the ${depth.toStringAsFixed(1)}m abyssal research zone';
+      conservationImpact = 'These deep-sea observations contribute to protecting mysterious ocean depths that are home to unique species found nowhere else on Earth.';
     } else if (depth > 20) {
-      return '🐋 Your marine research team gathered $dataPoints important observations from the ${depth.toStringAsFixed(1)}m open ocean ecosystem over $duration minutes.';
+      baseNarrative = '🐋 Marine researchers documented $dataPoints valuable observations from the ${depth.toStringAsFixed(1)}m open ocean ecosystem';
+      conservationImpact = 'Your research helps protect migratory routes of whales, dolphins, and sea turtles that depend on healthy open ocean environments.';
     } else if (depth > 5) {
-      return '🐠 Your coral reef study documented $dataPoints significant findings at ${depth.toStringAsFixed(1)}m depth during your $duration-minute research session.';
+      baseNarrative = '🐠 Your coral reef research team recorded $dataPoints significant findings at ${depth.toStringAsFixed(1)}m depth';
+      conservationImpact = 'This research directly supports coral conservation efforts - healthy reefs provide homes for 25% of all marine species.';
     } else {
-      return '🏊 Your shallow water survey collected $dataPoints research data points from the ${depth.toStringAsFixed(1)}m coastal zone over $duration minutes.';
+      baseNarrative = '🏊 Your coastal survey team gathered $dataPoints research data points from the ${depth.toStringAsFixed(1)}m shallow waters';
+      conservationImpact = 'Coastal research is vital for protecting nursery habitats where young marine animals begin their lives.';
     }
+    
+    // Add streak bonus narrative
+    String streakNarrative = '';
+    if (streakBonus > 0) {
+      streakNarrative = '\n\n🔬 Consistent research methodology bonus: +$streakBonus validated observations from your dedication to daily marine research.';
+    }
+    
+    return '$baseNarrative during your $duration-minute expedition.\n\n$conservationImpact$streakNarrative';
   }
 
   String _generateDepthDescription(double depth) {
@@ -482,8 +528,18 @@ class _ResearchExpeditionSummaryControllerState
   }
 
   String _generateAchievementNarrative(Achievement achievement) {
-    // Add research context to achievements
-    return '🎓 ${achievement.description} Your consistent research methodology contributes to marine conservation efforts.';
+    // Generate conservation-focused achievement narratives
+    if (achievement.id.contains('streak')) {
+      return '🏆 Scientific Recognition: Consistent Research Methodology Award. Your daily dedication has contributed to a 127% increase in coral formation health monitoring.';
+    } else if (achievement.id.contains('discovery')) {
+      return '🎓 Research Milestone: Species Documentation Excellence. Your discoveries help scientists understand biodiversity patterns critical for ocean protection.';
+    } else if (achievement.id.contains('depth')) {
+      return '⚡ Exploration Achievement: Deep-Sea Research Pioneer. Your deep water research explores habitats that may hold keys to climate resilience.';
+    } else if (achievement.id.contains('session') || achievement.id.contains('focus')) {
+      return '⏰ Productivity Recognition: Research Session Dedication. Consistent research sessions like yours have led to breakthroughs in marine protection strategies.';
+    } else {
+      return '🎓 ${achievement.description} Your research methodology contributes to protecting marine ecosystems that support millions of species worldwide.';
+    }
   }
 
   AchievementCategory _categorizeAchievement(String id) {
@@ -508,7 +564,22 @@ class _ResearchExpeditionSummaryControllerState
   }
 
   String _generateStationUpgrade(String equipmentId) {
-    return '🔬 Research Station Enhanced: New ${_formatEquipmentName(equipmentId)} laboratory now available for advanced marine studies.';
+    final equipmentName = _formatEquipmentName(equipmentId);
+    
+    // Generate specific station upgrade narratives based on equipment type
+    if (equipmentId.contains('camera') || equipmentId.contains('photo')) {
+      return '🎥 Research Station Upgraded: Deep-Sea Photography Lab now available. Document rare species with professional-grade underwater imaging equipment.';
+    } else if (equipmentId.contains('sonar') || equipmentId.contains('radar')) {
+      return '📡 Research Station Upgraded: Sonar Mapping Laboratory established. Map ocean floor topography and track marine animal migration patterns.';
+    } else if (equipmentId.contains('sampler') || equipmentId.contains('collection')) {
+      return '🧪 Research Station Upgraded: Specimen Analysis Lab operational. Collect and analyze water samples, plankton, and genetic material safely.';
+    } else if (equipmentId.contains('computer') || equipmentId.contains('digital')) {
+      return '💻 Research Station Upgraded: Digital Analysis Center online. Process vast amounts of marine data with AI-assisted pattern recognition.';
+    } else if (equipmentId.contains('submersible') || equipmentId.contains('rov')) {
+      return '🚁 Research Station Upgraded: Deep-Sea Vehicle Bay constructed. Deploy remotely operated vehicles to explore previously unreachable depths.';
+    } else {
+      return '🔬 Research Station Upgraded: $equipmentName Laboratory now available. Your expanded capabilities enable more comprehensive marine research.';
+    }
   }
 
   IconData _getEquipmentIcon(String equipmentId) {
@@ -528,7 +599,29 @@ class _ResearchExpeditionSummaryControllerState
   }
 
   String _generateCareerAdvancementNarrative(GamificationReward reward) {
-    return '🎓 Congratulations on your promotion to ${reward.newCareerTitle}! Your research contributions have earned recognition in the marine biology community.';
+    final oldTitle = reward.oldCareerTitle ?? 'Research Intern';
+    final newTitle = reward.newCareerTitle ?? 'Marine Biologist';
+    final newLevel = reward.newLevel;
+    
+    // Generate impact-focused advancement narrative based on level ranges
+    String impactStatement;
+    String nextCapabilities;
+    
+    if (newLevel >= 16) {
+      impactStatement = 'Your groundbreaking research has influenced marine conservation policy worldwide. As a Master Marine Biologist, your discoveries protect entire ocean ecosystems.';
+      nextCapabilities = 'You now have access to research vessels, quantum scanners, and can lead international conservation initiatives.';
+    } else if (newLevel >= 11) {
+      impactStatement = 'Your leadership in marine research has directly resulted in the protection of critical marine habitats. Coral reefs are 15% healthier thanks to research like yours.';
+      nextCapabilities = 'As Research Director, you can now conduct deep-sea expeditions and mentor junior researchers.';
+    } else if (newLevel >= 6) {
+      impactStatement = 'Your certified research has contributed to identifying new species and protecting vulnerable marine populations. Three endangered species have improved survival rates due to your work.';
+      nextCapabilities = 'As a Certified Marine Biologist, you can now use advanced underwater equipment and publish peer-reviewed papers.';
+    } else {
+      impactStatement = 'Your dedicated research is building the foundation for marine conservation. Every observation helps us better understand and protect ocean life.';
+      nextCapabilities = 'Your expanded research capabilities will help document species behavior and ecosystem health.';
+    }
+    
+    return '🎓 Career Advancement: $oldTitle → $newTitle\n\n$impactStatement\n\n$nextCapabilities';
   }
 
   String _generateStreakBonusNarrative(GamificationReward reward) {
@@ -537,16 +630,58 @@ class _ResearchExpeditionSummaryControllerState
 
   String _generateDiscoveryStory(dynamic creature) {
     if (creature == null) return '';
+    
+    if (creature is Creature) {
+      switch (creature.rarity) {
+        case CreatureRarity.legendary:
+          return '🌟 Extraordinary Discovery: You encountered this legendary species during a deep research expedition. This represents a once-in-a-lifetime research opportunity that few marine biologists experience.';
+        case CreatureRarity.rare:
+          return '✨ Significant Find: Your careful observation technique allowed you to document this rare species. This sighting provides crucial data for understanding threatened marine populations.';
+        case CreatureRarity.uncommon:
+          return '🔍 Valuable Observation: During your research dive, you successfully identified and documented this uncommon species, contributing to biodiversity mapping efforts.';
+        case CreatureRarity.common:
+          return '📝 Essential Documentation: You recorded important behavioral data for this species, contributing to baseline studies that help us understand healthy marine ecosystems.';
+      }
+    }
+    
     return 'During your research dive, you encountered this remarkable species in its natural habitat.';
   }
 
   String _generateScientificImportance(dynamic creature) {
     if (creature == null) return '';
+    
+    if (creature is Creature) {
+      switch (creature.rarity) {
+        case CreatureRarity.legendary:
+          return 'This legendary species discovery may unlock secrets of deep-sea adaptation and provide breakthrough insights for marine biology. Your documentation contributes to global scientific databases.';
+        case CreatureRarity.rare:
+          return 'This rare species sighting helps scientists understand population dynamics and breeding patterns essential for species survival and recovery programs.';
+        case CreatureRarity.uncommon:
+          return 'Documentation of this uncommon species contributes to understanding ecosystem balance and the interconnected relationships within marine food webs.';
+        case CreatureRarity.common:
+          return 'This common species serves as an important indicator of ecosystem health. Your observations help establish baseline data for long-term conservation monitoring.';
+      }
+    }
+    
     return 'This species plays a crucial role in the marine ecosystem and contributes valuable data to ongoing research.';
   }
 
   String _generateConservationImpact(dynamic creature) {
     if (creature == null) return '';
+    
+    if (creature is Creature) {
+      switch (creature.rarity) {
+        case CreatureRarity.legendary:
+          return '🌊 Your documentation of this legendary species directly influences international marine protection policies. This discovery may result in new protected marine areas and species preservation programs.';
+        case CreatureRarity.rare:
+          return '🛡️ Your rare species documentation supports emergency conservation measures. Data like yours has contributed to preventing three marine species extinctions in the past decade.';
+        case CreatureRarity.uncommon:
+          return '🌱 Your observation helps maintain biodiversity by supporting habitat protection initiatives. Marine protected areas are 23% more effective when guided by research like yours.';
+        case CreatureRarity.common:
+          return '💚 Your research contributes to ecosystem stability monitoring. Healthy populations of common species like this indicate thriving marine environments that support all ocean life.';
+      }
+    }
+    
     return 'Your documentation of this species supports marine conservation efforts and habitat protection initiatives.';
   }
 }

@@ -208,37 +208,85 @@ class MarineBiologyCareerLevel {
   });
 
   static MarineBiologyCareerLevel fromLevel(int level) {
-    if (level <= 5) {
+    if (level <= 1) {
       return const MarineBiologyCareerLevel(
         level: 1,
         title: 'Research Intern',
-        description: 'Learning the fundamentals of marine research',
-        researchCapabilities: 'Basic observation and data collection',
-        unlockedEquipment: ['Research Notebook', 'Basic Camera'],
+        description: 'Beginning your journey in marine science',
+        researchCapabilities: 'Basic underwater observation and note-taking',
+        unlockedEquipment: ['Research Notebook', 'Basic Snorkel Mask'],
       );
-    } else if (level <= 10) {
+    } else if (level <= 3) {
+      return const MarineBiologyCareerLevel(
+        level: 2,
+        title: 'Field Assistant',
+        description: 'Supporting marine research expeditions',
+        researchCapabilities: 'Species counting and basic photography',
+        unlockedEquipment: ['Waterproof Camera', 'Fish ID Guide'],
+      );
+    } else if (level <= 5) {
+      return const MarineBiologyCareerLevel(
+        level: 4,
+        title: 'Research Associate',
+        description: 'Contributing to scientific studies',
+        researchCapabilities: 'Data collection and preliminary analysis',
+        unlockedEquipment: ['Underwater Tablet', 'Sample Containers'],
+      );
+    } else if (level <= 8) {
       return const MarineBiologyCareerLevel(
         level: 6,
         title: 'Marine Biologist',
-        description: 'Certified researcher with field experience',
-        researchCapabilities: 'Species identification and behavior analysis',
-        unlockedEquipment: ['Underwater Camera', 'Sample Collection Kit'],
+        description: 'Certified researcher with independent authority',
+        researchCapabilities: 'Species identification and behavior documentation',
+        unlockedEquipment: ['Advanced Dive Computer', 'Scientific Camera'],
+      );
+    } else if (level <= 10) {
+      return const MarineBiologyCareerLevel(
+        level: 9,
+        title: 'Senior Researcher',
+        description: 'Experienced scientist with specialization expertise',
+        researchCapabilities: 'Ecosystem health assessment and conservation planning',
+        unlockedEquipment: ['Deep Sea Equipment', 'Water Quality Sensors'],
+      );
+    } else if (level <= 12) {
+      return const MarineBiologyCareerLevel(
+        level: 11,
+        title: 'Lead Scientist',
+        description: 'Directing marine research programs',
+        researchCapabilities: 'Multi-species studies and habitat protection initiatives',
+        unlockedEquipment: ['Research Submersible Access', 'Advanced Sonar'],
       );
     } else if (level <= 15) {
       return const MarineBiologyCareerLevel(
-        level: 11,
+        level: 13,
         title: 'Research Director',
-        description: 'Leading marine conservation efforts',
-        researchCapabilities: 'Ecosystem analysis and conservation planning',
-        unlockedEquipment: ['Deep Sea Equipment', 'Advanced Sonar'],
+        description: 'Leading marine conservation institutions',
+        researchCapabilities: 'Policy influence and international collaboration',
+        unlockedEquipment: ['Satellite Tracking', 'AI Analysis Tools'],
+      );
+    } else if (level <= 18) {
+      return const MarineBiologyCareerLevel(
+        level: 16,
+        title: 'Professor of Marine Biology',
+        description: 'Academic leader training next generation',
+        researchCapabilities: 'Groundbreaking research and scientific publication',
+        unlockedEquipment: ['University Research Lab', 'Genetic Sequencer'],
+      );
+    } else if (level <= 20) {
+      return const MarineBiologyCareerLevel(
+        level: 19,
+        title: 'Department Head',
+        description: 'Institutional leader shaping marine science',
+        researchCapabilities: 'Research program development and funding acquisition',
+        unlockedEquipment: ['Research Vessel Command', 'Global Network Access'],
       );
     } else {
       return const MarineBiologyCareerLevel(
-        level: 16,
-        title: 'Master Marine Biologist',
-        description: 'Pioneer of ocean research and conservation',
-        researchCapabilities: 'Groundbreaking research and policy influence',
-        unlockedEquipment: ['Research Vessel', 'Specialized Lab Equipment'],
+        level: 21,
+        title: 'Ocean Research Pioneer',
+        description: 'Legendary scientist transforming ocean conservation',
+        researchCapabilities: 'Paradigm-shifting discoveries and global policy impact',
+        unlockedEquipment: ['Quantum Ocean Scanner', 'International Authority'],
       );
     }
   }

@@ -76,15 +76,50 @@ class _CareerAdvancementPageState extends State<CareerAdvancementPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Advancement header
-                Text(
-                  '🎓 CAREER ADVANCEMENT',
-                  style: TextStyle(
-                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                // Hero Achievement - Career Title
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.purple.withValues(alpha: 0.4),
+                        Colors.deepPurple.withValues(alpha: 0.3),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.purple.withValues(alpha: 0.6)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.purple.withValues(alpha: 0.3),
+                        blurRadius: 15,
+                        spreadRadius: 2,
+                      ),
+                    ],
                   ),
-                  textAlign: TextAlign.center,
+                  child: Column(
+                    children: [
+                      const Icon(Icons.emoji_events, color: Colors.amber, size: 32),
+                      const SizedBox(height: 8),
+                      Text(
+                        'PROMOTION EARNED',
+                        style: TextStyle(
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.amber,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        widget.expeditionResult.careerProgression.title,
+                        style: TextStyle(
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
                 
                 const SizedBox(height: 20),
@@ -93,15 +128,16 @@ class _CareerAdvancementPageState extends State<CareerAdvancementPage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.3),
+                      color: Colors.black.withValues(alpha: 0.8),
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.purple.withValues(alpha: 0.3)),
                     ),
                     child: Text(
-                      widget.expeditionResult.careerAdvancementNarrative!,
+                      _getCondensedNarrative(widget.expeditionResult.careerAdvancementNarrative!),
                       style: TextStyle(
                         fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                         color: Colors.white,
-                        height: 1.5,
+                        height: 1.4,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -163,5 +199,18 @@ class _CareerAdvancementPageState extends State<CareerAdvancementPage> {
         ),
       ),
     );
+  }
+
+  String _getCondensedNarrative(String fullNarrative) {
+    // Extract key impact statement from the narrative (50% reduction)
+    final parts = fullNarrative.split('\n\n');
+    if (parts.length >= 2) {
+      // Take the impact statement (usually the second paragraph)
+      return parts[1].trim();
+    } else {
+      // If no multiple paragraphs, take first sentence
+      final sentences = fullNarrative.split('. ');
+      return sentences.isNotEmpty ? '${sentences[0]}.' : fullNarrative;
+    }
   }
 }
