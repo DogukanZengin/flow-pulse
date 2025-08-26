@@ -88,19 +88,21 @@ class _SessionResultsPageState extends State<SessionResultsPage>
             margin: const EdgeInsets.all(20),
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.blue.withValues(alpha: 0.9),
-                  Colors.teal.withValues(alpha: 0.8),
-                ],
-              ),
+              // Enhanced background overlay for text readability
+              color: Colors.black.withValues(alpha: 0.85), // High opacity for text protection
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.cyan.withValues(alpha: 0.5), width: 2),
+              border: Border.all(color: Colors.cyan.withValues(alpha: 0.8), width: 2),
               boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  blurRadius: 25,
+                  spreadRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
                 BoxShadow(
                   color: Colors.cyan.withValues(alpha: 0.3),
                   blurRadius: 20,
-                  spreadRadius: 5,
+                  spreadRadius: 2,
                 ),
               ],
             ),
@@ -132,19 +134,25 @@ class _SessionResultsPageState extends State<SessionResultsPage>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
+        // Enhanced contrast for hero metric
         gradient: LinearGradient(
           colors: [
-            Colors.amber.withValues(alpha: 0.3),
-            Colors.orange.withValues(alpha: 0.2),
+            Colors.black.withValues(alpha: 0.8),
+            const Color(0xFF0B1426).withValues(alpha: 0.85), // Deep ocean color
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.amber.withValues(alpha: 0.6), width: 2),
+        border: Border.all(color: Colors.amber.withValues(alpha: 0.8), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.amber.withValues(alpha: 0.4),
+            color: Colors.black.withValues(alpha: 0.5),
+            blurRadius: 15,
+            spreadRadius: 2,
+          ),
+          BoxShadow(
+            color: Colors.amber.withValues(alpha: 0.3),
             blurRadius: 20,
-            spreadRadius: 3,
+            spreadRadius: 1,
           ),
         ],
       ),
@@ -153,9 +161,21 @@ class _SessionResultsPageState extends State<SessionResultsPage>
           Text(
             '🌊 DEEP SEA EXPEDITION',
             style: TextStyle(
-              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
+              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle') * 1.2, // Increased size
               fontWeight: FontWeight.bold,
-              color: Colors.amber,
+              color: const Color(0xFFFFD700), // Gold color for better contrast
+              shadows: const [
+                Shadow(
+                  color: Color(0x80000000),
+                  blurRadius: 4.0,
+                  offset: Offset(0, 2),
+                ),
+                Shadow(
+                  color: Color(0x40000000),
+                  blurRadius: 8.0,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 12),
@@ -165,13 +185,19 @@ class _SessionResultsPageState extends State<SessionResultsPage>
               return Text(
                 _counterAnimation.value.round().toString(),
                 style: TextStyle(
-                  fontSize: 48,
+                  fontSize: 56, // Increased for hero emphasis
                   fontWeight: FontWeight.bold,
-                  color: Colors.amber,
-                  shadows: [
+                  color: const Color(0xFFFFD700), // Bright gold
+                  shadows: const [
                     Shadow(
-                      color: Colors.amber.withValues(alpha: 0.5),
-                      blurRadius: 10,
+                      color: Color(0x90000000),
+                      blurRadius: 6.0,
+                      offset: Offset(0, 3),
+                    ),
+                    Shadow(
+                      color: Color(0xFFFFD700),
+                      blurRadius: 15.0,
+                      offset: Offset(0, 0),
                     ),
                   ],
                 ),
@@ -181,8 +207,16 @@ class _SessionResultsPageState extends State<SessionResultsPage>
           Text(
             'Data Points Collected',
             style: TextStyle(
-              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
-              color: Colors.white,
+              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body') * 1.1,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFFE3F2FD), // Light blue for secondary text
+              shadows: const [
+                Shadow(
+                  color: Color(0x80000000),
+                  blurRadius: 3.0,
+                  offset: Offset(0, 1),
+                ),
+              ],
             ),
           ),
         ],
@@ -226,9 +260,16 @@ class _SessionResultsPageState extends State<SessionResultsPage>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
+        color: Colors.black.withValues(alpha: 0.75), // Darker background for contrast
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(color: color.withValues(alpha: 0.8), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -237,16 +278,31 @@ class _SessionResultsPageState extends State<SessionResultsPage>
           Text(
             value,
             style: TextStyle(
-              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
+              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle') * 1.15,
               fontWeight: FontWeight.bold,
               color: color,
+              shadows: const [
+                Shadow(
+                  color: Color(0x80000000),
+                  blurRadius: 3.0,
+                  offset: Offset(0, 1),
+                ),
+              ],
             ),
           ),
           Text(
             label,
             style: TextStyle(
-              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
-              color: Colors.white.withValues(alpha: 0.8),
+              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption') * 1.1,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFFFFFFFF), // Pure white for better readability
+              shadows: const [
+                Shadow(
+                  color: Color(0x80000000),
+                  blurRadius: 2.0,
+                  offset: Offset(0, 1),
+                ),
+              ],
             ),
           ),
         ],
@@ -258,19 +314,16 @@ class _SessionResultsPageState extends State<SessionResultsPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.green.withValues(alpha: 0.3),
-            Colors.teal.withValues(alpha: 0.2),
-          ],
-        ),
+        // High contrast background for conservation impact text
+        color: const Color(0xFF0B1426).withValues(alpha: 0.9), // Deep ocean color
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.green.withValues(alpha: 0.5)),
+        border: Border.all(color: Colors.green.withValues(alpha: 0.8), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.8),
-            blurRadius: 0,
-            spreadRadius: 0,
+            color: Colors.black.withValues(alpha: 0.6),
+            blurRadius: 12,
+            spreadRadius: 2,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -284,9 +337,17 @@ class _SessionResultsPageState extends State<SessionResultsPage>
               Text(
                 'CONSERVATION IMPACT',
                 style: TextStyle(
-                  fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
+                  fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption') * 1.2,
                   fontWeight: FontWeight.bold,
-                  color: Colors.green,
+                  color: const Color(0xFF4CAF50), // Bright green for visibility
+                  letterSpacing: 0.5,
+                  shadows: const [
+                    Shadow(
+                      color: Color(0x80000000),
+                      blurRadius: 3.0,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -295,9 +356,17 @@ class _SessionResultsPageState extends State<SessionResultsPage>
           Text(
             _generateCondensedConservationImpact(),
             style: TextStyle(
-              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
-              color: Colors.white,
-              height: 1.3,
+              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'), // Increased from caption
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFFFFFFFF), // Pure white
+              height: 1.4, // Better line spacing
+              shadows: const [
+                Shadow(
+                  color: Color(0x90000000),
+                  blurRadius: 3.0,
+                  offset: Offset(0, 1),
+                ),
+              ],
             ),
             textAlign: TextAlign.center,
           ),

@@ -10,6 +10,9 @@ import 'pages/career_advancement_page.dart';
 import 'pages/species_discovery_page.dart';
 import 'pages/equipment_unlock_page.dart';
 import 'components/underwater_background.dart';
+import 'effects/jellyfish_levelup_effect.dart';
+import 'effects/school_of_fish_transition.dart';
+import 'effects/rare_creature_popup.dart';
 
 /// Main orchestration widget that coordinates the entire research expedition summary experience
 /// This replaces the monolithic ResearchExpeditionSummaryWidget with a modular architecture
@@ -74,32 +77,26 @@ class _ResearchExpeditionSummaryControllerState
   }
 
   void _initializeAnimations() {
-    // Master animation controller for overall sequencing
+    // Single master animation controller for optimal performance
     _masterController = AnimationController(
       duration: _celebrationConfig.totalDuration,
       vsync: this,
     );
 
-    // Specialized controllers for different layers
+    // Derived animations from master controller for better sync and performance
     _surfacingController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
 
-    _particleController = AnimationController(
-      duration: _celebrationConfig.totalDuration,
-      vsync: this,
-    );
+    // Use master controller for particle system - no separate controller needed
+    _particleController = _masterController;
 
-    // Create phase-specific controllers
+    // Create lightweight phase animations instead of separate controllers
     _phaseControllers = _celebrationConfig.phases.map((phase) {
-      return AnimationController(
-        duration: phase.duration,
-        vsync: this,
-      );
+      // Return master controller - phase timing handled by intervals
+      return _masterController;
     }).toList();
-
-    // Master controller is now only used for overall timing, not automatic transitions
   }
 
   void _startCelebrationSequence() async {
@@ -301,6 +298,21 @@ class _ResearchExpeditionSummaryControllerState
 
     debugPrint('DEBUG: Building content for phase: ${_currentPhase!.name} (index: $_currentPhaseIndex)');
 
+    // Stack to layer effects on top of content
+    return Stack(
+      children: [
+        // Main content page
+        _buildPhaseContent(),
+        
+        // Overlay effects based on phase
+        ..._buildPhaseEffects(),
+      ],
+    );
+  }
+  
+  Widget _buildPhaseContent() {
+    if (_currentPhase == null) return const SizedBox.shrink();
+    
     switch (_currentPhase!.name) {
       case 'Surfacing':
         return const SizedBox.shrink(); // Surfacing is handled by overlay
@@ -333,6 +345,107 @@ class _ResearchExpeditionSummaryControllerState
         
       default:
         return const SizedBox.shrink();
+    }
+  }
+  
+  List<Widget> _buildPhaseEffects() {
+    if (_currentPhase == null) return [];
+    
+    final effects = <Widget>[];
+    
+    // Performance-based effect rendering
+    final shouldRenderExpensiveEffects = _celebrationConfig.intensity.index >= 2;
+    
+    // Add jellyfish effect for career advancement (only if high intensity)
+    if (_currentPhase!.name == 'Career Advancement' && 
+        _expeditionResult.leveledUp && 
+        shouldRenderExpensiveEffects) {
+      effects.add(
+        Positioned.fill(
+          child: IgnorePointer(
+            child: RepaintBoundary(
+              child: JellyfishLevelUpEffect(
+                controller: _phaseControllers[_currentPhaseIndex],
+                newLevel: _expeditionResult.newLevel,
+                newTitle: _expeditionResult.careerProgression.title,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    
+    // Add rare creature popup for species discoveries (optimized)
+    if (_currentPhase!.name == 'Species Discovery' && 
+        _expeditionResult.discoveredCreature != null &&
+        _expeditionResult.discoveredCreature is Creature) {
+      final creature = _expeditionResult.discoveredCreature as Creature;
+      if (creature.rarity == CreatureRarity.rare || 
+          creature.rarity == CreatureRarity.legendary) {
+        effects.add(
+          Positioned.fill(
+            child: IgnorePointer(
+              child: RepaintBoundary(
+                child: RareCreaturePopup(
+                  creature: creature,
+                  controller: _phaseControllers[_currentPhaseIndex],
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+    }
+    
+    // Add school of fish effect for grand finale (only for high celebration intensity)
+    if (_currentPhase!.name == 'Grand Finale' && shouldRenderExpensiveEffects) {
+      effects.add(
+        Positioned.fill(
+          child: IgnorePointer(
+            child: RepaintBoundary(
+              child: SchoolOfFishTransition(
+                controller: _phaseControllers[_currentPhaseIndex],
+                fishColor: _getPhaseColor(),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    
+    // Add school of fish for data collection if significant XP (reduced threshold)
+    if (_currentPhase!.name == 'Data Collection' && 
+        _expeditionResult.dataPointsCollected > 150 &&
+        shouldRenderExpensiveEffects) {
+      effects.add(
+        Positioned.fill(
+          child: IgnorePointer(
+            child: RepaintBoundary(
+              child: SchoolOfFishTransition(
+                controller: _phaseControllers[_currentPhaseIndex],
+                fishColor: Colors.cyan.withValues(alpha: 0.6),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    
+    return effects;
+  }
+  
+  Color _getPhaseColor() {
+    switch (_currentPhase?.name) {
+      case 'Data Collection':
+        return Colors.cyan;
+      case 'Career Advancement':
+        return Colors.purple;
+      case 'Species Discovery':
+        return Colors.teal;
+      case 'Grand Finale':
+        return Colors.indigo;
+      default:
+        return Colors.blue;
     }
   }
 
@@ -387,11 +500,9 @@ class _ResearchExpeditionSummaryControllerState
   void dispose() {
     _masterController.dispose();
     _surfacingController.dispose();
-    _particleController.dispose();
+    // _particleController now references _masterController, don't dispose twice
     
-    for (final controller in _phaseControllers) {
-      controller.dispose();
-    }
+    // Phase controllers now reference master controller, no separate disposal needed
     
     super.dispose();
   }
@@ -477,10 +588,8 @@ class _ResearchExpeditionSummaryControllerState
       nextEquipmentHint: reward.nextEquipmentHint,
       nextAchievementHint: reward.nextAchievementHint,
       nextCareerMilestone: reward.nextCareerMilestone,
-      celebrationLevel: CelebrationIntensity.moderate, // Will be calculated
-      sessionBiome: reward.sessionDepthReached <= 10 
-          ? BiomeType.shallowWaters 
-          : BiomeType.deepOcean,
+      celebrationLevel: _calculateCelebrationIntensity(reward),
+      sessionBiome: _determineBiome(reward.sessionDepthReached),
       celebrationEffects: [], // Will be populated by CelebrationConfig
     );
   }
@@ -683,5 +792,113 @@ class _ResearchExpeditionSummaryControllerState
     }
     
     return 'Your documentation of this species supports marine conservation efforts and habitat protection initiatives.';
+  }
+  
+  /// Calculate celebration intensity based on achievement significance
+  /// Implementation of Phase 4 celebration intensity scaling system
+  CelebrationIntensity _calculateCelebrationIntensity(GamificationReward reward) {
+    double intensityScore = 0.0;
+    
+    // Base intensity from XP gained (normalized to session duration)
+    final xpPerMinute = reward.sessionDurationMinutes > 0 
+        ? reward.xpGained / reward.sessionDurationMinutes 
+        : reward.xpGained;
+    intensityScore += (xpPerMinute / 50.0).clamp(0.0, 0.3); // Up to 30% from XP
+    
+    // Level up bonus (major achievement)
+    if (reward.leveledUp) {
+      intensityScore += 0.25; // +25% for level up
+      
+      // Career title change is even more significant
+      if (reward.careerTitleChanged) {
+        intensityScore += 0.15; // Additional +15% for career advancement
+      }
+    }
+    
+    // Species discovery bonus (scaled by rarity)
+    if (reward.discoveredCreature != null) {
+      final creature = reward.discoveredCreature!;
+      if (creature is Creature) {
+        switch (creature.rarity) {
+          case CreatureRarity.legendary:
+            intensityScore += 0.4; // +40% for legendary discovery
+            break;
+          case CreatureRarity.rare:
+            intensityScore += 0.25; // +25% for rare discovery
+            break;
+          case CreatureRarity.uncommon:
+            intensityScore += 0.15; // +15% for uncommon discovery
+            break;
+          case CreatureRarity.common:
+            intensityScore += 0.05; // +5% for common discovery
+            break;
+        }
+      }
+    }
+    
+    // Multiple discoveries in one session
+    if (reward.allDiscoveredCreatures.length > 1) {
+      final bonusDiscoveries = reward.allDiscoveredCreatures.length - 1;
+      intensityScore += bonusDiscoveries * 0.1; // +10% per additional discovery
+    }
+    
+    // Achievement unlocks
+    for (final achievement in reward.unlockedAchievements) {
+      if (achievement.id.contains('legendary') || achievement.id.contains('master')) {
+        intensityScore += 0.2; // +20% for major achievements
+      } else if (achievement.id.contains('milestone') || achievement.id.contains('expert')) {
+        intensityScore += 0.15; // +15% for milestone achievements
+      } else {
+        intensityScore += 0.1; // +10% for regular achievements
+      }
+    }
+    
+    // Equipment unlocks (research station upgrades)
+    intensityScore += reward.unlockedEquipment.length * 0.12; // +12% per equipment unlock
+    
+    // Streak bonuses
+    if (reward.currentStreak >= 30) {
+      intensityScore += 0.3; // +30% for month+ streak
+    } else if (reward.currentStreak >= 14) {
+      intensityScore += 0.2; // +20% for 2+ week streak
+    } else if (reward.currentStreak >= 7) {
+      intensityScore += 0.1; // +10% for week+ streak
+    }
+    
+    // Session completion and depth bonuses
+    if (reward.sessionCompleted) {
+      intensityScore += 0.1; // +10% for session completion
+      
+      // Deep dive bonus
+      if (reward.sessionDepthReached > 50) {
+        intensityScore += 0.15; // +15% for abyssal dives
+      } else if (reward.sessionDepthReached > 20) {
+        intensityScore += 0.1; // +10% for deep ocean dives
+      }
+    }
+    
+    // Research efficiency bonus
+    if (reward.researchEfficiency >= 0.9) {
+      intensityScore += 0.2; // +20% for excellent efficiency
+    } else if (reward.researchEfficiency >= 0.7) {
+      intensityScore += 0.1; // +10% for good efficiency
+    }
+    
+    // Cap the intensity score to reasonable limits
+    intensityScore = intensityScore.clamp(0.0, 1.0);
+    
+    // Convert to CelebrationIntensity enum
+    if (intensityScore >= 0.9) return CelebrationIntensity.maximum;
+    if (intensityScore >= 0.7) return CelebrationIntensity.high;
+    if (intensityScore >= 0.4) return CelebrationIntensity.moderate;
+    return CelebrationIntensity.minimal;
+  }
+  
+  /// Determine biome based on session depth with more granular categories
+  BiomeType _determineBiome(double depth) {
+    if (depth >= 50) return BiomeType.abyssalZone;
+    if (depth >= 20) return BiomeType.deepOcean;
+    if (depth >= 5) return BiomeType.coralGarden;
+    return BiomeType.shallowWaters;
   }
 }

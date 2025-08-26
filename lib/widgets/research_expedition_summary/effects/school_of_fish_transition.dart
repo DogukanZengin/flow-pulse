@@ -24,6 +24,11 @@ class _SchoolOfFishTransitionState extends State<SchoolOfFishTransition>
   final List<Fish> _fishes = [];
   late AnimationController _swimController;
   
+  // Pre-computed fish templates for instanced rendering
+  Path? _fishBodyTemplate;
+  Path? _fishTailTemplate;
+  bool _templatesInitialized = false;
+  
   @override
   void initState() {
     super.initState();
@@ -59,6 +64,25 @@ class _SchoolOfFishTransitionState extends State<SchoolOfFishTransition>
         phase: random.nextDouble() * math.pi * 2,
       ));
     }
+    
+    _initializeFishTemplates();
+  }
+  
+  void _initializeFishTemplates() {
+    if (_templatesInitialized) return;
+    
+    // Create reusable fish body template (normalized size)
+    _fishBodyTemplate = Path()
+      ..addOval(const Rect.fromLTWH(-0.5, -0.2, 1.0, 0.4));
+    
+    // Create reusable fish tail template  
+    _fishTailTemplate = Path()
+      ..moveTo(-0.5, 0)
+      ..lineTo(-0.8, -0.2)
+      ..lineTo(-0.8, 0.2)
+      ..close();
+    
+    _templatesInitialized = true;
   }
   
   @override
@@ -82,6 +106,8 @@ class _SchoolOfFishTransitionState extends State<SchoolOfFishTransition>
             swimAnimation: _swimController.value,
             fishColor: widget.fishColor,
             screenSize: size,
+            fishBodyTemplate: _fishBodyTemplate,
+            fishTailTemplate: _fishTailTemplate,
           ),
         );
       },
@@ -115,6 +141,8 @@ class _SchoolOfFishPainter extends CustomPainter {
   final double swimAnimation;
   final Color fishColor;
   final Size screenSize;
+  final Path? fishBodyTemplate;
+  final Path? fishTailTemplate;
 
   _SchoolOfFishPainter({
     required this.fishes,
@@ -122,6 +150,8 @@ class _SchoolOfFishPainter extends CustomPainter {
     required this.swimAnimation,
     required this.fishColor,
     required this.screenSize,
+    this.fishBodyTemplate,
+    this.fishTailTemplate,
   });
 
   @override
@@ -137,8 +167,9 @@ class _SchoolOfFishPainter extends CustomPainter {
     final waveY = math.sin(swimAnimation * math.pi * 2 + fish.phase) * fish.verticalWave;
     final y = fish.startOffset.dy + waveY;
     
-    // Skip if fish is off-screen
+    // Early exit optimizations
     if (x < -50 || x > size.width + 50) return;
+    if (fishBodyTemplate == null || fishTailTemplate == null) return;
     
     final position = Offset(x, y);
     
@@ -147,35 +178,26 @@ class _SchoolOfFishPainter extends CustomPainter {
       ..color = fishColor.withValues(alpha: 0.8)
       ..style = PaintingStyle.fill;
     
-    // Draw fish body (ellipse)
+    // Setup transform once
     canvas.save();
     canvas.translate(position.dx, position.dy);
     
-    // Rotate fish slightly based on swimming
+    // Rotate fish slightly based on swimming (cached calculation)
     final rotation = math.sin(swimAnimation * math.pi * 4 + fish.phase) * 0.1;
     canvas.rotate(rotation);
+    canvas.scale(fish.size, fish.size);
     
-    // Fish body
-    final bodyPath = Path()
-      ..addOval(Rect.fromCenter(
-        center: Offset.zero,
-        width: fish.size,
-        height: fish.size * 0.4,
-      ));
+    // Draw using pre-computed templates
+    canvas.drawPath(fishBodyTemplate!, paint);
     
-    canvas.drawPath(bodyPath, paint);
-    
-    // Fish tail
-    final tailPath = Path()
-      ..moveTo(-fish.size * 0.5, 0)
-      ..lineTo(-fish.size * 0.8, -fish.size * 0.2)
-      ..lineTo(-fish.size * 0.8, fish.size * 0.2)
-      ..close();
-    
+    // Fish tail with different opacity
     paint.color = fishColor.withValues(alpha: 0.6);
-    canvas.drawPath(tailPath, paint);
+    canvas.drawPath(fishTailTemplate!, paint);
     
-    // Fish eye
+    // Simplified eye drawing (combine into single draw operation)
+    canvas.scale(1.0 / fish.size, 1.0 / fish.size); // Reset scale for eyes
+    
+    // White eye background
     paint.color = Colors.white;
     canvas.drawCircle(
       Offset(fish.size * 0.3, -fish.size * 0.05),
@@ -183,6 +205,7 @@ class _SchoolOfFishPainter extends CustomPainter {
       paint,
     );
     
+    // Black pupil
     paint.color = Colors.black;
     canvas.drawCircle(
       Offset(fish.size * 0.32, -fish.size * 0.05),

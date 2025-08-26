@@ -29,15 +29,15 @@ class CelebrationConfig {
   });
 
   static CelebrationConfig fromExpeditionResult(ExpeditionResult result) {
-    final intensity = _getCelebrationIntensity(result.celebrationIntensity);
-    final biome = result.getPrimaryBiome();
+    final intensity = result.celebrationLevel; // Use calculated intensity from Phase 4 system
+    final biome = result.sessionBiome; // Use determined biome
     final depthFactor = (result.sessionDepthReached / 100.0).clamp(0.0, 1.0);
     
     return CelebrationConfig(
       intensity: intensity,
       primaryBiome: biome,
-      totalDuration: _getTotalDuration(intensity),
-      phases: _getCelebrationPhases(result),
+      totalDuration: _getTotalDuration(intensity, result),
+      phases: _getCelebrationPhases(result, intensity),
       primaryCurve: _getPrimaryCurve(intensity),
       depthFactor: depthFactor,
       hasLevelUp: result.leveledUp,
@@ -47,14 +47,9 @@ class CelebrationConfig {
     );
   }
 
-  static CelebrationIntensity _getCelebrationIntensity(double value) {
-    if (value >= 0.9) return CelebrationIntensity.maximum;
-    if (value >= 0.7) return CelebrationIntensity.high;
-    if (value >= 0.4) return CelebrationIntensity.moderate;
-    return CelebrationIntensity.minimal;
-  }
 
-  static Duration _getTotalDuration(CelebrationIntensity intensity) {
+  static Duration _getTotalDuration(CelebrationIntensity intensity, ExpeditionResult result) {
+    // Return to user-controlled navigation - duration is for overall timing but not automatic
     switch (intensity) {
       case CelebrationIntensity.maximum:
         return const Duration(milliseconds: 12000); // Extended for all phases
@@ -80,7 +75,7 @@ class CelebrationConfig {
     }
   }
 
-  static List<CelebrationPhase> _getCelebrationPhases(ExpeditionResult result) {
+  static List<CelebrationPhase> _getCelebrationPhases(ExpeditionResult result, CelebrationIntensity intensity) {
     final List<CelebrationPhase> phases = [];
     
     // Phase 1: Surfacing Animation (always present)
@@ -116,79 +111,143 @@ class CelebrationConfig {
       ],
     ));
 
-    // Phase 3: Career Advancement (show for testing - originally conditional on level/career change)
-    if (result.leveledUp || result.careerTitleChanged || true) { // Always show for testing
-      phases.add(const CelebrationPhase(
+    // Phase 3: Career Advancement - scaled by celebration intensity (show if career changed or for testing)
+    if (result.leveledUp || result.careerTitleChanged || true) { // Always show for user control
+      final careerEffectIntensity = _getIntensityMultiplier(intensity);
+      
+      phases.add(CelebrationPhase(
         name: 'Career Advancement',
-        startTime: Duration(milliseconds: 4000),
-        duration: Duration(milliseconds: 2000),
+        startTime: const Duration(milliseconds: 4000),
+        duration: const Duration(milliseconds: 2000),
         effects: [
           CelebrationEffect(
             type: CelebrationEffectType.badgeShimmer,
-            duration: Duration(milliseconds: 1500),
-            intensity: 0.9,
+            duration: const Duration(milliseconds: 1500),
+            intensity: (0.9 * careerEffectIntensity).clamp(0.3, 1.0),
           ),
           CelebrationEffect(
             type: CelebrationEffectType.coralBloom,
-            duration: Duration(milliseconds: 2000),
-            intensity: 0.7,
+            duration: const Duration(milliseconds: 2000),
+            intensity: (0.7 * careerEffectIntensity).clamp(0.3, 1.0),
           ),
         ],
       ));
     }
 
-    // Phase 4: Species Discoveries (show for testing - originally conditional on discoveries)
-    if (result.allDiscoveredCreatures.isNotEmpty || true) { // Always show for testing
+    // Phase 4: Species Discoveries - scaled by rarity and celebration intensity (show for testing)
+    if (result.allDiscoveredCreatures.isNotEmpty || true) { // Always show for user control
+      final discoveryIntensity = _getDiscoveryIntensity(result, intensity);
+      
       phases.add(CelebrationPhase(
         name: 'Species Discovery',
         startTime: const Duration(milliseconds: 6000), // Fixed timing after Career Advancement
         duration: const Duration(milliseconds: 2000),
         effects: [
-          const CelebrationEffect(
+          CelebrationEffect(
             type: CelebrationEffectType.creatureSpotlight,
-            duration: Duration(milliseconds: 1800),
-            intensity: 1.0,
+            duration: const Duration(milliseconds: 1800),
+            intensity: discoveryIntensity,
           ),
           CelebrationEffect(
-            type: _getBiomeSpecificEffect(result.getPrimaryBiome()),
+            type: _getBiomeSpecificEffect(result.sessionBiome),
             duration: const Duration(milliseconds: 2000),
-            intensity: 0.8,
+            intensity: (discoveryIntensity * 0.8).clamp(0.3, 1.0),
           ),
         ],
       ));
     }
 
-    // Phase 5: Grand Finale (show for testing - originally conditional on celebration intensity)
-    if (result.celebrationIntensity > 0.7 || true) { // Always show for testing
+    // Phase 5: Grand Finale - show for testing with intensity-scaled effects
+    if (intensity == CelebrationIntensity.high || intensity == CelebrationIntensity.maximum || true) { // Always show for user control
       final finaleStart = phases.isNotEmpty 
           ? phases.last.startTime + phases.last.duration
           : Duration.zero;
+      final finaleIntensity = _getFinaleIntensity(result, intensity);
       
       phases.add(CelebrationPhase(
         name: 'Grand Finale',
         startTime: finaleStart,
         duration: const Duration(milliseconds: 2000),
         effects: [
-          const CelebrationEffect(
+          CelebrationEffect(
             type: CelebrationEffectType.schoolOfFish,
-            duration: Duration(milliseconds: 2000),
-            intensity: 1.0,
+            duration: const Duration(milliseconds: 2000),
+            intensity: finaleIntensity,
           ),
-          const CelebrationEffect(
+          CelebrationEffect(
             type: CelebrationEffectType.bioluminescentJellyfish,
-            duration: Duration(milliseconds: 1500),
-            intensity: 0.9,
+            duration: const Duration(milliseconds: 1500),
+            intensity: (finaleIntensity * 0.9).clamp(0.5, 1.0),
           ),
-          const CelebrationEffect(
+          CelebrationEffect(
             type: CelebrationEffectType.particleStorm,
-            duration: Duration(milliseconds: 1000),
-            intensity: 0.8,
+            duration: const Duration(milliseconds: 1000),
+            intensity: (finaleIntensity * 0.8).clamp(0.4, 1.0),
           ),
         ],
       ));
     }
 
     return phases;
+  }
+  
+  /// Get intensity multiplier based on celebration intensity level
+  static double _getIntensityMultiplier(CelebrationIntensity intensity) {
+    switch (intensity) {
+      case CelebrationIntensity.maximum:
+        return 1.5; // 150% intensity
+      case CelebrationIntensity.high:
+        return 1.2; // 120% intensity  
+      case CelebrationIntensity.moderate:
+        return 1.0; // 100% intensity
+      case CelebrationIntensity.minimal:
+        return 0.7; // 70% intensity
+    }
+  }
+  
+  /// Calculate discovery-specific intensity based on creature rarity
+  static double _getDiscoveryIntensity(ExpeditionResult result, CelebrationIntensity baseIntensity) {
+    double intensity = _getIntensityMultiplier(baseIntensity);
+    
+    // Boost intensity for rare creature discoveries
+    if (result.discoveredCreature != null && result.discoveredCreature is Creature) {
+      final creature = result.discoveredCreature as Creature;
+      switch (creature.rarity) {
+        case CreatureRarity.legendary:
+          intensity *= 1.8; // Legendary discoveries get huge boost
+          break;
+        case CreatureRarity.rare:
+          intensity *= 1.4; // Rare discoveries get major boost
+          break;
+        case CreatureRarity.uncommon:
+          intensity *= 1.2; // Uncommon discoveries get moderate boost
+          break;
+        case CreatureRarity.common:
+          intensity *= 1.0; // Common discoveries use base intensity
+          break;
+      }
+    }
+    
+    return intensity.clamp(0.3, 2.0); // Cap between 30% and 200%
+  }
+  
+  /// Calculate finale intensity for grand celebration moments
+  static double _getFinaleIntensity(ExpeditionResult result, CelebrationIntensity baseIntensity) {
+    double intensity = _getIntensityMultiplier(baseIntensity);
+    
+    // Major milestone bonuses
+    if (result.careerTitleChanged) intensity *= 1.3;
+    if (result.unlockedAchievements.length >= 3) intensity *= 1.2;
+    if (result.unlockedEquipment.length >= 2) intensity *= 1.1;
+    
+    // Streak bonuses for finale
+    if (result.currentStreak >= 30) {
+      intensity *= 1.4; // Month+ streaks get epic finales
+    } else if (result.currentStreak >= 14) {
+      intensity *= 1.2; // Two week+ streaks get enhanced finales
+    }
+    
+    return intensity.clamp(0.5, 2.0); // Cap between 50% and 200%
   }
 
   static CelebrationEffectType _getBiomeSpecificEffect(BiomeType biome) {
@@ -203,6 +262,8 @@ class CelebrationConfig {
         return CelebrationEffectType.particleStorm;
     }
   }
+  
+  /// Remove old intensity method - now using ExpeditionResult's calculated intensity
 }
 
 /// A phase within the celebration sequence

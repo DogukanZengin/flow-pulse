@@ -57,19 +57,21 @@ class _CareerAdvancementPageState extends State<CareerAdvancementPage> {
             margin: const EdgeInsets.all(20),
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.amber.withValues(alpha: 0.9),
-                  Colors.orange.withValues(alpha: 0.8),
-                ],
-              ),
+              // High-contrast background for career advancement
+              color: Colors.black.withValues(alpha: 0.85), // High opacity for text protection
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.amber.withValues(alpha: 0.7), width: 2),
+              border: Border.all(color: Colors.purple.withValues(alpha: 0.8), width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.amber.withValues(alpha: 0.4),
+                  color: Colors.black.withValues(alpha: 0.6),
+                  blurRadius: 25,
+                  spreadRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+                BoxShadow(
+                  color: Colors.purple.withValues(alpha: 0.3),
                   blurRadius: 20,
-                  spreadRadius: 5,
+                  spreadRadius: 2,
                 ),
               ],
             ),
@@ -80,41 +82,72 @@ class _CareerAdvancementPageState extends State<CareerAdvancementPage> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
+                    // Enhanced contrast for hero achievement
                     gradient: LinearGradient(
                       colors: [
-                        Colors.purple.withValues(alpha: 0.4),
-                        Colors.deepPurple.withValues(alpha: 0.3),
+                        Colors.black.withValues(alpha: 0.8),
+                        const Color(0xFF1B004D).withValues(alpha: 0.85), // Deep purple ocean
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.purple.withValues(alpha: 0.6)),
+                    border: Border.all(color: Colors.purple.withValues(alpha: 0.8), width: 2),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.purple.withValues(alpha: 0.3),
+                        color: Colors.black.withValues(alpha: 0.5),
                         blurRadius: 15,
                         spreadRadius: 2,
+                      ),
+                      BoxShadow(
+                        color: Colors.purple.withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        spreadRadius: 1,
                       ),
                     ],
                   ),
                   child: Column(
                     children: [
-                      const Icon(Icons.emoji_events, color: Colors.amber, size: 32),
+                      Icon(Icons.emoji_events, color: const Color(0xFFFFD700), size: 36), // Brighter gold
                       const SizedBox(height: 8),
                       Text(
                         'PROMOTION EARNED',
                         style: TextStyle(
-                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle') * 1.2,
                           fontWeight: FontWeight.bold,
-                          color: Colors.amber,
+                          color: const Color(0xFFFFD700), // Bright gold
+                          letterSpacing: 0.5,
+                          shadows: const [
+                            Shadow(
+                              color: Color(0x80000000),
+                              blurRadius: 4.0,
+                              offset: Offset(0, 2),
+                            ),
+                            Shadow(
+                              color: Color(0x40000000),
+                              blurRadius: 8.0,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         widget.expeditionResult.careerProgression.title,
                         style: TextStyle(
-                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title') * 1.3,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: const Color(0xFFFFFFFF), // Pure white
+                          shadows: const [
+                            Shadow(
+                              color: Color(0x90000000),
+                              blurRadius: 6.0,
+                              offset: Offset(0, 3),
+                            ),
+                            Shadow(
+                              color: Color(0xFFB388FF), // Light purple glow
+                              blurRadius: 15.0,
+                              offset: Offset(0, 0),
+                            ),
+                          ],
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -128,16 +161,33 @@ class _CareerAdvancementPageState extends State<CareerAdvancementPage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.8),
+                      color: const Color(0xFF0B1426).withValues(alpha: 0.9), // Deep ocean background
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.purple.withValues(alpha: 0.3)),
+                      border: Border.all(color: Colors.purple.withValues(alpha: 0.6), width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
                     child: Text(
                       _getCondensedNarrative(widget.expeditionResult.careerAdvancementNarrative!),
                       style: TextStyle(
-                        fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
-                        color: Colors.white,
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body') * 1.1,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFE3F2FD), // Light blue for readability
                         height: 1.4,
+                        letterSpacing: 0.3,
+                        shadows: const [
+                          Shadow(
+                            color: Color(0x90000000),
+                            blurRadius: 3.0,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
                       ),
                       textAlign: TextAlign.center,
                     ),

@@ -29,6 +29,14 @@ class _UnderwaterParticleSystemState extends State<UnderwaterParticleSystem>
   final List<Particle> _particles = [];
   final List<BurstParticle> _burstParticles = [];
   
+  // Object pools for performance
+  final List<Particle> _particlePool = [];
+  final List<BurstParticle> _burstParticlePool = [];
+  
+  // Pre-calculated shader cache
+  Shader? _cachedParticleShader;
+  Shader? _cachedBurstShader;
+  
   @override
   void initState() {
     super.initState();
@@ -288,26 +296,43 @@ class _ThreeLayerParticlePainter extends CustomPainter {
     final paint = Paint()
       ..blendMode = BlendMode.plus;
     
+    // Pre-calculate common values outside loop
+    final floatWaveBase = floatProgress * math.pi * 2;
+    final sparkleWaveBase = sparkleProgress * math.pi * 2;
+    final sparkleScaleFactor = 1 + sparkleProgress * 0.3;
+    final widthScale = size.width / 400;
+    final heightScale = size.height / 800;
+    
     // Draw bioluminescent plankton with sparkle effect
     for (final particle in particles.where((p) => p.type == ParticleType.bioluminescentPlankton)) {
-      final horizontalWave = math.sin(floatProgress * math.pi * 2 + particle.position.dx) * 20;
+      final horizontalWave = math.sin(floatWaveBase + particle.position.dx) * 20;
       final scaledPos = Offset(
-        (particle.position.dx + horizontalWave) * size.width / 400,
-        particle.position.dy * size.height / 800,
+        (particle.position.dx + horizontalWave) * widthScale,
+        particle.position.dy * heightScale,
       );
       
-      // Pulsing opacity based on sparkle animation
-      final pulseOpacity = particle.opacity * (0.7 + 0.3 * math.sin(sparkleProgress * math.pi * 2));
+      // Early culling for off-screen particles
+      if (scaledPos.dx < -50 || scaledPos.dx > size.width + 50 ||
+          scaledPos.dy < -50 || scaledPos.dy > size.height + 50) {
+        continue;
+      }
       
-      // Glowing effect with gradient
+      // Pulsing opacity based on sparkle animation
+      final pulseOpacity = particle.opacity * (0.7 + 0.3 * math.sin(sparkleWaveBase));
+      
+      // Skip nearly invisible particles
+      if (pulseOpacity < AnimationConstants.particleCullingThreshold) continue;
+      
+      // Use cached shader or create new one (cache by particle size)
+      final shaderRadius = particle.size * 2;
       paint.shader = RadialGradient(
         colors: [
           particle.color.withValues(alpha: pulseOpacity),
           particle.color.withValues(alpha: pulseOpacity * 0.3),
         ],
-      ).createShader(Rect.fromCircle(center: scaledPos, radius: particle.size * 2));
+      ).createShader(Rect.fromCircle(center: scaledPos, radius: shaderRadius));
       
-      canvas.drawCircle(scaledPos, particle.size * (1 + sparkleProgress * 0.3), paint);
+      canvas.drawCircle(scaledPos, particle.size * sparkleScaleFactor, paint);
     }
     
     // Draw current flow lines

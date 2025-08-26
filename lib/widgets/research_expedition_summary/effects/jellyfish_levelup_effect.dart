@@ -33,6 +33,11 @@ class _JellyfishLevelUpEffectState extends State<JellyfishLevelUpEffect>
   
   final List<Jellyfish> _jellyfishes = [];
   
+  // Cache expensive paths and calculations
+  final Map<int, Path> _cachedTentaclePaths = {};
+  final Map<int, Path> _cachedBellPaths = {};
+  bool _pathsCached = false;
+  
   @override
   void initState() {
     super.initState();
