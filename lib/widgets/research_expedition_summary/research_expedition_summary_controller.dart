@@ -51,6 +51,7 @@ class _ResearchExpeditionSummaryControllerState
   int _currentPhaseIndex = 0;
   bool _animationStarted = false;
   bool _canSkip = true;
+  
 
   @override
   void initState() {
@@ -64,6 +65,12 @@ class _ResearchExpeditionSummaryControllerState
     // Convert GamificationReward to enhanced ExpeditionResult
     _expeditionResult = _createExpeditionResult(widget.reward);
     _celebrationConfig = CelebrationConfig.fromExpeditionResult(_expeditionResult);
+    
+    debugPrint('DEBUG: Created ${_celebrationConfig.phases.length} phases:');
+    for (int i = 0; i < _celebrationConfig.phases.length; i++) {
+      final phase = _celebrationConfig.phases[i];
+      debugPrint('  Phase $i: ${phase.name} (${phase.startTime.inMilliseconds}ms - ${phase.endTime.inMilliseconds}ms)');
+    }
   }
 
   void _initializeAnimations() {
@@ -137,6 +144,8 @@ class _ResearchExpeditionSummaryControllerState
   void _startPhase(int phaseIndex) {
     if (phaseIndex >= _celebrationConfig.phases.length) return;
     
+    debugPrint('DEBUG: Starting phase $phaseIndex: ${_celebrationConfig.phases[phaseIndex].name}');
+    
     setState(() {
       _currentPhaseIndex = phaseIndex;
       _currentPhase = _celebrationConfig.phases[phaseIndex];
@@ -149,13 +158,61 @@ class _ResearchExpeditionSummaryControllerState
   void _skipToEnd() {
     if (!_canSkip) return;
     
-    // Fast forward all controllers
-    _masterController.animateTo(1.0, duration: const Duration(milliseconds: 300));
-    _surfacingController.animateTo(1.0, duration: const Duration(milliseconds: 300));
-    _particleController.animateTo(1.0, duration: const Duration(milliseconds: 300));
+    debugPrint('DEBUG: Skip tapped - current phase: $_currentPhaseIndex/${_celebrationConfig.phases.length - 1}');
     
-    for (final controller in _phaseControllers) {
-      controller.animateTo(1.0, duration: const Duration(milliseconds: 300));
+    // Advance to next phase or complete if we're on the last phase
+    if (_currentPhaseIndex < _celebrationConfig.phases.length - 1) {
+      // Advance to next phase
+      final nextPhaseIndex = _currentPhaseIndex + 1;
+      final nextPhase = _celebrationConfig.phases[nextPhaseIndex];
+      
+      debugPrint('DEBUG: Advancing from phase $_currentPhaseIndex to $nextPhaseIndex (${nextPhase.name})');
+      
+      // Jump master controller to the start of next phase
+      final nextPhaseProgress = nextPhase.startTime.inMilliseconds / _celebrationConfig.totalDuration.inMilliseconds;
+      debugPrint('DEBUG: Setting master controller to progress: $nextPhaseProgress');
+      _masterController.animateTo(nextPhaseProgress, duration: const Duration(milliseconds: 200));
+      
+      // Complete current phase controller
+      _phaseControllers[_currentPhaseIndex].animateTo(1.0, duration: const Duration(milliseconds: 200));
+      
+      // Directly start the next phase instead of relying on the animation listener
+      _startPhase(nextPhaseIndex);
+      
+      // Temporarily disable skip to prevent rapid tapping
+      setState(() {
+        _canSkip = false;
+      });
+      
+      // Re-enable skip after a short delay
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          setState(() {
+            _canSkip = true;
+          });
+        }
+      });
+    } else {
+      // We're on the last phase, complete everything
+      setState(() {
+        _canSkip = false;
+      });
+      
+      // Fast forward all controllers to completion
+      _masterController.animateTo(1.0, duration: const Duration(milliseconds: 200));
+      _surfacingController.animateTo(1.0, duration: const Duration(milliseconds: 200));
+      _particleController.animateTo(1.0, duration: const Duration(milliseconds: 200));
+      
+      for (final controller in _phaseControllers) {
+        controller.animateTo(1.0, duration: const Duration(milliseconds: 200));
+      }
+      
+      // Complete the sequence
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          widget.onContinue();
+        }
+      });
     }
   }
 
@@ -163,74 +220,104 @@ class _ResearchExpeditionSummaryControllerState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: GestureDetector(
-        onTap: _skipToEnd,
-        child: Stack(
-          children: [
-            // Layer 1: Underwater background with depth transition
-            UnderwaterBackground(
+      body: Stack(
+        children: [
+          // Layer 1: Underwater background with depth transition
+          RepaintBoundary(
+            child: UnderwaterBackground(
               biomeConfig: BiomeVisualConfig.forBiome(_celebrationConfig.primaryBiome),
               depthProgress: _surfacingController,
               celebrationIntensity: _celebrationConfig.intensity,
             ),
-            
-            // Layer 2: Surfacing animation overlay
-            SurfacingAnimationLayer(
+          ),
+          
+          // Layer 2: Surfacing animation overlay
+          RepaintBoundary(
+            child: SurfacingAnimationLayer(
               controller: _surfacingController,
               expeditionResult: _expeditionResult,
               celebrationConfig: _celebrationConfig,
             ),
-            
-            // Layer 3: Particle systems and environmental effects  
-            UnderwaterParticleSystem(
+          ),
+          
+          // Layer 3: Particle systems and environmental effects  
+          RepaintBoundary(
+            child: UnderwaterParticleSystem(
               controller: _particleController,
               celebrationConfig: _celebrationConfig,
               currentPhase: _currentPhase,
             ),
+          ),
+          
+          // Layer 4: Main content based on current phase
+          RepaintBoundary(
+            child: _buildMainContent(),
+          ),
+          
+          // Layer 5: Invisible tap detector overlay (on top of everything)
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: _skipToEnd,
+              behavior: HitTestBehavior.translucent,
+              child: Container(
+                color: Colors.transparent,
+                width: double.infinity,
+                height: double.infinity,
+              ),
+            ),
+          ),
             
-            // Layer 4: Main content based on current phase
-            _buildMainContent(),
-            
-            // Layer 5: Skip indicator
-            if (_canSkip)
-              Positioned(
-                top: MediaQuery.of(context).padding.top + 16,
-                right: 16,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.cyan.withValues(alpha: 0.5)),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.touch_app, color: Colors.cyan, size: 16),
-                      SizedBox(width: 4),
-                      Text(
-                        'Tap to skip',
-                        style: TextStyle(
-                          color: Colors.cyan,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
+          // Layer 6: Skip indicator (visual only)
+          if (_canSkip)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(25),
+                  border: Border.all(color: Colors.cyan.withValues(alpha: 0.7), width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.cyan.withValues(alpha: 0.3),
+                      blurRadius: 15,
+                      spreadRadius: 3,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.touch_app, color: Colors.cyan, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      _currentPhaseIndex < _celebrationConfig.phases.length - 1 
+                          ? 'Tap to advance'
+                          : 'Tap to skip',
+                      style: const TextStyle(
+                        color: Colors.cyan,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
+            ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildMainContent() {
     // Show content based on current phase
     if (_currentPhase == null) {
+      debugPrint('DEBUG: No current phase - showing empty content');
       return const SizedBox.shrink();
     }
+
+    debugPrint('DEBUG: Building content for phase: ${_currentPhase!.name} (index: $_currentPhaseIndex)');
 
     switch (_currentPhase!.name) {
       case 'Surfacing':
@@ -376,13 +463,13 @@ class _ResearchExpeditionSummaryControllerState
     final dataPoints = reward.xpGained;
     
     if (depth > 50) {
-      return '🌊 Your deep-sea research expedition collected $dataPoints valuable data samples from the ${depth.toStringAsFixed(1)}m abyssal zone during your ${duration}-minute dive.';
+      return '🌊 Your deep-sea research expedition collected $dataPoints valuable data samples from the ${depth.toStringAsFixed(1)}m abyssal zone during your $duration-minute dive.';
     } else if (depth > 20) {
-      return '🐋 Your marine research team gathered $dataPoints important observations from the ${depth.toStringAsFixed(1)}m open ocean ecosystem over ${duration} minutes.';
+      return '🐋 Your marine research team gathered $dataPoints important observations from the ${depth.toStringAsFixed(1)}m open ocean ecosystem over $duration minutes.';
     } else if (depth > 5) {
-      return '🐠 Your coral reef study documented $dataPoints significant findings at ${depth.toStringAsFixed(1)}m depth during your ${duration}-minute research session.';
+      return '🐠 Your coral reef study documented $dataPoints significant findings at ${depth.toStringAsFixed(1)}m depth during your $duration-minute research session.';
     } else {
-      return '🏊 Your shallow water survey collected $dataPoints research data points from the ${depth.toStringAsFixed(1)}m coastal zone over ${duration} minutes.';
+      return '🏊 Your shallow water survey collected $dataPoints research data points from the ${depth.toStringAsFixed(1)}m coastal zone over $duration minutes.';
     }
   }
 

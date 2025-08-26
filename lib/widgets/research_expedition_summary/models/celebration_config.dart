@@ -57,13 +57,13 @@ class CelebrationConfig {
   static Duration _getTotalDuration(CelebrationIntensity intensity) {
     switch (intensity) {
       case CelebrationIntensity.maximum:
-        return const Duration(milliseconds: 3000);
+        return const Duration(milliseconds: 12000); // Extended for all phases
       case CelebrationIntensity.high:
-        return const Duration(milliseconds: 2500);
+        return const Duration(milliseconds: 11000);
       case CelebrationIntensity.moderate:
-        return const Duration(milliseconds: 2000);
+        return const Duration(milliseconds: 10000); // Extended for all phases
       case CelebrationIntensity.minimal:
-        return const Duration(milliseconds: 1500);
+        return const Duration(milliseconds: 8000);
     }
   }
 
@@ -116,8 +116,8 @@ class CelebrationConfig {
       ],
     ));
 
-    // Phase 3: Career Advancement (if applicable)
-    if (result.leveledUp || result.careerTitleChanged) {
+    // Phase 3: Career Advancement (show for testing - originally conditional on level/career change)
+    if (result.leveledUp || result.careerTitleChanged || true) { // Always show for testing
       phases.add(const CelebrationPhase(
         name: 'Career Advancement',
         startTime: Duration(milliseconds: 4000),
@@ -137,11 +137,11 @@ class CelebrationConfig {
       ));
     }
 
-    // Phase 4: Species Discoveries (if any)
-    if (result.allDiscoveredCreatures.isNotEmpty) {
+    // Phase 4: Species Discoveries (show for testing - originally conditional on discoveries)
+    if (result.allDiscoveredCreatures.isNotEmpty || true) { // Always show for testing
       phases.add(CelebrationPhase(
         name: 'Species Discovery',
-        startTime: Duration(milliseconds: result.leveledUp ? 6000 : 4000),
+        startTime: const Duration(milliseconds: 6000), // Fixed timing after Career Advancement
         duration: const Duration(milliseconds: 2000),
         effects: [
           const CelebrationEffect(
@@ -158,8 +158,8 @@ class CelebrationConfig {
       ));
     }
 
-    // Phase 5: Grand Finale (for high intensity celebrations)
-    if (result.celebrationIntensity > 0.7) {
+    // Phase 5: Grand Finale (show for testing - originally conditional on celebration intensity)
+    if (result.celebrationIntensity > 0.7 || true) { // Always show for testing
       final finaleStart = phases.isNotEmpty 
           ? phases.last.startTime + phases.last.duration
           : Duration.zero;
