@@ -76,25 +76,27 @@ class _SwimmingCreatureState extends State<SwimmingCreature>
   
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Positioned(
-          left: _positionAnimation.value.dx,
-          top: _positionAnimation.value.dy,
-          child: Transform.rotate(
-            angle: _rotationAnimation.value,
-            child: CustomPaint(
-              size: Size(widget.size, widget.size * 0.6),
-              painter: SwimmingCreaturePainter(
-                creature: widget.creature,
-                tailAngle: _tailAnimation.value,
-                showDetails: widget.showDetails,
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Positioned(
+            left: _positionAnimation.value.dx,
+            top: _positionAnimation.value.dy,
+            child: Transform.rotate(
+              angle: _rotationAnimation.value,
+              child: CustomPaint(
+                size: Size(widget.size, widget.size * 0.6),
+                painter: SwimmingCreaturePainter(
+                  creature: widget.creature,
+                  tailAngle: _tailAnimation.value,
+                  showDetails: widget.showDetails,
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
@@ -104,22 +106,65 @@ class SwimmingCreaturePainter extends CustomPainter {
   final double tailAngle;
   final bool showDetails;
   
+  late final Paint _bodyPaint;
+  late final Paint _finPaint;
+  late final Paint _eyeWhitePaint;
+  late final Paint _eyeBlackPaint;
+  late final Paint _stripePaint;
+  late final Paint _teethPaint;
+  late final Paint _shimmerPaint;
+  
   SwimmingCreaturePainter({
     required this.creature,
     required this.tailAngle,
     required this.showDetails,
-  });
+  }) {
+    final baseColor = _getCreatureColor();
+    
+    _bodyPaint = Paint()
+      ..style = PaintingStyle.fill;
+    
+    _finPaint = Paint()
+      ..color = baseColor.withValues(alpha: baseColor.a * 0.6)
+      ..style = PaintingStyle.fill;
+    
+    _eyeWhitePaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    
+    _eyeBlackPaint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.fill;
+    
+    _stripePaint = Paint()
+      ..color = Colors.white.withAlpha(51)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    
+    _teethPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    
+    _shimmerPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [
+          Colors.white.withAlpha(0),
+          Colors.white.withAlpha(51),
+          Colors.white.withAlpha(0),
+        ],
+        stops: const [0.0, 0.5, 1.0],
+      ).createShader(const Rect.fromLTWH(0, 0, 100, 100))
+      ..style = PaintingStyle.fill
+      ..blendMode = BlendMode.overlay;
+  }
   
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint();
-    
     // Get creature color based on rarity
     final baseColor = _getCreatureColor();
     
     // Draw body
-    paint.color = baseColor;
-    paint.style = PaintingStyle.fill;
+    _bodyPaint.color = baseColor;
     
     // Fish body (ellipse)
     final bodyRect = Rect.fromCenter(
@@ -127,7 +172,7 @@ class SwimmingCreaturePainter extends CustomPainter {
       width: size.width * 0.7,
       height: size.height * 0.8,
     );
-    canvas.drawOval(bodyRect, paint);
+    canvas.drawOval(bodyRect, _bodyPaint);
     
     // Draw tail with animation
     final tailPath = Path();
@@ -143,25 +188,23 @@ class SwimmingCreaturePainter extends CustomPainter {
     tailPath.lineTo(tailBase.dx, tailBase.dy);
     tailPath.close();
     
-    paint.color = baseColor.withValues(alpha: baseColor.a * 0.8);
-    canvas.drawPath(tailPath, paint);
+    _bodyPaint.color = baseColor.withValues(alpha: baseColor.a * 0.8);
+    canvas.drawPath(tailPath, _bodyPaint);
     
     // Draw fins
     _drawFins(canvas, size, baseColor);
     
     // Draw eye
-    paint.color = Colors.white;
     canvas.drawCircle(
       Offset(size.width * 0.65, size.height * 0.4),
       size.width * 0.05,
-      paint,
+      _eyeWhitePaint,
     );
     
-    paint.color = Colors.black;
     canvas.drawCircle(
       Offset(size.width * 0.66, size.height * 0.4),
       size.width * 0.03,
-      paint,
+      _eyeBlackPaint,
     );
     
     // Add shimmer effect for rare/legendary creatures
@@ -201,9 +244,7 @@ class SwimmingCreaturePainter extends CustomPainter {
   }
   
   void _drawFins(Canvas canvas, Size size, Color baseColor) {
-    final finPaint = Paint()
-      ..color = baseColor.withValues(alpha: baseColor.a * 0.6)
-      ..style = PaintingStyle.fill;
+    _finPaint.color = baseColor.withValues(alpha: baseColor.a * 0.6);
     
     // Top fin
     final topFinPath = Path();
@@ -216,7 +257,7 @@ class SwimmingCreaturePainter extends CustomPainter {
     );
     topFinPath.lineTo(size.width * 0.5, size.height * 0.2);
     topFinPath.close();
-    canvas.drawPath(topFinPath, finPaint);
+    canvas.drawPath(topFinPath, _finPaint);
     
     // Bottom fin
     final bottomFinPath = Path();
@@ -229,7 +270,7 @@ class SwimmingCreaturePainter extends CustomPainter {
     );
     bottomFinPath.lineTo(size.width * 0.5, size.height * 0.8);
     bottomFinPath.close();
-    canvas.drawPath(bottomFinPath, finPaint);
+    canvas.drawPath(bottomFinPath, _finPaint);
     
     // Side fins
     final sideFinPath = Path();
@@ -241,21 +282,19 @@ class SwimmingCreaturePainter extends CustomPainter {
       size.height * 0.7,
     );
     sideFinPath.close();
-    canvas.drawPath(sideFinPath, finPaint);
+    canvas.drawPath(sideFinPath, _finPaint);
   }
   
   void _drawShimmer(Canvas canvas, Size size) {
-    final shimmerPaint = Paint()
-      ..shader = LinearGradient(
-        colors: [
-          Colors.white.withAlpha(0),
-          Colors.white.withAlpha(51),
-          Colors.white.withAlpha(0),
-        ],
-        stops: const [0.0, 0.5, 1.0],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..style = PaintingStyle.fill
-      ..blendMode = BlendMode.overlay;
+    // Update shader for current size
+    _shimmerPaint.shader = LinearGradient(
+      colors: [
+        Colors.white.withAlpha(0),
+        Colors.white.withAlpha(51),
+        Colors.white.withAlpha(0),
+      ],
+      stops: const [0.0, 0.5, 1.0],
+    ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
     
     canvas.drawOval(
       Rect.fromCenter(
@@ -263,32 +302,23 @@ class SwimmingCreaturePainter extends CustomPainter {
         width: size.width * 0.6,
         height: size.height * 0.7,
       ),
-      shimmerPaint,
+      _shimmerPaint,
     );
   }
   
   void _drawCreatureDetails(Canvas canvas, Size size) {
     // Add stripes or patterns based on creature type
     if (creature.type == CreatureType.reefBuilder) {
-      final stripePaint = Paint()
-        ..color = Colors.white.withAlpha(51)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2;
-      
       for (int i = 0; i < 3; i++) {
         final x = size.width * (0.3 + i * 0.15);
         canvas.drawLine(
           Offset(x, size.height * 0.2),
           Offset(x, size.height * 0.8),
-          stripePaint,
+          _stripePaint,
         );
       }
     } else if (creature.type == CreatureType.predator) {
       // Draw teeth for predators
-      final teethPaint = Paint()
-        ..color = Colors.white
-        ..style = PaintingStyle.fill;
-      
       for (int i = 0; i < 3; i++) {
         final toothPath = Path();
         final x = size.width * (0.6 + i * 0.05);
@@ -296,15 +326,21 @@ class SwimmingCreaturePainter extends CustomPainter {
         toothPath.lineTo(x + 2, size.height * 0.5);
         toothPath.lineTo(x - 2, size.height * 0.5);
         toothPath.close();
-        canvas.drawPath(toothPath, teethPaint);
+        canvas.drawPath(toothPath, _teethPaint);
       }
     }
   }
   
   @override
   bool shouldRepaint(SwimmingCreaturePainter oldDelegate) {
-    return oldDelegate.tailAngle != tailAngle ||
-           oldDelegate.showDetails != showDetails;
+    // Primary check for animation changes
+    if (oldDelegate.tailAngle != tailAngle) return true;
+    
+    // Secondary checks for less frequent changes
+    if (oldDelegate.showDetails != showDetails) return true;
+    if (oldDelegate.creature != creature) return true;
+    
+    return false;
   }
 }
 
@@ -329,6 +365,7 @@ class _SchoolOfFishState extends State<SchoolOfFish>
     with TickerProviderStateMixin {
   final List<AnimationController> _controllers = [];
   final List<Animation<Offset>> _animations = [];
+  final List<double> _creatureSizes = [];
   final math.Random _random = math.Random();
   
   @override
@@ -361,6 +398,7 @@ class _SchoolOfFishState extends State<SchoolOfFish>
       
       _controllers.add(controller);
       _animations.add(animation);
+      _creatureSizes.add(30 + _random.nextDouble() * 20);
       
       // Start animation with random delay
       Future.delayed(Duration(milliseconds: _random.nextInt(5000)), () {
@@ -385,12 +423,24 @@ class _SchoolOfFishState extends State<SchoolOfFish>
     
     return Stack(
       children: List.generate(visibleCount, (index) {
-        return SwimmingCreature(
-          creature: widget.creatures[index],
-          size: 30 + _random.nextDouble() * 20,
-          swimDuration: Duration(seconds: 15 + _random.nextInt(10)),
-          startPosition: _animations[index].value,
-          endPosition: _animations[index].value,
+        return RepaintBoundary(
+          child: AnimatedBuilder(
+            animation: _animations[index],
+            builder: (context, child) {
+              return Positioned(
+                left: _animations[index].value.dx,
+                top: _animations[index].value.dy,
+                child: CustomPaint(
+                  size: Size(_creatureSizes[index], _creatureSizes[index] * 0.6),
+                  painter: SwimmingCreaturePainter(
+                    creature: widget.creatures[index],
+                    tailAngle: _controllers[index].value * 0.4 - 0.2, // Simple tail animation
+                    showDetails: false,
+                  ),
+                ),
+              );
+            },
+          ),
         );
       }),
     );

@@ -76,25 +76,41 @@ class KelpPainter extends CustomPainter {
   final Color color;
   final int segments;
   
+  late final Paint _mainPaint;
+  late final Paint _frondPaint;
+  late final Path _mainPath;
+  late final Path _leftFrondPath;
+  late final Path _rightFrondPath;
+  
   KelpPainter({
     required this.swayOffset,
     required this.color,
     required this.segments,
-  });
-  
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
+  }) {
+    _mainPaint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 8
       ..strokeCap = StrokeCap.round;
     
+    _frondPaint = Paint()
+      ..color = color.withValues(alpha: color.a * 0.7)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
+    
+    _mainPath = Path();
+    _leftFrondPath = Path();
+    _rightFrondPath = Path();
+  }
+  
+  @override
+  void paint(Canvas canvas, Size size) {
     final segmentHeight = size.height / segments;
     
-    // Draw kelp as connected curved segments
-    final path = Path();
-    path.moveTo(size.width / 2, size.height);
+    // Reset and rebuild main path
+    _mainPath.reset();
+    _mainPath.moveTo(size.width / 2, size.height);
     
     for (int i = 1; i <= segments; i++) {
       final y = size.height - (i * segmentHeight);
@@ -102,16 +118,16 @@ class KelpPainter extends CustomPainter {
       final x = size.width / 2 + (swayOffset * swayFactor * size.width * 0.3);
       
       if (i == 1) {
-        path.lineTo(x, y);
+        _mainPath.lineTo(x, y);
       } else {
         // Add some curve to make it more organic
         final controlY = y + segmentHeight / 2;
         final prevX = size.width / 2 + (swayOffset * ((i-1) / segments) * size.width * 0.3);
-        path.quadraticBezierTo(prevX, controlY, x, y);
+        _mainPath.quadraticBezierTo(prevX, controlY, x, y);
       }
     }
     
-    canvas.drawPath(path, paint);
+    canvas.drawPath(_mainPath, _mainPaint);
     
     // Add kelp fronds at intervals
     for (int i = 2; i < segments; i += 2) {
@@ -120,9 +136,9 @@ class KelpPainter extends CustomPainter {
       final centerX = size.width / 2 + (swayOffset * swayFactor * size.width * 0.3);
       
       // Left frond
-      final leftFrond = Path();
-      leftFrond.moveTo(centerX, y);
-      leftFrond.quadraticBezierTo(
+      _leftFrondPath.reset();
+      _leftFrondPath.moveTo(centerX, y);
+      _leftFrondPath.quadraticBezierTo(
         centerX - 15 + (swayOffset * 10),
         y - 10,
         centerX - 20 + (swayOffset * 15),
@@ -130,28 +146,29 @@ class KelpPainter extends CustomPainter {
       );
       
       // Right frond
-      final rightFrond = Path();
-      rightFrond.moveTo(centerX, y);
-      rightFrond.quadraticBezierTo(
+      _rightFrondPath.reset();
+      _rightFrondPath.moveTo(centerX, y);
+      _rightFrondPath.quadraticBezierTo(
         centerX + 15 + (swayOffset * 10),
         y - 10,
         centerX + 20 + (swayOffset * 15),
         y - 25,
       );
       
-      final frondPaint = Paint()
-        ..color = color.withValues(alpha: color.a * 0.7)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4
-        ..strokeCap = StrokeCap.round;
-      
-      canvas.drawPath(leftFrond, frondPaint);
-      canvas.drawPath(rightFrond, frondPaint);
+      canvas.drawPath(_leftFrondPath, _frondPaint);
+      canvas.drawPath(_rightFrondPath, _frondPaint);
     }
   }
   
   @override
   bool shouldRepaint(KelpPainter oldDelegate) {
-    return oldDelegate.swayOffset != swayOffset;
+    // Only repaint when sway animation changes
+    if (oldDelegate.swayOffset != swayOffset) return true;
+    
+    // Check for other property changes that would require repaint
+    if (oldDelegate.color != color) return true;
+    if (oldDelegate.segments != segments) return true;
+    
+    return false;
   }
 }

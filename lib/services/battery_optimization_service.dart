@@ -18,9 +18,9 @@ class BatteryOptimizationService {
   bool _backgroundActivityReduction = true;
   
   // Adaptive timer intervals
-  Duration _normalInterval = const Duration(seconds: 1);
-  Duration _backgroundInterval = const Duration(seconds: 5);
-  Duration _lowPowerInterval = const Duration(seconds: 10);
+  final Duration _normalInterval = const Duration(seconds: 1);
+  final Duration _backgroundInterval = const Duration(seconds: 5);
+  final Duration _lowPowerInterval = const Duration(seconds: 10);
   
   // Current state
   bool _isInBackground = false;

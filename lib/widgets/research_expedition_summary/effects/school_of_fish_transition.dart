@@ -34,7 +34,7 @@ class _SchoolOfFishTransitionState extends State<SchoolOfFishTransition>
     super.initState();
     
     _swimController = AnimationController(
-      duration: const Duration(seconds: 4),
+      duration: const Duration(milliseconds: 2500), // was 4s - much snappier fish movement
       vsync: this,
     );
     

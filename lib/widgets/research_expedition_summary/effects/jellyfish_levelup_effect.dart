@@ -33,17 +33,15 @@ class _JellyfishLevelUpEffectState extends State<JellyfishLevelUpEffect>
   
   final List<Jellyfish> _jellyfishes = [];
   
-  // Cache expensive paths and calculations
-  final Map<int, Path> _cachedTentaclePaths = {};
-  final Map<int, Path> _cachedBellPaths = {};
-  bool _pathsCached = false;
+  // Note: Path caching removed to reduce complexity
+  // Consider implementing if performance analysis shows significant impact
   
   @override
   void initState() {
     super.initState();
     
     _floatController = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(milliseconds: 2000), // was 3s - more graceful movement
       vsync: this,
     )..repeat();
     
@@ -53,7 +51,7 @@ class _JellyfishLevelUpEffectState extends State<JellyfishLevelUpEffect>
     )..repeat(reverse: true);
     
     _sparkleController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1200), // was 1500ms - faster sparkles
       vsync: this,
     )..repeat();
     

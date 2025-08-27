@@ -49,7 +49,7 @@ class _SessionResultsPageState extends State<SessionResultsPage>
     ));
 
     _counterController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1000), // was 1500ms - faster counter
       vsync: this,
     );
 
@@ -63,7 +63,7 @@ class _SessionResultsPageState extends State<SessionResultsPage>
   }
 
   void _startCounterAnimation() {
-    Future.delayed(const Duration(milliseconds: 500), () {
+    Future.delayed(const Duration(milliseconds: 300), () { // was 500ms - faster start
       if (mounted) {
         _counterController.forward();
       }

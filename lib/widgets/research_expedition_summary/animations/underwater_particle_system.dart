@@ -29,13 +29,15 @@ class _UnderwaterParticleSystemState extends State<UnderwaterParticleSystem>
   final List<Particle> _particles = [];
   final List<BurstParticle> _burstParticles = [];
   
-  // Object pools for performance
-  final List<Particle> _particlePool = [];
-  final List<BurstParticle> _burstParticlePool = [];
+  // Performance optimization: Object pools and shader cache
+  final Map<String, Shader> _shaderCache = {};
+  final List<Path> _starPathPool = [];
+  static const int _maxStarPaths = 20;
   
-  // Pre-calculated shader cache
-  Shader? _cachedParticleShader;
-  Shader? _cachedBurstShader;
+  // Cache expensive calculations
+  late Size _lastScreenSize;
+  late double _widthScale;
+  late double _heightScale;
   
   @override
   void initState() {
@@ -57,9 +59,33 @@ class _UnderwaterParticleSystemState extends State<UnderwaterParticleSystem>
     );
     
     _initializeParticles();
+    _initializeStarPaths();
     
     // Trigger burst effects on phase changes
     widget.controller.addListener(_checkForPhaseBurst);
+  }
+  
+  void _initializeStarPaths() {
+    // Pre-create star paths for object pooling
+    for (int i = 0; i < _maxStarPaths; i++) {
+      final path = Path();
+      for (int j = 0; j < 8; j++) {
+        final angle = j * math.pi / 4;
+        final radius = j.isEven ? 8.0 : 4.0;
+        final point = Offset(
+          math.cos(angle) * radius,
+          math.sin(angle) * radius,
+        );
+        
+        if (j == 0) {
+          path.moveTo(point.dx, point.dy);
+        } else {
+          path.lineTo(point.dx, point.dy);
+        }
+      }
+      path.close();
+      _starPathPool.add(path);
+    }
   }
   
   void _initializeParticles() {
@@ -159,6 +185,11 @@ class _UnderwaterParticleSystemState extends State<UnderwaterParticleSystem>
       _floatController?.dispose();
       _sparkleController?.dispose();
       _burstController?.dispose();
+      
+      // Clear caches to prevent memory leaks
+      _shaderCache.clear();
+      _particles.clear();
+      _burstParticles.clear();
     } catch (e) {
       debugPrint('Error disposing animation controllers: $e');
     } finally {
@@ -186,29 +217,42 @@ class _UnderwaterParticleSystemState extends State<UnderwaterParticleSystem>
         return const SizedBox.shrink();
       }
       
-      return AnimatedBuilder(
-        animation: Listenable.merge([
-          widget.controller,
-          _floatController!,
-          _sparkleController!,
-          _burstController!,
-        ]),
-        builder: (context, child) {
-          return CustomPaint(
-            size: size,
-            painter: _ThreeLayerParticlePainter(
-              progress: widget.controller.value,
-              floatProgress: _floatController!.value,
-              sparkleProgress: _sparkleController!.value,
-              burstProgress: _burstController!.value,
-              particles: _particles,
-              burstParticles: _burstParticles,
-              celebrationConfig: widget.celebrationConfig,
-              currentPhase: widget.currentPhase,
-              screenSize: size,
-            ),
-          );
-        },
+      // Update cached scaling values only when size changes
+      if (size != _lastScreenSize) {
+        _lastScreenSize = size;
+        _widthScale = size.width / 400;
+        _heightScale = size.height / 800;
+      }
+      
+      return RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: Listenable.merge([
+            widget.controller,
+            _floatController!,
+            _sparkleController!,
+            _burstController!,
+          ]),
+          builder: (context, child) {
+            return CustomPaint(
+              size: size,
+              painter: _ThreeLayerParticlePainter(
+                progress: widget.controller.value,
+                floatProgress: _floatController!.value,
+                sparkleProgress: _sparkleController!.value,
+                burstProgress: _burstController!.value,
+                particles: _particles,
+                burstParticles: _burstParticles,
+                celebrationConfig: widget.celebrationConfig,
+                currentPhase: widget.currentPhase,
+                screenSize: size,
+                shaderCache: _shaderCache,
+                starPathPool: _starPathPool,
+                widthScale: _widthScale,
+                heightScale: _heightScale,
+              ),
+            );
+          },
+        ),
       );
     } catch (e) {
       // Return error fallback widget
@@ -238,6 +282,10 @@ class _ThreeLayerParticlePainter extends CustomPainter {
   final CelebrationConfig celebrationConfig;
   final CelebrationPhase? currentPhase;
   final Size screenSize;
+  final Map<String, Shader> shaderCache;
+  final List<Path> starPathPool;
+  final double widthScale;
+  final double heightScale;
 
   _ThreeLayerParticlePainter({
     required this.progress,
@@ -249,6 +297,10 @@ class _ThreeLayerParticlePainter extends CustomPainter {
     required this.celebrationConfig,
     required this.currentPhase,
     required this.screenSize,
+    required this.shaderCache,
+    required this.starPathPool,
+    required this.widthScale,
+    required this.heightScale,
   });
 
   @override
@@ -300,8 +352,6 @@ class _ThreeLayerParticlePainter extends CustomPainter {
     final floatWaveBase = floatProgress * math.pi * 2;
     final sparkleWaveBase = sparkleProgress * math.pi * 2;
     final sparkleScaleFactor = 1 + sparkleProgress * 0.3;
-    final widthScale = size.width / 400;
-    final heightScale = size.height / 800;
     
     // Draw bioluminescent plankton with sparkle effect
     for (final particle in particles.where((p) => p.type == ParticleType.bioluminescentPlankton)) {
@@ -323,14 +373,18 @@ class _ThreeLayerParticlePainter extends CustomPainter {
       // Skip nearly invisible particles
       if (pulseOpacity < AnimationConstants.particleCullingThreshold) continue;
       
-      // Use cached shader or create new one (cache by particle size)
+      // Use cached shader for better performance
+      final shaderKey = 'plankton_${particle.size.toStringAsFixed(1)}';
       final shaderRadius = particle.size * 2;
-      paint.shader = RadialGradient(
-        colors: [
-          particle.color.withValues(alpha: pulseOpacity),
-          particle.color.withValues(alpha: pulseOpacity * 0.3),
-        ],
-      ).createShader(Rect.fromCircle(center: scaledPos, radius: shaderRadius));
+      
+      paint.shader = shaderCache.putIfAbsent(shaderKey, () {
+        return RadialGradient(
+          colors: [
+            particle.color.withValues(alpha: pulseOpacity),
+            particle.color.withValues(alpha: pulseOpacity * 0.3),
+          ],
+        ).createShader(Rect.fromCircle(center: Offset.zero, radius: shaderRadius));
+      });
       
       canvas.drawCircle(scaledPos, particle.size * sparkleScaleFactor, paint);
     }
@@ -373,19 +427,23 @@ class _ThreeLayerParticlePainter extends CustomPainter {
       final t = Curves.easeOutCubic.transform(burstProgress);
       final position = particle.startPosition + (particle.velocity * t);
       final scaledPos = Offset(
-        position.dx * size.width / 400,
-        position.dy * size.height / 800,
+        position.dx * widthScale,
+        position.dy * heightScale,
       );
       
       final opacity = (1 - burstProgress) * 0.8;
       final scale = 1 + burstProgress * 2;
       
-      paint.shader = RadialGradient(
-        colors: [
-          particle.color.withValues(alpha: opacity),
-          particle.color.withValues(alpha: opacity * 0.1),
-        ],
-      ).createShader(Rect.fromCircle(center: scaledPos, radius: particle.size * scale));
+      // Use cached shader for burst particles
+      final shaderKey = 'burst_${particle.size.toStringAsFixed(1)}_${scale.toStringAsFixed(1)}';
+      paint.shader = shaderCache.putIfAbsent(shaderKey, () {
+        return RadialGradient(
+          colors: [
+            particle.color.withValues(alpha: opacity),
+            particle.color.withValues(alpha: opacity * 0.1),
+          ],
+        ).createShader(Rect.fromCircle(center: Offset.zero, radius: particle.size * scale));
+      });
       
       canvas.drawCircle(scaledPos, particle.size * scale, paint);
     }
@@ -412,25 +470,15 @@ class _ThreeLayerParticlePainter extends CustomPainter {
       
       paint.color = Colors.white.withValues(alpha: opacity);
       
-      // Draw star shape
-      final path = Path();
-      for (int j = 0; j < 8; j++) {
-        final angle = j * math.pi / 4;
-        final radius = j.isEven ? 8.0 : 4.0;
-        final point = Offset(
-          x + math.cos(angle) * radius,
-          y + math.sin(angle) * radius,
-        );
-        
-        if (j == 0) {
-          path.moveTo(point.dx, point.dy);
-        } else {
-          path.lineTo(point.dx, point.dy);
-        }
-      }
-      path.close();
+      // Use pre-created star path from object pool
+      final pathIndex = i % starPathPool.length;
+      final starPath = starPathPool[pathIndex];
       
-      canvas.drawPath(path, paint);
+      // Transform the path to the sparkle position
+      canvas.save();
+      canvas.translate(x, y);
+      canvas.drawPath(starPath, paint);
+      canvas.restore();
     }
   }
 

@@ -85,7 +85,7 @@ class _ResearchExpeditionSummaryControllerState
 
     // Derived animations from master controller for better sync and performance
     _surfacingController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 1200), // was 2000ms - faster surfacing
       vsync: this,
     );
 
@@ -110,7 +110,7 @@ class _ResearchExpeditionSummaryControllerState
     _particleController.forward();
     
     // Wait for surfacing animation to complete, then show first content page automatically
-    await Future.delayed(const Duration(milliseconds: 1000));
+    await Future.delayed(const Duration(milliseconds: 600)); // was 1000ms - faster transition
     
     // Start with phase 1 (Data Collection) instead of phase 0 (Surfacing)
     if (_celebrationConfig.phases.length > 1 && mounted) {
@@ -157,7 +157,7 @@ class _ResearchExpeditionSummaryControllerState
       });
       
       // Re-enable skip after a short delay
-      Future.delayed(const Duration(milliseconds: 300), () {
+      Future.delayed(const Duration(milliseconds: 200), () { // was 300ms - faster re-enable
         if (mounted) {
           setState(() {
             _canSkip = true;
@@ -179,7 +179,7 @@ class _ResearchExpeditionSummaryControllerState
       }
       
       // Complete the sequence
-      Future.delayed(const Duration(milliseconds: 300), () {
+      Future.delayed(const Duration(milliseconds: 200), () { // was 300ms - faster completion
         if (mounted) {
           widget.onContinue();
         }

@@ -28,7 +28,6 @@ class _SurfacingAnimationLayerState extends State<SurfacingAnimationLayer>
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   
-  
   // Cache expensive calculations
   late double _largeIconSize;
   late double _navigationSpacing;
@@ -36,6 +35,11 @@ class _SurfacingAnimationLayerState extends State<SurfacingAnimationLayer>
   late double _subtitleFontSize;
   late double _bodyFontSize;
   late double _smallIconSize;
+  
+  // Cache expensive computations
+  late List<Color> _gradientColors;
+  late TextStyle _expeditionTextStyle;
+  late BoxDecoration _depthIndicatorDecoration;
 
   @override
   void initState() {
@@ -53,6 +57,49 @@ class _SurfacingAnimationLayerState extends State<SurfacingAnimationLayer>
     _subtitleFontSize = ResponsiveHelper.getResponsiveFontSize(context, 'subtitle');
     _bodyFontSize = ResponsiveHelper.getResponsiveFontSize(context, 'body');
     _smallIconSize = ResponsiveHelper.getIconSize(context, 'small');
+    
+    // Pre-calculate gradient colors
+    _gradientColors = [
+      _getDepthColor(widget.expeditionResult.sessionDepthReached),
+      const Color(0xFF1B4D72),
+      Colors.blue,
+      Colors.lightBlue,
+      Colors.cyan,
+    ];
+    
+    // Pre-calculate text style
+    final text = widget.expeditionResult.hasSignificantAccomplishments
+        ? '🏆 SURFACING WITH DISCOVERIES! 🏆'
+        : '🌊 SURFACING FROM EXPEDITION 🌊';
+    
+    _expeditionTextStyle = TextStyle(
+      fontSize: _subtitleFontSize,
+      fontWeight: FontWeight.w900,
+      color: Colors.white,
+      letterSpacing: 2.0,
+      shadows: const [
+        Shadow(
+          color: Colors.black54,
+          offset: Offset(2, 2),
+          blurRadius: 4,
+        ),
+        Shadow(
+          color: Colors.cyan,
+          offset: Offset(-1, -1),
+          blurRadius: 8,
+        ),
+      ],
+    );
+    
+    // Pre-calculate depth indicator decoration
+    _depthIndicatorDecoration = BoxDecoration(
+      color: Colors.black.withValues(alpha: 0.4),
+      borderRadius: BorderRadius.circular(15),
+      border: Border.all(
+        color: Colors.cyan.withValues(alpha: 0.6),
+        width: 1,
+      ),
+    );
   }
 
   void _initializeAnimations() {
@@ -117,28 +164,28 @@ class _SurfacingAnimationLayerState extends State<SurfacingAnimationLayer>
   }
 
   Widget _buildSurfacingBackground(BuildContext context) {
-    return AnimatedBuilder(
-      animation: widget.controller,
-      builder: (context, child) {
-        final progress = widget.controller.value;
-        final inverseProgress = 1.0 - progress;
-        
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-              stops: const [0.0, 0.2, 0.5, 0.8, 1.0],
-              colors: [
-                _getDepthColor(widget.expeditionResult.sessionDepthReached)
-                    .withValues(alpha: 0.9 * inverseProgress),
-                const Color(0xFF1B4D72).withValues(alpha: 0.7 * inverseProgress),
-                Colors.blue.withValues(alpha: 0.5 * inverseProgress),
-                Colors.lightBlue.withValues(alpha: 0.3 * inverseProgress),
-                Colors.cyan.withValues(alpha: 0.1 * inverseProgress),
-              ],
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: widget.controller,
+        builder: (context, child) {
+          final progress = widget.controller.value;
+          final inverseProgress = 1.0 - progress;
+          
+          return Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                stops: const [0.0, 0.2, 0.5, 0.8, 1.0],
+                colors: [
+                  _gradientColors[0].withValues(alpha: 0.9 * inverseProgress),
+                  _gradientColors[1].withValues(alpha: 0.7 * inverseProgress),
+                  _gradientColors[2].withValues(alpha: 0.5 * inverseProgress),
+                  _gradientColors[3].withValues(alpha: 0.3 * inverseProgress),
+                  _gradientColors[4].withValues(alpha: 0.1 * inverseProgress),
+                ],
+              ),
             ),
-          ),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -161,14 +208,7 @@ class _SurfacingAnimationLayerState extends State<SurfacingAnimationLayer>
                         horizontal: _cardSpacing,
                         vertical: _navigationSpacing,
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(
-                          color: Colors.cyan.withValues(alpha: 0.6),
-                          width: 1,
-                        ),
-                      ),
+                      decoration: _depthIndicatorDecoration,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -203,6 +243,7 @@ class _SurfacingAnimationLayerState extends State<SurfacingAnimationLayer>
           ),
         );
       },
+      )
     );
   }
 
@@ -212,29 +253,12 @@ class _SurfacingAnimationLayerState extends State<SurfacingAnimationLayer>
         ? '🏆 SURFACING WITH DISCOVERIES! 🏆'
         : '🌊 SURFACING FROM EXPEDITION 🌊';
     
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: _subtitleFontSize,
-        fontWeight: FontWeight.w900,
-        color: Colors.white,
-        letterSpacing: 2.0,
-        shadows: const [
-          // Text shadow for depth
-          Shadow(
-            color: Colors.black54,
-            offset: Offset(2, 2),
-            blurRadius: 4,
-          ),
-          // Subtle colored shadow for atmosphere
-          Shadow(
-            color: Colors.cyan,
-            offset: Offset(-1, -1),
-            blurRadius: 8,
-          ),
-        ],
+    return RepaintBoundary(
+      child: Text(
+        text,
+        style: _expeditionTextStyle,
+        textAlign: TextAlign.center,
       ),
-      textAlign: TextAlign.center,
     );
   }
 

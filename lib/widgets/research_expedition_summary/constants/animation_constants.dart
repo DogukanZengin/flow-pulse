@@ -7,12 +7,12 @@ class AnimationConstants {
   static const int maxSparkleCount = 15; // Reduced from 30
   static const int maxAchievementSparkles = 12; // Reduced from 20
   
-  // Animation Durations
-  static const Duration waveControllerDuration = Duration(seconds: 3);
-  static const Duration coralGrowthDuration = Duration(seconds: 2);
-  static const Duration particleFloatDuration = Duration(seconds: 8);
-  static const Duration sparkleAnimationDuration = Duration(seconds: 2);
-  static const Duration burstEffectDuration = Duration(milliseconds: 1500);
+  // Animation Durations (optimized for responsiveness)
+  static const Duration waveControllerDuration = Duration(milliseconds: 1500); // was 3s - natural water motion
+  static const Duration coralGrowthDuration = Duration(seconds: 2); // keep - appropriate for growth
+  static const Duration particleFloatDuration = Duration(seconds: 2); // was 8s - 4x faster, more lively
+  static const Duration sparkleAnimationDuration = Duration(seconds: 2); // keep - good rhythm
+  static const Duration burstEffectDuration = Duration(milliseconds: 1000); // was 1500ms - snappier bursts
   
   // Caustic Effect Configuration
   static const int causticGridWidth = 10; // Reduced from 15

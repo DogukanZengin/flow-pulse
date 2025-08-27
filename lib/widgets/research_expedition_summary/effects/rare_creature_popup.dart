@@ -40,12 +40,12 @@ class _RareCreaturePopupState extends State<RareCreaturePopup>
     );
     
     _swimController = AnimationController(
-      duration: const Duration(milliseconds: 3000),
+      duration: const Duration(milliseconds: 2000), // was 3000ms - more exciting movement
       vsync: this,
     )..repeat();
     
     _sparkleController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1200), // was 1500ms - faster sparkles
       vsync: this,
     )..repeat(reverse: true);
     

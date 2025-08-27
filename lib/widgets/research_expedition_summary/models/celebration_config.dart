@@ -49,16 +49,16 @@ class CelebrationConfig {
 
 
   static Duration _getTotalDuration(CelebrationIntensity intensity, ExpeditionResult result) {
-    // Return to user-controlled navigation - duration is for overall timing but not automatic
+    // Optimized for faster, more responsive celebrations (50% reduction)
     switch (intensity) {
       case CelebrationIntensity.maximum:
-        return const Duration(milliseconds: 12000); // Extended for all phases
+        return const Duration(milliseconds: 6000); // was 12000ms - 50% faster
       case CelebrationIntensity.high:
-        return const Duration(milliseconds: 11000);
+        return const Duration(milliseconds: 5500); // was 11000ms - 50% faster
       case CelebrationIntensity.moderate:
-        return const Duration(milliseconds: 10000); // Extended for all phases
+        return const Duration(milliseconds: 5000); // was 10000ms - 50% faster
       case CelebrationIntensity.minimal:
-        return const Duration(milliseconds: 8000);
+        return const Duration(milliseconds: 4000); // was 8000ms - 50% faster
     }
   }
 
@@ -78,34 +78,34 @@ class CelebrationConfig {
   static List<CelebrationPhase> _getCelebrationPhases(ExpeditionResult result, CelebrationIntensity intensity) {
     final List<CelebrationPhase> phases = [];
     
-    // Phase 1: Surfacing Animation (always present)
+    // Phase 1: Surfacing Animation (always present) - optimized timing
     phases.add(const CelebrationPhase(
       name: 'Surfacing',
       startTime: Duration.zero,
-      duration: Duration(milliseconds: 2000),
+      duration: Duration(milliseconds: 1200), // was 2000ms - 40% faster
       effects: [
         CelebrationEffect(
           type: CelebrationEffectType.depthTransition,
-          duration: Duration(milliseconds: 1500),
+          duration: Duration(milliseconds: 900), // was 1500ms - 40% faster
           intensity: 1.0,
         ),
         CelebrationEffect(
           type: CelebrationEffectType.bubbleTrail,
-          duration: Duration(milliseconds: 1200),
+          duration: Duration(milliseconds: 800), // was 1200ms - faster bubbles
           intensity: 0.8,
         ),
       ],
     ));
 
-    // Phase 2: Data Collection Display
+    // Phase 2: Data Collection Display - optimized timing
     phases.add(const CelebrationPhase(
       name: 'Data Collection',
-      startTime: Duration(milliseconds: 2000),
-      duration: Duration(milliseconds: 2000),
+      startTime: Duration(milliseconds: 1200), // adjusted for faster surfacing
+      duration: Duration(milliseconds: 1200), // was 2000ms - 40% faster
       effects: [
         CelebrationEffect(
           type: CelebrationEffectType.waterCaustics,
-          duration: Duration(milliseconds: 2000),
+          duration: Duration(milliseconds: 1200), // was 2000ms - faster caustics
           intensity: 0.6,
         ),
       ],
@@ -117,17 +117,17 @@ class CelebrationConfig {
       
       phases.add(CelebrationPhase(
         name: 'Career Advancement',
-        startTime: const Duration(milliseconds: 4000),
-        duration: const Duration(milliseconds: 2000),
+        startTime: const Duration(milliseconds: 2400), // adjusted for faster previous phases
+        duration: const Duration(milliseconds: 1200), // was 2000ms - 40% faster
         effects: [
           CelebrationEffect(
             type: CelebrationEffectType.badgeShimmer,
-            duration: const Duration(milliseconds: 1500),
+            duration: const Duration(milliseconds: 900), // was 1500ms - faster shimmer
             intensity: (0.9 * careerEffectIntensity).clamp(0.3, 1.0),
           ),
           CelebrationEffect(
             type: CelebrationEffectType.coralBloom,
-            duration: const Duration(milliseconds: 2000),
+            duration: const Duration(milliseconds: 1200), // was 2000ms - faster bloom
             intensity: (0.7 * careerEffectIntensity).clamp(0.3, 1.0),
           ),
         ],
@@ -140,17 +140,17 @@ class CelebrationConfig {
       
       phases.add(CelebrationPhase(
         name: 'Species Discovery',
-        startTime: const Duration(milliseconds: 6000), // Fixed timing after Career Advancement
-        duration: const Duration(milliseconds: 2000),
+        startTime: const Duration(milliseconds: 3600), // adjusted for faster previous phases
+        duration: const Duration(milliseconds: 1200), // was 2000ms - 40% faster
         effects: [
           CelebrationEffect(
             type: CelebrationEffectType.creatureSpotlight,
-            duration: const Duration(milliseconds: 1800),
+            duration: const Duration(milliseconds: 1000), // was 1800ms - faster spotlight
             intensity: discoveryIntensity,
           ),
           CelebrationEffect(
             type: _getBiomeSpecificEffect(result.sessionBiome),
-            duration: const Duration(milliseconds: 2000),
+            duration: const Duration(milliseconds: 1200), // was 2000ms - faster biome effect
             intensity: (discoveryIntensity * 0.8).clamp(0.3, 1.0),
           ),
         ],
@@ -167,21 +167,21 @@ class CelebrationConfig {
       phases.add(CelebrationPhase(
         name: 'Grand Finale',
         startTime: finaleStart,
-        duration: const Duration(milliseconds: 2000),
+        duration: const Duration(milliseconds: 1200), // was 2000ms - 40% faster finale
         effects: [
           CelebrationEffect(
             type: CelebrationEffectType.schoolOfFish,
-            duration: const Duration(milliseconds: 2000),
+            duration: const Duration(milliseconds: 1200), // was 2000ms - faster school
             intensity: finaleIntensity,
           ),
           CelebrationEffect(
             type: CelebrationEffectType.bioluminescentJellyfish,
-            duration: const Duration(milliseconds: 1500),
+            duration: const Duration(milliseconds: 900), // was 1500ms - faster jellyfish
             intensity: (finaleIntensity * 0.9).clamp(0.5, 1.0),
           ),
           CelebrationEffect(
             type: CelebrationEffectType.particleStorm,
-            duration: const Duration(milliseconds: 1000),
+            duration: const Duration(milliseconds: 800), // was 1000ms - snappier storm
             intensity: (finaleIntensity * 0.8).clamp(0.4, 1.0),
           ),
         ],

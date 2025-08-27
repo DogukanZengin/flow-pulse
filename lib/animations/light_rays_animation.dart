@@ -75,25 +75,31 @@ class LightRaysPainter extends CustomPainter {
   final double intensity;
   final int rayCount;
   
+  late final Paint _rayPaint;
+  late final Paint _godRayPaint;
+  late final Path _rayPath;
+  
   LightRaysPainter({
     required this.animationValue,
     required this.isStudySession,
     required this.intensity,
     required this.rayCount,
-  });
+  }) {
+    _rayPaint = Paint()
+      ..style = PaintingStyle.fill
+      ..blendMode = BlendMode.overlay;
+    
+    _godRayPaint = Paint()
+      ..style = PaintingStyle.fill
+      ..blendMode = BlendMode.lighten;
+    
+    _rayPath = Path();
+  }
   
   @override
   void paint(Canvas canvas, Size size) {
     if (size.width == 0 || size.height == 0) return;
     
-    // Light ray colors based on session type
-    final rayColor = isStudySession 
-        ? Colors.yellow.withValues(alpha: 0.1 * intensity)
-        : Colors.cyan.withValues(alpha: 0.08 * intensity);
-    
-    final paint = Paint()
-      ..style = PaintingStyle.fill
-      ..blendMode = BlendMode.overlay;
     
     // Create animated light rays from top
     for (int i = 0; i < rayCount; i++) {
@@ -101,36 +107,34 @@ class LightRaysPainter extends CustomPainter {
       final rayX = (i / rayCount) * size.width + (math.sin(animationValue * 2 * math.pi + i) * 50);
       final rayWidth = 30 + (math.sin(rayProgress * math.pi) * 20);
       
-      // Create gradient for each ray
-      final gradient = LinearGradient(
+      // Create dynamic gradient with current progress
+      final dynamicGradient = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          rayColor.withValues(alpha: rayColor.a * rayProgress),
-          rayColor.withValues(alpha: 0.0),
+          (isStudySession 
+              ? Colors.yellow.withValues(alpha: 0.1 * intensity * rayProgress)
+              : Colors.cyan.withValues(alpha: 0.08 * intensity * rayProgress)),
+          Colors.transparent,
         ],
       );
       
-      paint.shader = gradient.createShader(
+      _rayPaint.shader = dynamicGradient.createShader(
         Rect.fromLTWH(rayX - rayWidth/2, 0, rayWidth, size.height * 0.7),
       );
       
-      // Draw ray path
-      final rayPath = Path();
-      rayPath.moveTo(rayX - rayWidth/2, 0);
-      rayPath.lineTo(rayX + rayWidth/2, 0);
-      rayPath.lineTo(rayX + rayWidth/3, size.height * 0.7);
-      rayPath.lineTo(rayX - rayWidth/3, size.height * 0.7);
-      rayPath.close();
+      // Reuse path object
+      _rayPath.reset();
+      _rayPath.moveTo(rayX - rayWidth/2, 0);
+      _rayPath.lineTo(rayX + rayWidth/2, 0);
+      _rayPath.lineTo(rayX + rayWidth/3, size.height * 0.7);
+      _rayPath.lineTo(rayX - rayWidth/3, size.height * 0.7);
+      _rayPath.close();
       
-      canvas.drawPath(rayPath, paint);
+      canvas.drawPath(_rayPath, _rayPaint);
     }
     
-    // Add subtle god rays effect
-    final godRayPaint = Paint()
-      ..style = PaintingStyle.fill
-      ..blendMode = BlendMode.lighten;
-    
+    // Add subtle god rays effect using cached gradient
     final godRayGradient = LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.center,
@@ -142,20 +146,19 @@ class LightRaysPainter extends CustomPainter {
       ],
     );
     
-    godRayPaint.shader = godRayGradient.createShader(
+    _godRayPaint.shader = godRayGradient.createShader(
       Rect.fromLTWH(0, 0, size.width, size.height * 0.5),
     );
     
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.width, size.height * 0.5),
-      godRayPaint,
+      _godRayPaint,
     );
   }
   
   @override
   bool shouldRepaint(LightRaysPainter oldDelegate) {
-    return oldDelegate.animationValue != animationValue ||
-           oldDelegate.isStudySession != isStudySession ||
-           oldDelegate.intensity != intensity;
+    // Only repaint when animation value changes, since other properties rarely change
+    return oldDelegate.animationValue != animationValue;
   }
 }
