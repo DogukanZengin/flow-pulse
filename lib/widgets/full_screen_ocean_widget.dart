@@ -14,6 +14,7 @@ import '../widgets/enhanced_research_journal.dart';
 import '../data/comprehensive_species_database.dart';
 import '../themes/ocean_theme.dart';
 import '../constants/timer_constants.dart';
+import '../utils/responsive_helper.dart';
 
 /// Full-screen marine biology research station and ocean environment
 /// Replaces the circular timer with an immersive underwater experience
@@ -366,7 +367,12 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
             
             // Prominent Timer Display at the top center
             Positioned(
-              top: 80,
+              top: ResponsiveHelper.responsiveValue<double>(
+                context: context,
+                mobile: screenSize.height * 0.10,  // 10% from top on mobile
+                tablet: screenSize.height * 0.09,   // 9% from top on tablet
+                desktop: screenSize.height * 0.08,  // 8% from top on desktop
+              ),
               left: 0,
               right: 0,
               child: Center(
@@ -376,33 +382,44 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
             
             // Research Station UI Elements (with smooth transitions for distraction-free mode)
             Positioned(
-              top: 220,
-              left: 20,
-              right: 20,
+              top: ResponsiveHelper.responsiveValue<double>(
+                context: context,
+                mobile: screenSize.height * 0.25,  // 25% from top on mobile
+                tablet: screenSize.height * 0.23,   // 23% from top on tablet
+                desktop: screenSize.height * 0.20,  // 20% from top on desktop
+              ),
+              left: ResponsiveHelper.getResponsiveSpacing(context, 'screen', fallback: 20.0),
+              right: ResponsiveHelper.getResponsiveSpacing(context, 'screen', fallback: 20.0),
               child: AnimatedOpacity(
                 opacity: _isActiveStudySession() ? 0.0 : 1.0,
                 duration: const Duration(milliseconds: 500),
                 child: Row(
                   children: [
                     // Dive Computer
-                    DiveComputerWidget(
-                      currentDepthMeters: currentDepth,
-                      targetDepthMeters: targetDepth,
-                      oxygenTimeNotifier: widget.secondsRemainingNotifier,
-                      oxygenTimeSeconds: widget.secondsRemaining,
-                      isDiving: widget.isRunning,
-                      diveStatus: _getDiveStatus(),
-                      depthProgress: widget.sessionProgress,
+                    Flexible(
+                      flex: 1,
+                      child: DiveComputerWidget(
+                        currentDepthMeters: currentDepth,
+                        targetDepthMeters: targetDepth,
+                        oxygenTimeNotifier: widget.secondsRemainingNotifier,
+                        oxygenTimeSeconds: widget.secondsRemaining,
+                        isDiving: widget.isRunning,
+                        diveStatus: _getDiveStatus(),
+                        depthProgress: widget.sessionProgress,
+                      ),
                     ),
                     
-                    const Spacer(),
+                    const SizedBox(width: 8), // Fixed spacing instead of Spacer
                     
                     // Research Progress - hidden during study sessions
-                    ResearchProgressWidget(
-                      speciesDiscovered: _discoveredCreatures.length,
-                      totalSpeciesInCurrentBiome: ComprehensiveSpeciesDatabase.getSpeciesForBiome(_getCurrentBiome()).length,
-                      researchPapersPublished: _publishedPapersCount,
-                      certificationProgress: GamificationService.instance.getLevelProgress(),
+                    Flexible(
+                      flex: 1,
+                      child: ResearchProgressWidget(
+                        speciesDiscovered: _discoveredCreatures.length,
+                        totalSpeciesInCurrentBiome: ComprehensiveSpeciesDatabase.getSpeciesForBiome(_getCurrentBiome()).length,
+                        researchPapersPublished: _publishedPapersCount,
+                        certificationProgress: GamificationService.instance.getLevelProgress(),
+                      ),
                     ),
                   ],
                 ),
@@ -563,6 +580,24 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
         ? OceanTheme.timerWarning 
         : OceanTheme.timerNormal;
     
+    // Get responsive dimensions
+    final horizontalPadding = ResponsiveHelper.getResponsiveSpacing(context, 'screen', fallback: 20.0);
+    final verticalPadding = ResponsiveHelper.getScaledSpacing(context, 8.0);
+    final labelFontSize = ResponsiveHelper.getResponsiveFontSize(context, 'caption', fallback: 10);
+    final timerFontSize = ResponsiveHelper.responsiveValue<double>(
+      context: context,
+      mobile: 32,
+      tablet: 36,
+      desktop: 40,
+    );
+    final progressBarWidth = ResponsiveHelper.responsiveValue<double>(
+      context: context,
+      mobile: 130,
+      tablet: 150,
+      desktop: 170,
+    );
+    final progressBarHeight = ResponsiveHelper.getScaledSpacing(context, 3.0);
+    
     return AnimatedBuilder(
       animation: _timerPulseAnimation,
       builder: (context, child) {
@@ -570,7 +605,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
           scale: widget.isRunning ? _timerPulseAnimation.value : 1.0,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(25),
               gradient: LinearGradient(
@@ -599,7 +634,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                   widget.isStudySession ? 'DIVE SESSION' : 'SURFACE BREAK',
                   style: TextStyle(
                     color: urgencyColor.withValues(alpha: 0.9),
-                    fontSize: 10,
+                    fontSize: labelFontSize,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.5,
                   ),
@@ -610,7 +645,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                   timeString,
                   style: TextStyle(
                     color: urgencyColor,
-                    fontSize: 36,
+                    fontSize: timerFontSize,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'monospace',
                     shadows: [
@@ -627,12 +662,12 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                     ? TimerProgressBar(
                         secondsRemainingNotifier: widget.secondsRemainingNotifier!,
                         totalSeconds: widget.totalSessionSeconds,
-                        width: 150,
-                        height: 3,
+                        width: progressBarWidth,
+                        height: progressBarHeight,
                       )
                     : Container(
-                        width: 150,
-                        height: 3,
+                        width: progressBarWidth,
+                        height: progressBarHeight,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(3),
                           color: Colors.white.withValues(alpha: 0.2),
@@ -672,20 +707,42 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     // Check if timer needs reset (not at full time)
     final needsReset = widget.secondsRemaining < widget.totalSessionSeconds;
     
+    // Get responsive dimensions
+    final buttonSize = ResponsiveHelper.responsiveValue<double>(
+      context: context,
+      mobile: 80,
+      tablet: 88,
+      desktop: 96,
+    );
+    final iconSize = ResponsiveHelper.getIconSize(context, 'large');
+    final resetButtonSize = ResponsiveHelper.getButtonSize(context, 'small');
+    final resetIconSize = ResponsiveHelper.getIconSize(context, 'medium');
+    
+    // Responsive positioning
+    final bottomOffset = ResponsiveHelper.responsiveValue<double>(
+      context: context,
+      mobile: screenSize.height * 0.20,  // 35% from bottom on mobile
+      tablet: screenSize.height * 0.32,   // 32% from bottom on tablet
+    );
+    
+    // Container needs extra width for reset button
+    final containerWidth = buttonSize + resetButtonSize * 0.6;
+    
     return Positioned(
-      bottom: screenSize.height * 0.25,
-      left: screenSize.width / 2 - 60,
-      child: SizedBox(
-        width: 120,
-        height: 80,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Main play/pause button
-            Center(
-              child: Container(
-                width: 80,
-                height: 80,
+      bottom: bottomOffset,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: SizedBox(
+          width: containerWidth,
+          height: buttonSize,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Main play/pause button
+              Container(
+                width: buttonSize,
+                height: buttonSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
@@ -714,21 +771,20 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                 ),
                 child: Icon(
                   widget.isRunning ? Icons.pause : Icons.play_arrow,
-                  size: 40,
+                  size: iconSize,
                   color: Colors.white,
                 ),
               ),
-            ),
             // Reset button - appears when timer has been started
             if (needsReset && widget.onReset != null)
               Positioned(
-                left: 0,
-                bottom: 10,
+                right: ResponsiveHelper.getScaledSpacing(context, 4.0), // Responsive gap from main button
+                bottom: ResponsiveHelper.getScaledSpacing(context, 8.0),
                 child: GestureDetector(
                   onTap: widget.onReset,
                   child: Container(
-                    width: 36,
-                    height: 36,
+                    width: resetButtonSize,
+                    height: resetButtonSize,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
@@ -749,9 +805,9 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                         ),
                       ],
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.refresh,
-                      size: 20,
+                      size: resetIconSize,
                       color: Colors.white,
                     ),
                   ),
@@ -760,13 +816,23 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
           ],
         ),
       ),
+      ),
     );
   }
 
   Widget _buildResearchJournal() {
+    final spacing = ResponsiveHelper.getResponsiveSpacing(context, 'screen', fallback: 20.0);
+    final compactSize = ResponsiveHelper.getButtonSize(context, 'large');
+    final expandedWidth = ResponsiveHelper.responsiveValue<double>(
+      context: context,
+      mobile: 200,
+      tablet: 220,
+      desktop: 240,
+    );
+    
     return Positioned(
-      bottom: 20,
-      right: 20,
+      bottom: spacing,
+      right: spacing,
       child: MouseRegion(
         onEnter: (_) {
           if (!_isJournalExpanded) {
@@ -790,10 +856,10 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
             animation: _journalExpandAnimation,
             builder: (context, child) {
               return Container(
-                width: _isJournalExpanded ? 200 : 56,
-                height: _isJournalExpanded ? null : 56,
+                width: _isJournalExpanded ? expandedWidth : compactSize,
+                height: _isJournalExpanded ? null : compactSize,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(_isJournalExpanded ? 16 : 28),
+                  borderRadius: BorderRadius.circular(_isJournalExpanded ? ResponsiveHelper.getScaledSpacing(context, 16.0) : compactSize / 2),
                   gradient: LinearGradient(
                     colors: [
                       const Color(0xFF1A1A2E).withValues(alpha: 0.8),
@@ -1015,12 +1081,21 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
 
   /// Builds a floating dive computer button for distraction-free study mode
   Widget _buildFloatingDiveComputer(double currentDepth, double targetDepth) {
+    final spacing = ResponsiveHelper.getResponsiveSpacing(context, 'screen', fallback: 20.0);
+    final compactSize = ResponsiveHelper.getButtonSize(context, 'large');
+    final expandedWidth = ResponsiveHelper.responsiveValue<double>(
+      context: context,
+      mobile: 200,
+      tablet: 220,
+      desktop: 240,
+    );
+    
     return Positioned(
-      bottom: 20, // Moved closer to navigation bar
-      left: 20,
+      bottom: spacing,
+      left: spacing,
       child: AnimatedScale(
         scale: widget.isRunning ? 1.1 : 1.0,
-        duration: const Duration(milliseconds: 300),
+        duration: ResponsiveHelper.getAnimationDuration(context),
         child: GestureDetector(
           onTap: () {
             // Absorb tap events to prevent session pause
@@ -1037,13 +1112,13 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
               });
             },
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
+              duration: ResponsiveHelper.getAnimationDuration(context),
               curve: Curves.easeOutBack,
-              width: _isDiveComputerHovered ? 200 : 56,
-              height: 56,
+              width: _isDiveComputerHovered ? expandedWidth : compactSize,
+              height: compactSize,
               decoration: BoxDecoration(
                 color: Colors.blue.shade900.withValues(alpha: 0.9), // Ocean theme
-                borderRadius: BorderRadius.circular(_isDiveComputerHovered ? 16 : 28),
+                borderRadius: BorderRadius.circular(_isDiveComputerHovered ? ResponsiveHelper.getScaledSpacing(context, 16.0) : compactSize / 2),
                 border: Border.all(
                   color: Colors.cyan.withValues(alpha: 0.8),
                   width: 2,
@@ -1079,14 +1154,14 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
         Icon(
           Icons.speed,
           color: Colors.cyan,
-          size: 20,
+          size: ResponsiveHelper.getIconSize(context, 'medium'),
         ),
         const SizedBox(height: 2),
         Text(
           '${currentDepth.toInt()}m',
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
-            fontSize: 9,
+            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption', fallback: 9),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -1094,7 +1169,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
           _getDiveStatus().substring(0, 3),
           style: TextStyle(
             color: Colors.cyan,
-            fontSize: 7,
+            fontSize: ResponsiveHelper.getScaledFontSize(context, 7),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -1115,9 +1190,9 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
           Icon(
             Icons.speed,
             color: Colors.cyan,
-            size: 18,
+            size: ResponsiveHelper.getIconSize(context, 'small'),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation', fallback: 8)),
           // Expanded info
           Expanded(
             child: Column(
@@ -1126,9 +1201,9 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
               children: [
                 Text(
                   'Depth: ${currentDepth.toInt()}m → ${targetDepth.toInt()}m',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 8,
+                    fontSize: ResponsiveHelper.getScaledFontSize(context, 8),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -1136,15 +1211,15 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                   'O₂: ${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
                   style: TextStyle(
                     color: Colors.cyan,
-                    fontSize: 8,
+                    fontSize: ResponsiveHelper.getScaledFontSize(context, 8),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 Text(
                   _getDiveStatus(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white70,
-                    fontSize: 7,
+                    fontSize: ResponsiveHelper.getScaledFontSize(context, 7),
                   ),
                 ),
               ],
