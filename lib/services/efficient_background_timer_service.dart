@@ -25,6 +25,7 @@ class EfficientBackgroundTimerService with WidgetsBindingObserver {
   bool _isStudySession = true;
   String _sessionTitle = '';
   bool _isInBackground = false;
+  bool _isInitialized = false;
   
   // Callbacks
   void Function(int remainingSeconds)? onTimerTick;
@@ -32,7 +33,10 @@ class EfficientBackgroundTimerService with WidgetsBindingObserver {
   void Function(AppLifecycleState state)? onAppLifecycleChanged;
 
   Future<void> initialize() async {
-    if (kIsWeb) return;
+    if (kIsWeb || _isInitialized) return;
+    
+    _isInitialized = true;
+    debugPrint('EfficientBackgroundTimerService initializing...');
     
     WidgetsBinding.instance.addObserver(this);
     
@@ -164,12 +168,28 @@ class EfficientBackgroundTimerService with WidgetsBindingObserver {
     if (!Platform.isIOS) return;
     
     try {
-      await _channel.invokeMethod('scheduleBackgroundRefresh', {
+      final result = await _channel.invokeMethod('scheduleBackgroundRefresh', {
         'sessionDuration': _originalDurationSeconds,
-        'startTime': _sessionStartTime?.millisecondsSinceEpoch,
+        'startTime': _sessionStartTime?.millisecondsSinceEpoch != null 
+            ? _sessionStartTime!.millisecondsSinceEpoch / 1000.0  // Convert to seconds
+            : null,
       });
+      
+      if (result != null && result is Map) {
+        final success = result['success'] ?? false;
+        if (success) {
+          final scheduledIn = result['scheduledIn'] ?? 0;
+          final remainingTime = result['remainingTime'] ?? 0;
+          debugPrint('Background refresh scheduled in ${scheduledIn}s (session remaining: ${remainingTime}s)');
+        } else {
+          final error = result['error'] ?? 'Unknown error';
+          debugPrint('Failed to schedule background refresh: $error');
+          // Could trigger fallback notification-based timing here
+        }
+      }
     } catch (e) {
       debugPrint('Error scheduling background refresh: $e');
+      // Fallback: continue with notification-based updates only
     }
   }
 

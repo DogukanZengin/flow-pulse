@@ -80,8 +80,7 @@ class TimerController extends ChangeNotifier {
       _handleNotificationAction(action, payload);
     };
 
-    // Initialize background service
-    _backgroundService.initialize();
+    // Background service already initialized in main(), just set up callbacks
   }
 
   void _handleNotificationAction(String action, String? payload) {

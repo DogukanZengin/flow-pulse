@@ -213,8 +213,34 @@ import BackgroundTasks
   
   private func scheduleBackgroundRefreshForSession(sessionDuration: Int, startTime: TimeInterval) -> [String: Any] {
     if #available(iOS 13.0, *) {
-      scheduleBackgroundAppRefresh()
-      return ["success": true, "method": "BGAppRefreshTask"]
+      let request = BGAppRefreshTaskRequest(identifier: "com.flowpulse.timer-sync")
+      
+      // Calculate optimal refresh time based on session data
+      let currentTime = Date().timeIntervalSince1970
+      let sessionStart = startTime > 0 ? startTime : currentTime
+      let sessionEndTime = sessionStart + Double(sessionDuration)
+      let remainingTime = sessionEndTime - currentTime
+      
+      // Schedule refresh at 1/3 and 2/3 through the session, or every 15 minutes, whichever is shorter
+      let refreshInterval = min(remainingTime / 3.0, 15 * 60) // Max 15 minutes
+      let nextRefreshTime = max(refreshInterval, 60) // Minimum 1 minute from now
+      
+      request.earliestBeginDate = Date(timeIntervalSinceNow: nextRefreshTime)
+      
+      do {
+        try BGTaskScheduler.shared.submit(request)
+        print("Background refresh scheduled for \(nextRefreshTime) seconds from now (session: \(sessionDuration)s, remaining: \(remainingTime)s)")
+        return [
+          "success": true, 
+          "method": "BGAppRefreshTask",
+          "scheduledIn": nextRefreshTime,
+          "sessionDuration": sessionDuration,
+          "remainingTime": remainingTime
+        ]
+      } catch {
+        print("Failed to schedule background refresh: \(error)")
+        return ["success": false, "error": error.localizedDescription]
+      }
     } else {
       // Fallback for older iOS versions
       return ["success": true, "method": "legacy"]

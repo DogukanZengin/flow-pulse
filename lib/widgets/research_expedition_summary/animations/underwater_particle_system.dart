@@ -43,6 +43,11 @@ class _UnderwaterParticleSystemState extends State<UnderwaterParticleSystem>
   void initState() {
     super.initState();
     
+    // Initialize screen size cache with default values
+    _lastScreenSize = Size.zero;
+    _widthScale = 1.0;
+    _heightScale = 1.0;
+    
     _floatController = AnimationController(
       duration: AnimationConstants.particleFloatDuration,
       vsync: this,
