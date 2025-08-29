@@ -6,7 +6,6 @@ import '../services/persistence/persistence_service.dart';
 import '../widgets/particle_system.dart';
 import '../widgets/underwater_environment.dart';
 import '../widgets/full_screen_ocean_widget.dart';
-import '../services/break_rewards_service.dart';
 import '../widgets/research_vessel_deck_widget.dart';
 import '../widgets/research_expedition_summary_widget.dart';
 import '../controllers/timer_controller.dart';
@@ -240,33 +239,9 @@ class TimerScreenState extends State<TimerScreen>
     );
   }
   
-  
   void _onBreakActivityComplete(String activityType) async {
     _oceanSystemController.addCompletedBreakActivity(activityType);
-    
-    // Award activity rewards
-    final timerProvider = context.read<TimerProvider>();
-    final breakDuration = _timerController.completedSessions > 0 && 
-        _timerController.completedSessions % timerProvider.sessionsUntilLongBreak == 0
-        ? timerProvider.longBreakDuration 
-        : timerProvider.breakDuration;
-    
-    final reward = await BreakRewardsService().completeActivity(activityType, breakDuration);
-    
-    // Show activity reward feedback
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(reward.message),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    }
   }
-  
-  
-  
   
   // Session switching methods
   void _switchToWorkSession() {
@@ -532,8 +507,7 @@ class TimerScreenState extends State<TimerScreen>
                                       isRunning: _timerController.isRunning,
                                       recentDiscoveries: _oceanSystemController.visibleCreatures.where((c) => c.isDiscovered).toList(),
                                       onTap: _toggleTimer,
-                                      onReset: _showResetConfirmation,
-                                      onActivityComplete: _onBreakActivityComplete,
+                                      onReset: _showResetConfirmation
                                     )
                                   : Container(
                                       width: double.infinity,

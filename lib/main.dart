@@ -3,14 +3,11 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'providers/timer_provider.dart';
-import 'screens/main_screen.dart';
 import 'services/gamification_service.dart';
 import 'services/notification_service.dart';
 import 'services/live_activities_service.dart';
-import 'services/break_rewards_service.dart';
 import 'services/persistence/persistence_service.dart';
 import 'services/efficient_background_timer_service.dart';
-import 'services/lifecycle_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +15,6 @@ void main() async {
   // Initialize core services
   await PersistenceService.instance.initialize();
   await GamificationService.instance.initialize();
-  await BreakRewardsService().initialize();
   
   // Mobile-only services
   if (!kIsWeb) {
@@ -47,9 +43,6 @@ class FlowPulseApp extends StatelessWidget {
             theme: ThemeData.light(useMaterial3: true),
             darkTheme: ThemeData.dark(useMaterial3: true),
             themeMode: ThemeMode.system, // Follow system theme
-            home: const LifecycleManager(
-              child: MainScreen(),
-            ),
           ),
         );
       },

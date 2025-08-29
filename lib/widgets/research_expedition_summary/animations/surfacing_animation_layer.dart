@@ -67,11 +67,6 @@ class _SurfacingAnimationLayerState extends State<SurfacingAnimationLayer>
       Colors.cyan,
     ];
     
-    // Pre-calculate text style
-    final text = widget.expeditionResult.hasSignificantAccomplishments
-        ? '🏆 SURFACING WITH DISCOVERIES! 🏆'
-        : '🌊 SURFACING FROM EXPEDITION 🌊';
-    
     _expeditionTextStyle = TextStyle(
       fontSize: _subtitleFontSize,
       fontWeight: FontWeight.w900,
