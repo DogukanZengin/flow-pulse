@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import '../providers/timer_provider.dart';
@@ -358,21 +359,21 @@ class TimerScreenState extends State<TimerScreen>
                             
                             const SizedBox(height: 8),
                             
-                            // iOS-style session type selector
+                            // Enhanced session type selector with better UX
                             Container(
-                              height: 44, // Standard iOS touch target height
+                              height: 52, // Increased for better touch targets
                               decoration: BoxDecoration(
-                                color: const Color(0xFF1B4D72).withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(12),
+                                color: const Color(0xFF1B4D72).withValues(alpha: 0.4), // Slightly more opaque
+                                borderRadius: BorderRadius.circular(14), // Slightly rounder
                                 border: Border.all(
-                                  color: const Color(0xFF5DADE2).withValues(alpha: 0.4),
-                                  width: 1,
+                                  color: const Color(0xFF5DADE2).withValues(alpha: 0.5), // More visible border
+                                  width: 1.5,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
+                                    color: Colors.black.withValues(alpha: 0.15),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
                                   ),
                                 ],
                               ),
@@ -381,31 +382,38 @@ class TimerScreenState extends State<TimerScreen>
                                   final tabWidth = (constraints.maxWidth - 4) / 2;
                                   return Stack(
                                     children: [
-                                      // Sliding indicator background
+                                      // Enhanced sliding indicator with stronger visual presence
                                       AnimatedPositioned(
-                                        duration: const Duration(milliseconds: 250),
-                                        curve: Curves.easeInOut,
-                                        left: _timerController.isStudySession ? 2 : 2 + tabWidth,
-                                        top: 2,
-                                        bottom: 2,
-                                        width: tabWidth,
+                                        duration: const Duration(milliseconds: 200), // Faster response
+                                        curve: Curves.easeOutCubic, // Snappier animation
+                                        left: _timerController.isStudySession ? 3 : 3 + tabWidth,
+                                        top: 3,
+                                        bottom: 3,
+                                        width: tabWidth - 6,
                                         child: Container(
                                           decoration: BoxDecoration(
                                             gradient: LinearGradient(
                                               begin: Alignment.topLeft,
                                               end: Alignment.bottomRight,
-                                              colors: [
-                                                const Color(0xFF5DADE2).withValues(alpha: 0.9),
-                                                const Color(0xFF87CEEB).withValues(alpha: 0.8),
-                                              ],
+                                              colors: _timerController.isStudySession
+                                                  ? [
+                                                      const Color(0xFF2E86AB),
+                                                      const Color(0xFF5DADE2),
+                                                    ]
+                                                  : [
+                                                      const Color(0xFF48A38A),
+                                                      const Color(0xFF81C7D4),
+                                                    ],
                                             ),
-                                            borderRadius: BorderRadius.circular(10),
+                                            borderRadius: BorderRadius.circular(11),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: const Color(0xFF5DADE2).withValues(alpha: 0.3),
-                                                blurRadius: 6,
-                                                spreadRadius: 1,
-                                                offset: const Offset(0, 1),
+                                                color: _timerController.isStudySession
+                                                    ? const Color(0xFF5DADE2).withValues(alpha: 0.4)
+                                                    : const Color(0xFF81C7D4).withValues(alpha: 0.4),
+                                                blurRadius: 8,
+                                                spreadRadius: 2,
+                                                offset: const Offset(0, 2),
                                               ),
                                             ],
                                           ),
@@ -414,71 +422,113 @@ class TimerScreenState extends State<TimerScreen>
                                   // Tab buttons
                                   Row(
                                     children: [
-                                      // Dive session button
+                                      // Dive session button with enhanced feedback
                                       Expanded(
-                                        child: GestureDetector(
-                                          onTap: () => _switchToWorkSession(),
-                                          child: SizedBox(
-                                            height: 44,
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Icon(
-                                                  Icons.scuba_diving,
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            onTap: _timerController.isRunning 
+                                                ? null  // Disable when timer is running
+                                                : () {
+                                                    // Add haptic feedback if available
+                                                    HapticFeedback.lightImpact();
+                                                    _switchToWorkSession();
+                                                  },
+                                            borderRadius: BorderRadius.circular(11),
+                                            child: Container(
+                                              height: 52,
+                                              alignment: Alignment.center,
+                                              child: AnimatedDefaultTextStyle(
+                                                duration: const Duration(milliseconds: 200),
+                                                style: TextStyle(
                                                   color: _timerController.isStudySession 
-                                                      ? const Color(0xFF1B4D72)
-                                                      : Colors.white.withValues(alpha: 0.8),
-                                                  size: 18,
+                                                      ? Colors.white
+                                                      : Colors.white.withValues(
+                                                          alpha: _timerController.isRunning ? 0.4 : 0.7
+                                                        ),
+                                                  fontWeight: _timerController.isStudySession 
+                                                      ? FontWeight.w700 
+                                                      : FontWeight.w500,
+                                                  fontSize: 17,
+                                                  letterSpacing: _timerController.isStudySession ? 0.5 : 0,
                                                 ),
-                                                const SizedBox(width: 6),
-                                                Text(
-                                                  'Dive',
-                                                  style: TextStyle(
-                                                    color: _timerController.isStudySession 
-                                                        ? const Color(0xFF1B4D72)
-                                                        : Colors.white.withValues(alpha: 0.8),
-                                                    fontWeight: _timerController.isStudySession 
-                                                        ? FontWeight.w600 
-                                                        : FontWeight.w500,
-                                                    fontSize: 16,
-                                                  ),
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    AnimatedContainer(
+                                                      duration: const Duration(milliseconds: 200),
+                                                      child: Icon(
+                                                        Icons.scuba_diving,
+                                                        color: _timerController.isStudySession 
+                                                            ? Colors.white
+                                                            : Colors.white.withValues(
+                                                                alpha: _timerController.isRunning ? 0.4 : 0.7
+                                                              ),
+                                                        size: _timerController.isStudySession ? 20 : 18,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    const Text('Dive'),
+                                                  ],
                                                 ),
-                                              ],
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
                                       
-                                      // Break session button
+                                      // Break session button with enhanced feedback
                                       Expanded(
-                                        child: GestureDetector(
-                                          onTap: () => _switchToBreakSession(),
-                                          child: SizedBox(
-                                            height: 44,
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Icon(
-                                                  Icons.deck,
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            onTap: _timerController.isRunning 
+                                                ? null  // Disable when timer is running
+                                                : () {
+                                                    // Add haptic feedback if available
+                                                    HapticFeedback.lightImpact();
+                                                    _switchToBreakSession();
+                                                  },
+                                            borderRadius: BorderRadius.circular(11),
+                                            child: Container(
+                                              height: 52,
+                                              alignment: Alignment.center,
+                                              child: AnimatedDefaultTextStyle(
+                                                duration: const Duration(milliseconds: 200),
+                                                style: TextStyle(
                                                   color: !_timerController.isStudySession 
-                                                      ? const Color(0xFF1B4D72)
-                                                      : Colors.white.withValues(alpha: 0.8),
-                                                  size: 18,
+                                                      ? Colors.white
+                                                      : Colors.white.withValues(
+                                                          alpha: _timerController.isRunning ? 0.4 : 0.7
+                                                        ),
+                                                  fontWeight: !_timerController.isStudySession 
+                                                      ? FontWeight.w700 
+                                                      : FontWeight.w500,
+                                                  fontSize: 17,
+                                                  letterSpacing: !_timerController.isStudySession ? 0.5 : 0,
                                                 ),
-                                                const SizedBox(width: 6),
-                                                Text(
-                                                  'Break',
-                                                  style: TextStyle(
-                                                    color: !_timerController.isStudySession 
-                                                        ? const Color(0xFF1B4D72)
-                                                        : Colors.white.withValues(alpha: 0.8),
-                                                    fontWeight: !_timerController.isStudySession 
-                                                        ? FontWeight.w600 
-                                                        : FontWeight.w500,
-                                                    fontSize: 16,
-                                                  ),
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    AnimatedContainer(
+                                                      duration: const Duration(milliseconds: 200),
+                                                      child: Icon(
+                                                        Icons.deck,
+                                                        color: !_timerController.isStudySession 
+                                                            ? Colors.white
+                                                            : Colors.white.withValues(
+                                                                alpha: _timerController.isRunning ? 0.4 : 0.7
+                                                              ),
+                                                        size: !_timerController.isStudySession ? 20 : 18,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    const Text('Break'),
+                                                  ],
                                                 ),
-                                              ],
+                                              ),
                                             ),
                                           ),
                                         ),
