@@ -42,7 +42,7 @@ screen) based on the expert UI/UX recommendations.
     -   **Implementation:** Add `letterSpacing: 0.5` for softer feel
     -   **Outcome:** Reduce visual tension and create a calming effect
 
-3.  **[ ] Enhanced Wave Animation**
+3.  **[✓] Enhanced Wave Animation**
     -   **Extend:** `WavesPainter` class (lines 601-661)
     -   **With:** Secondary wave layer with phase offset, smoother sine calculations
     -   **Implementation:** Add gentler amplitude variations

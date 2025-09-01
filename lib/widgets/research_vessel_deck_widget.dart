@@ -614,45 +614,95 @@ class WavesPainter extends CustomPainter {
   
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
+    // Primary wave layer
+    final primaryPaint = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          ResearchVesselDeckWidget._cyan200.withValues(alpha: 0.8),
-          ResearchVesselDeckWidget._cyan300,
+          ResearchVesselDeckWidget._cyan200.withValues(alpha: 0.6),
+          ResearchVesselDeckWidget._cyan300.withValues(alpha: 0.9),
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..style = PaintingStyle.fill;
     
-    final path = Path();
+    // Secondary wave layer (background wave)
+    final secondaryPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          ResearchVesselDeckWidget._cyan100.withValues(alpha: 0.4),
+          ResearchVesselDeckWidget._cyan200.withValues(alpha: 0.7),
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..style = PaintingStyle.fill;
     
-    // Create wave pattern
-    final waveHeight = size.height * 0.3;
-    final waveFrequency = 2 * pi / size.width;
+    // Draw secondary wave (background) first
+    final secondaryPath = Path();
+    final secondaryWaveHeight = size.height * 0.25;
+    final secondaryWaveFrequency = 1.5 * pi / size.width;
+    final secondaryPhaseOffset = animationValue * 0.7 + pi / 3; // Different speed and phase
     
-    path.moveTo(0, size.height);
+    secondaryPath.moveTo(0, size.height);
     
     for (double x = 0; x <= size.width; x += 1) {
-      final y = size.height - waveHeight * 0.5 * (1 + sin(waveFrequency * x + animationValue));
-      path.lineTo(x, y);
+      // Gentler amplitude with smoother sine calculation
+      final amplitude = secondaryWaveHeight * 0.4;
+      final baseY = size.height - secondaryWaveHeight * 0.6;
+      final waveY = amplitude * sin(secondaryWaveFrequency * x + secondaryPhaseOffset);
+      final y = baseY - waveY;
+      secondaryPath.lineTo(x, y);
     }
     
-    path.lineTo(size.width, size.height);
-    path.lineTo(0, size.height);
-    path.close();
+    secondaryPath.lineTo(size.width, size.height);
+    secondaryPath.lineTo(0, size.height);
+    secondaryPath.close();
     
-    canvas.drawPath(path, paint);
+    canvas.drawPath(secondaryPath, secondaryPaint);
     
-    // Add foam/whitecaps
+    // Draw primary wave (foreground)
+    final primaryPath = Path();
+    final primaryWaveHeight = size.height * 0.3;
+    final primaryWaveFrequency = 2 * pi / size.width;
+    
+    primaryPath.moveTo(0, size.height);
+    
+    for (double x = 0; x <= size.width; x += 1) {
+      // Varying amplitude for more natural motion
+      final amplitudeVariation = 0.8 + 0.2 * sin(animationValue * 0.3 + x * 0.01);
+      final amplitude = primaryWaveHeight * 0.5 * amplitudeVariation;
+      final baseY = size.height - primaryWaveHeight * 0.5;
+      
+      // Smoother sine calculation with gentler motion
+      final waveY = amplitude * sin(primaryWaveFrequency * x + animationValue);
+      final y = baseY - waveY;
+      primaryPath.lineTo(x, y);
+    }
+    
+    primaryPath.lineTo(size.width, size.height);
+    primaryPath.lineTo(0, size.height);
+    primaryPath.close();
+    
+    canvas.drawPath(primaryPath, primaryPaint);
+    
+    // Add subtle foam/whitecaps with varying opacity
     final foamPaint = Paint()
-      ..color = Colors.white.withAlpha(153) // 0.6 opacity
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = 1.5;
     
     final foamPath = Path();
     for (double x = 0; x <= size.width; x += 1) {
-      final y = size.height - waveHeight * 0.5 * (1 + sin(waveFrequency * x + animationValue)) - 5;
+      final amplitudeVariation = 0.8 + 0.2 * sin(animationValue * 0.3 + x * 0.01);
+      final amplitude = primaryWaveHeight * 0.5 * amplitudeVariation;
+      final baseY = size.height - primaryWaveHeight * 0.5;
+      final waveY = amplitude * sin(primaryWaveFrequency * x + animationValue);
+      final y = baseY - waveY - 3;
+      
+      // Vary foam opacity based on wave height
+      final foamOpacity = (0.4 + 0.3 * sin(primaryWaveFrequency * x + animationValue)).clamp(0.2, 0.7);
+      foamPaint.color = Colors.white.withValues(alpha: foamOpacity);
+      
       if (x == 0) {
         foamPath.moveTo(x, y);
       } else {
