@@ -266,37 +266,62 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
           
           SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           
-          // Large timer display
-          Text(
-            '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
-            style: TextStyle(
-              fontSize: ResponsiveHelper.isMobile(context) ? 36 : 48,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              fontFamily: 'monospace',
-            ),
-          ),
-          
-          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
-          
-          // Progress bar
-          Container(
-            width: double.infinity,
-            height: ResponsiveHelper.isMobile(context) ? 6 : 8,
-            decoration: BoxDecoration(
-              color: Colors.white.withAlpha(77), // 0.3 opacity
-              borderRadius: BorderRadius.circular(ResponsiveHelper.isMobile(context) ? 3 : 4),
-            ),
-            child: FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: progress,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(ResponsiveHelper.isMobile(context) ? 3 : 4),
+          // Sun arc progress visualization with centered timer
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // Calculate dynamic height with same bounds checking as painter
+              final margin = constraints.maxWidth * 0.05;
+              final availableWidth = constraints.maxWidth - (margin * 2);
+              final maxRadius = availableWidth / 2;
+              final radius = (maxRadius * 0.8).clamp(20.0, maxRadius);
+              final rayExtension = radius * 0.22; // Max extension for sun rays
+              final containerHeight = radius + margin + rayExtension; // Proper height calculation
+              
+              return SizedBox(
+                width: double.infinity,
+                height: containerHeight,
+                child: Stack(
+                  children: [
+                    // Sun arc background
+                    Positioned.fill(
+                      child: AnimatedBuilder(
+                        animation: _waveAnimation,
+                        builder: (context, child) {
+                          return CustomPaint(
+                            painter: SunArcProgressPainter(
+                              progress: progress,
+                              animationValue: _waveAnimation.value,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    // Centered timer
+                    Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
+                        child: Text(
+                          '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+                          style: TextStyle(
+                            fontSize: ResponsiveHelper.isMobile(context) ? 36 : 48,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            fontFamily: 'monospace',
+                            shadows: [
+                              Shadow(
+                                offset: Offset(0, 2),
+                                blurRadius: 4,
+                                color: Colors.black.withAlpha(77), // 0.3 opacity
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ),
+              );
+            },
           ),
           
           SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
@@ -628,6 +653,122 @@ class WavesPainter extends CustomPainter {
   @override
   bool shouldRepaint(WavesPainter oldDelegate) {
     return oldDelegate.animationValue != animationValue;
+  }
+}
+
+/// Custom painter for sun arc progress visualization
+class SunArcProgressPainter extends CustomPainter {
+  final double progress; // 0.0 to 1.0
+  final double animationValue;
+  
+  SunArcProgressPainter({
+    required this.progress,
+    required this.animationValue,
+  });
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Responsive radius calculation with proper bounds checking
+    final margin = size.width * 0.05; // 5% margin on each side
+    final availableWidth = size.width - (margin * 2);
+    final maxRadius = availableWidth / 2; // Maximum radius that fits
+    final radius = (maxRadius * 0.8).clamp(20.0, maxRadius); // 80% of max, with safe minimum
+    final center = Offset(size.width / 2, radius + margin); // Center with proper margin
+    
+    // Responsive sizing for all elements
+    final strokeWidth = (size.width * 0.008).clamp(2.0, 6.0); // Responsive stroke width
+    final sunRadius = radius * 0.12; // Sun size scales with arc
+    final baseGlowRadius = sunRadius * 1.4; // Glow scales with sun
+    final rayLength = sunRadius * 1.8; // Rays scale with sun
+    final rayOffset = sunRadius * 1.5; // Ray start position
+    
+    // Background arc (horizon)
+    final backgroundPaint = Paint()
+      ..color = Colors.white.withAlpha(77) // 0.3 opacity
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+    
+    // Progress arc (sun path)
+    final progressPaint = Paint()
+      ..color = Colors.orange.withAlpha(204) // 0.8 opacity
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth * 1.25
+      ..strokeCap = StrokeCap.round;
+    
+    // Sun circle
+    final sunPaint = Paint()
+      ..color = Colors.orange
+      ..style = PaintingStyle.fill;
+    
+    // Sun glow effect
+    final glowPaint = Paint()
+      ..color = Colors.orange.withAlpha(51) // 0.2 opacity
+      ..style = PaintingStyle.fill;
+    
+    // Draw background arc (full semi-circle)
+    final backgroundRect = Rect.fromCenter(
+      center: center,
+      width: radius * 2,
+      height: radius * 2,
+    );
+    canvas.drawArc(
+      backgroundRect,
+      pi, // Start at left (180 degrees)
+      pi, // Draw semi-circle (180 degrees)
+      false,
+      backgroundPaint,
+    );
+    
+    // Draw progress arc
+    final progressAngle = pi * progress; // Progress along the arc
+    canvas.drawArc(
+      backgroundRect,
+      pi, // Start at left
+      progressAngle, // Progress amount
+      false,
+      progressPaint,
+    );
+    
+    // Calculate sun position along the arc
+    final sunAngle = pi + progressAngle; // Start from left side of arc
+    final sunX = center.dx + radius * cos(sunAngle);
+    final sunY = center.dy + radius * sin(sunAngle);
+    final sunCenter = Offset(sunX, sunY);
+    
+    // Draw sun glow (responsive pulsing effect)
+    final glowRadius = baseGlowRadius + (sunRadius * 0.3) * sin(animationValue * 4);
+    canvas.drawCircle(sunCenter, glowRadius, glowPaint);
+    
+    // Draw sun
+    canvas.drawCircle(sunCenter, sunRadius, sunPaint);
+    
+    // Add subtle sun rays (responsive)
+    final rayPaint = Paint()
+      ..color = Colors.orange.withAlpha(128) // 0.5 opacity
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth * 0.5
+      ..strokeCap = StrokeCap.round;
+    
+    // Draw 8 rays around the sun
+    for (int i = 0; i < 8; i++) {
+      final rayAngle = (i * pi / 4) + animationValue * 0.5; // Slowly rotating rays
+      final rayStart = Offset(
+        sunCenter.dx + rayOffset * cos(rayAngle),
+        sunCenter.dy + rayOffset * sin(rayAngle),
+      );
+      final rayEnd = Offset(
+        sunCenter.dx + rayLength * cos(rayAngle),
+        sunCenter.dy + rayLength * sin(rayAngle),
+      );
+      canvas.drawLine(rayStart, rayEnd, rayPaint);
+    }
+  }
+  
+  @override
+  bool shouldRepaint(SunArcProgressPainter oldDelegate) {
+    return oldDelegate.progress != progress || 
+           oldDelegate.animationValue != animationValue;
   }
 }
 
