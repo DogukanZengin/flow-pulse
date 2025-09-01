@@ -15,6 +15,13 @@ class ResearchVesselDeckWidget extends StatefulWidget {
   static const Color _cyan400 = Color(0xFF26C6DA); // Cyan 400
   static const Color _softOrange = Color(0xFFFFB74D); // Soft orange for pause
   static const Color _softGreen = Color(0xFF81C784); // Soft green for play
+  
+  // Enhanced ocean-themed button colors
+  static const Color _warmTurquoise = Color(0xFF4ECDC4); // Start break button
+  static const Color _brightCyan = Color(0xFF26D0CE); // Start break accent
+  static const Color _oceanBlue = Color(0xFF6BB6FF); // End break button
+  static const Color _deepSkyBlue = Color(0xFF4A90E2); // End break accent
+  static const Color _offWhite = Color(0xFFF8FFFE); // Softer text color
   final Aquarium aquarium;
   final int secondsRemaining;
   final int totalBreakSeconds;
@@ -253,14 +260,15 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
       ),
       child: Column(
         children: [
-          // Break title
+          // Break title - softer typography for calming effect
           Text(
-            '☕ Break Time',
+            'Break Time',
             style: TextStyle(
               fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-              letterSpacing: 0.5,
+              fontWeight: FontWeight.w300, // Much lighter weight for softer feel
+              color: ResearchVesselDeckWidget._offWhite,
+              letterSpacing: 1.2, // Increased letter spacing for airiness
+              height: 1.3, // Better line height for readability
             ),
           ),
           
@@ -336,51 +344,57 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
             textAlign: TextAlign.center,
           ),
           
-          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
+          const SizedBox(height: 32),
           
-          // Quick action buttons
+          // Quick action buttons - simplified flow
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildQuickActionButton(
-                widget.isRunning ? '⏸️ Pause' : (widget.secondsRemaining == widget.totalBreakSeconds ? '▶️ Start' : '▶️ Resume'),
-                widget.isRunning ? ResearchVesselDeckWidget._softOrange : ResearchVesselDeckWidget._softGreen,
-                widget.onTap,
-                isSmall: ResponsiveHelper.isMobile(context),
-              ),
-              _buildQuickActionButton(
-                '🤿 End Break',
-                ResearchVesselDeckWidget._cyan300,
-                () => _endBreakEarly(),
-                isSmall: ResponsiveHelper.isMobile(context),
-              ),
-            ],
+            children: _buildConditionalButtons(),
           ),
         ],
       ),
     );
   }
   
-  Widget _buildQuickActionButton(String text, Color color, VoidCallback onTap, {required bool isSmall}) {
-    return ElevatedButton(
-      onPressed: onTap,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
-        padding: EdgeInsets.symmetric(
-          horizontal: ResponsiveHelper.getResponsiveSpacing(context, isSmall ? 'navigation' : 'card'), 
-          vertical: ResponsiveHelper.getResponsiveSpacing(context, 'navigation'),
-        ),
-        textStyle: TextStyle(
-          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
-          fontWeight: FontWeight.bold,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(ResponsiveHelper.getResponsiveSpacing(context, 'card')),
-        ),
-      ),
-      child: Text(text),
+  Widget _buildQuickActionButton(String text, Color primaryColor, Color accentColor, VoidCallback onTap, {required bool isSmall}) {
+    final buttonHeight = isSmall ? 54.0 : 60.0;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final buttonWidth = min(screenWidth * 0.7, 280.0);
+    
+    return _AnimatedOceanButton(
+      text: text,
+      primaryColor: primaryColor,
+      accentColor: accentColor,
+      onTap: onTap,
+      height: buttonHeight,
+      width: buttonWidth,
     );
+  }
+  
+  List<Widget> _buildConditionalButtons() {
+    // Pre-break state: Show Start Break only
+    if (widget.secondsRemaining == widget.totalBreakSeconds) {
+      return [
+        _buildQuickActionButton(
+          '🌅 Start Break',
+          ResearchVesselDeckWidget._warmTurquoise,
+          ResearchVesselDeckWidget._brightCyan,
+          widget.onTap,
+          isSmall: ResponsiveHelper.isMobile(context),
+        ),
+      ];
+    }
+    
+    // During break: Show End Break only (no pause/resume)
+    return [
+      _buildQuickActionButton(
+        '🤿 End Break',
+        ResearchVesselDeckWidget._oceanBlue,
+        ResearchVesselDeckWidget._deepSkyBlue,
+        () => _endBreakEarly(),
+        isSmall: ResponsiveHelper.isMobile(context),
+      ),
+    ];
   }
   
   void _endBreakEarly() {
@@ -814,6 +828,153 @@ class CloudsPainter extends CustomPainter {
   @override
   bool shouldRepaint(CloudsPainter oldDelegate) {
     return oldDelegate.animationValue != animationValue;
+  }
+}
+
+/// Animated ocean-themed button with gentle micro-interactions
+class _AnimatedOceanButton extends StatefulWidget {
+  final String text;
+  final Color primaryColor;
+  final Color accentColor;
+  final VoidCallback onTap;
+  final double height;
+  final double width;
+
+  const _AnimatedOceanButton({
+    required this.text,
+    required this.primaryColor,
+    required this.accentColor,
+    required this.onTap,
+    required this.height,
+    required this.width,
+  });
+
+  @override
+  State<_AnimatedOceanButton> createState() => _AnimatedOceanButtonState();
+}
+
+class _AnimatedOceanButtonState extends State<_AnimatedOceanButton>
+    with TickerProviderStateMixin {
+  late AnimationController _breathingController;
+  late AnimationController _pressController;
+  late Animation<double> _breathingAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Breathing animation (gentle pulsing)
+    _breathingController = AnimationController(
+      duration: const Duration(seconds: 4),
+      vsync: this,
+    );
+    _breathingAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.02,
+    ).animate(CurvedAnimation(
+      parent: _breathingController,
+      curve: Curves.easeInOut,
+    ));
+    
+    // Press animation
+    _pressController = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.98,
+    ).animate(CurvedAnimation(
+      parent: _pressController,
+      curve: Curves.easeOut,
+    ));
+
+    // Start breathing animation
+    _breathingController.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _breathingController.dispose();
+    _pressController.dispose();
+    super.dispose();
+  }
+
+  void _handleTapDown(TapDownDetails details) {
+    _pressController.forward();
+  }
+
+  void _handleTapUp(TapUpDetails details) {
+    _pressController.reverse();
+  }
+
+  void _handleTapCancel() {
+    _pressController.reverse();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_breathingAnimation, _scaleAnimation]),
+      builder: (context, child) {
+        final breathingScale = _breathingAnimation.value;
+        final pressScale = _scaleAnimation.value;
+        final combinedScale = breathingScale * pressScale;
+
+        return Transform.scale(
+          scale: combinedScale,
+          child: Container(
+            height: widget.height,
+            width: widget.width,
+            child: Material(
+              color: Colors.transparent,
+              child: GestureDetector(
+                onTapDown: _handleTapDown,
+                onTapUp: _handleTapUp,
+                onTapCancel: _handleTapCancel,
+                onTap: widget.onTap,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        widget.primaryColor,
+                        widget.accentColor,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: widget.primaryColor.withAlpha(64), // 25% opacity shadow
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: Colors.white.withAlpha(51), // Subtle water surface effect
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      widget.text,
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
+                        fontWeight: FontWeight.w600, // Softer than bold
+                        color: ResearchVesselDeckWidget._offWhite,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 
