@@ -48,10 +48,10 @@ screen) based on the expert UI/UX recommendations.
     -   **Implementation:** Add gentler amplitude variations
     -   **Outcome:** Gentle motion to reinforce relaxation without draining battery
 
-4.  **[ ] Marine Companion Improvements**
-    -   **Extend:** `_initializeSurfaceWildlife()` method (lines 86-108)
-    -   **Add:** Bezier curve paths, opacity fading at edges, varied speed patterns
-    -   **Outcome:** Ambient presence of marine life without clutter
+4.  **[✓] Marine Companion Improvements**
+    -   **Removed:** All wildlife-related code for cleaner, distraction-free break screen
+    -   **Implementation:** Completely removed wildlife rendering, controllers, and data models
+    -   **Outcome:** Clean, calming break screen focused on essential relaxing elements
 
 5.  **[ ] Natural Progress Visualization**
     -   **Replace:** Linear progress bar (lines 361-379)

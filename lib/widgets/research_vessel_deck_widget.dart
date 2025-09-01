@@ -55,19 +55,14 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
   
   late AnimationController _waveController;
   late AnimationController _cloudsController;
-  late AnimationController _seabirdsController;
   late Animation<double> _waveAnimation;
   late Animation<double> _cloudsAnimation;
-  late Animation<double> _seabirdsAnimation;
   
-  // Surface wildlife that appears during breaks
-  final List<SurfaceWildlife> _surfaceWildlife = [];
   
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
-    _initializeSurfaceWildlife();
   }
   
   void _initializeAnimations() {
@@ -81,45 +76,15 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
       vsync: this,
     )..repeat();
     
-    _seabirdsController = AnimationController(
-      duration: const Duration(seconds: 15),
-      vsync: this,
-    )..repeat();
-    
     _waveAnimation = Tween<double>(begin: 0, end: 2 * pi).animate(_waveController);
     _cloudsAnimation = Tween<double>(begin: 0, end: 1).animate(_cloudsController);
-    _seabirdsAnimation = Tween<double>(begin: 0, end: 1).animate(_seabirdsController);
   }
   
-  void _initializeSurfaceWildlife() {
-    // Add some seabirds
-    _surfaceWildlife.addAll([
-      SurfaceWildlife(
-        type: SurfaceWildlifeType.pelican,
-        position: Offset(0.1, 0.3),
-        speed: 0.02,
-        size: 0.8,
-      ),
-      SurfaceWildlife(
-        type: SurfaceWildlifeType.seagull,
-        position: Offset(0.7, 0.2),
-        speed: 0.03,
-        size: 0.6,
-      ),
-      SurfaceWildlife(
-        type: SurfaceWildlifeType.dolphin,
-        position: Offset(0.4, 0.8),
-        speed: 0.01,
-        size: 1.0,
-      ),
-    ]);
-  }
   
   @override
   void dispose() {
     _waveController.dispose();
     _cloudsController.dispose();
-    _seabirdsController.dispose();
     super.dispose();
   }
   
@@ -173,23 +138,6 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
             ),
           ),
           
-          // Surface wildlife
-          AnimatedBuilder(
-            animation: _seabirdsAnimation,
-            builder: (context, child) {
-              return Stack(
-                children: _surfaceWildlife.map((wildlife) {
-                  final animatedPosition = _calculateWildlifePosition(wildlife, _seabirdsAnimation.value);
-                  return Positioned(
-                    left: animatedPosition.dx * screenSize.width,
-                    top: animatedPosition.dy * screenSize.height,
-                    child: _buildWildlifeWidget(wildlife),
-                  );
-                }).toList(),
-              );
-            },
-          ),
-          
           // Main content - Research vessel deck
           _buildDeckContent(context, screenSize),
         ],
@@ -197,42 +145,6 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
     );
   }
   
-  Offset _calculateWildlifePosition(SurfaceWildlife wildlife, double animationValue) {
-    // Move wildlife across screen with gentle bobbing motion
-    final progress = (wildlife.position.dx + animationValue * wildlife.speed) % 1.0;
-    final bobbing = sin(animationValue * 2 * pi + wildlife.position.dy) * 0.02;
-    return Offset(progress, wildlife.position.dy + bobbing);
-  }
-  
-  Widget _buildWildlifeWidget(SurfaceWildlife wildlife) {
-    IconData icon;
-    Color color;
-    
-    switch (wildlife.type) {
-      case SurfaceWildlifeType.pelican:
-        icon = Icons.flutter_dash;
-        color = Colors.brown;
-        break;
-      case SurfaceWildlifeType.seagull:
-        icon = Icons.flutter_dash;
-        color = Colors.grey[300]!;
-        break;
-      case SurfaceWildlifeType.dolphin:
-        icon = Icons.waves;
-        color = Colors.blue[300]!;
-        break;
-      case SurfaceWildlifeType.flyingFish:
-        icon = Icons.air;
-        color = Colors.grey[400]!;
-        break;
-    }
-    
-    return Icon(
-      icon,
-      size: 20 * wildlife.size,
-      color: color,
-    );
-  }
   
   Widget _buildDeckContent(BuildContext context, Size screenSize) {
     final isSmallScreen = screenSize.height < 700;
@@ -764,24 +676,3 @@ class CloudsPainter extends CustomPainter {
   }
 }
 
-/// Surface wildlife data model
-class SurfaceWildlife {
-  final SurfaceWildlifeType type;
-  final Offset position;
-  final double speed;
-  final double size;
-  
-  SurfaceWildlife({
-    required this.type,
-    required this.position,
-    required this.speed,
-    required this.size,
-  });
-}
-
-enum SurfaceWildlifeType {
-  pelican,
-  seagull,
-  dolphin,
-  flyingFish,
-}
