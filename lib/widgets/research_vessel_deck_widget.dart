@@ -346,8 +346,9 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
             '☕ Break Time',
             style: TextStyle(
               fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w500,
               color: Colors.white,
+              letterSpacing: 0.5,
             ),
           ),
           
