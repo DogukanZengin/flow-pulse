@@ -58,12 +58,13 @@ screen) based on the expert UI/UX recommendations.
     -   **Implementation:** Created `SunArcProgressPainter` with fully responsive design, centered timer, and natural sun movement metaphor
     -   **Outcome:** Beautiful, meditative sun arc that scales perfectly across all screen sizes, providing natural pacing visualization
 
-6.  **[ ] Simplified Button Flow**
+6.  **[✓] Simplified Button Flow**
     -   **Replace:** Dual buttons shown simultaneously (lines 395-412)
     -   **With:** Conditional logic:
         -   Pre-break → Show **Start Break** only
-        -   During break → Show **Pause/Resume** and **End Break**
-    -   **Outcome:** Cleaner UX, reduces choice overload
+        -   During break → Show **End Break** only (pause removed for uninterrupted relaxation)
+    -   **Implementation:** Created `_buildConditionalButtons()` method with state-based logic
+    -   **Outcome:** Cleaner UX, reduces choice overload, promotes uninterrupted break time
 
 7.  **[ ] Rotating Encouragement Messages**
     -   **Replace:** Random message selection (lines 518-528)

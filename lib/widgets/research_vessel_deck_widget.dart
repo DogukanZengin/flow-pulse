@@ -195,15 +195,16 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
   
   Widget _buildActivitySuggestion(String activity, String description) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
+      padding: const EdgeInsets.symmetric(vertical: 2), // Much tighter spacing
       child: Row(
         children: [
           Expanded(
             child: Text(
               activity,
               style: TextStyle(
-                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
-                fontWeight: FontWeight.w500,
+                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'), // Increased from caption to body
+                fontWeight: FontWeight.w400, // Lighter weight for calmer feel
+                letterSpacing: 0.5, // Softer feel
               ),
             ),
           ),
@@ -212,7 +213,7 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
             child: Text(
               description,
               style: TextStyle(
-                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption') * 0.9,
+                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body') * 0.9, // Increased base size
                 color: Colors.blue[600],
                 fontStyle: FontStyle.italic,
               ),
@@ -432,13 +433,12 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.wb_sunny, color: Colors.orange, size: ResponsiveHelper.getIconSize(context, 'small')),
           SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
           Flexible(
             child: Text(
               '🌞 Vessel Deck Break 🌊',
               style: TextStyle(
-                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
+                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                 fontWeight: FontWeight.bold,
                 color: Colors.blue[800],
               ),
@@ -453,18 +453,9 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
   
   Widget _buildScreenAwayActivities() {
     return _buildCompactCard(
-      title: '🌱 Step Away from Screen',
+      title: '',
       child: Column(
         children: [
-          Text(
-            'Suggested break activities:',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[800],
-              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
-            ),
-          ),
-          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           _buildActivitySuggestion('🚶‍♂️ Take a walk', 'Fresh air & movement'),
           _buildActivitySuggestion('💧 Hydrate', 'Drink water or tea'),
           _buildActivitySuggestion('👀 Look outside', '20 feet away for 20 seconds'),
@@ -525,7 +516,7 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
     required Widget child,
   }) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8), // Removed top padding
       decoration: BoxDecoration(
         color: Colors.white.withAlpha(153), // 0.6 opacity to show background
         borderRadius: BorderRadius.circular(12),
@@ -540,15 +531,17 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[800],
+          if (title.isNotEmpty) ...[
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[800],
+              ),
             ),
-          ),
-          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
+            SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
+          ],
           child,
         ],
       ),
