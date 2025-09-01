@@ -7,6 +7,14 @@ import '../utils/responsive_helper.dart';
 /// Research vessel deck environment for break sessions
 /// Provides a bright, restful surface experience with rewards
 class ResearchVesselDeckWidget extends StatefulWidget {
+  // Break screen color palette constants
+  static const Color _pastelAqua = Color(0xFFE0F7FA); // Light cyan (pastel aqua)
+  static const Color _cyan100 = Color(0xFFB2EBF2); // Cyan 100
+  static const Color _cyan200 = Color(0xFF80DEEA); // Cyan 200
+  static const Color _cyan300 = Color(0xFF4DD0E1); // Cyan 300
+  static const Color _cyan400 = Color(0xFF26C6DA); // Cyan 400
+  static const Color _softOrange = Color(0xFFFFB74D); // Soft orange for pause
+  static const Color _softGreen = Color(0xFF81C784); // Soft green for play
   final Aquarium aquarium;
   final int secondsRemaining;
   final int totalBreakSeconds;
@@ -127,12 +135,12 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF87CEEB), // Sky blue
-            Color(0xFFFFF8DC), // Cornsilk
-            Color(0xFF00BFFF), // Deep sky blue
-            Color(0xFF006994), // Ocean blue
+            ResearchVesselDeckWidget._pastelAqua,
+            ResearchVesselDeckWidget._cyan100,
+            ResearchVesselDeckWidget._cyan200,
+            ResearchVesselDeckWidget._cyan300,
           ],
-          stops: [0.0, 0.3, 0.7, 1.0],
+          stops: [0.0, 0.35, 0.7, 1.0],
         ),
       ),
       child: Stack(
@@ -312,8 +320,8 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.blue[400]!.withAlpha(204), // 0.8 opacity
-            Colors.teal[300]!.withAlpha(179), // 0.7 opacity
+            ResearchVesselDeckWidget._cyan300.withAlpha(204), // 0.8 opacity
+            ResearchVesselDeckWidget._cyan400.withAlpha(179), // 0.7 opacity
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -398,13 +406,13 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
             children: [
               _buildQuickActionButton(
                 widget.isRunning ? '⏸️ Pause' : (widget.secondsRemaining == widget.totalBreakSeconds ? '▶️ Start' : '▶️ Resume'),
-                widget.isRunning ? Colors.orange[300]! : Colors.green[300]!,
+                widget.isRunning ? ResearchVesselDeckWidget._softOrange : ResearchVesselDeckWidget._softGreen,
                 widget.onTap,
                 isSmall: ResponsiveHelper.isMobile(context),
               ),
               _buildQuickActionButton(
                 '🤿 End Break',
-                Colors.blue[300]!,
+                ResearchVesselDeckWidget._cyan300,
                 () => _endBreakEarly(),
                 isSmall: ResponsiveHelper.isMobile(context),
               ),
@@ -530,10 +538,10 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.blue[50]!.withAlpha(230), // 0.9 opacity
+        color: ResearchVesselDeckWidget._pastelAqua.withAlpha(230), // 0.9 opacity
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.blue[200]!,
+          color: ResearchVesselDeckWidget._cyan100,
           width: 1,
         ),
       ),
@@ -610,8 +618,8 @@ class WavesPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          Colors.blue[300]!.withValues(alpha: 0.8),
-          Colors.blue[600]!,
+          ResearchVesselDeckWidget._cyan200.withValues(alpha: 0.8),
+          ResearchVesselDeckWidget._cyan300,
         ],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..style = PaintingStyle.fill;
