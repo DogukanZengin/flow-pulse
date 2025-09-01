@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'dart:async';
 import '../models/aquarium.dart';
 import '../models/creature.dart';
 import '../utils/responsive_helper.dart';
@@ -65,6 +66,12 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
   late Animation<double> _waveAnimation;
   late Animation<double> _cloudsAnimation;
   
+  // Rotating encouragement messages
+  late AnimationController _messageController;
+  late Animation<double> _messageAnimation;
+  Timer? _messageRotationTimer;
+  int _currentMessageIndex = 0;
+  
   
   @override
   void initState() {
@@ -85,13 +92,73 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
     
     _waveAnimation = Tween<double>(begin: 0, end: 2 * pi).animate(_waveController);
     _cloudsAnimation = Tween<double>(begin: 0, end: 1).animate(_cloudsController);
+    
+    // Initialize message fade animation controller
+    _messageController = AnimationController(
+      duration: const Duration(milliseconds: 500), // 500ms fade transition
+      vsync: this,
+    );
+    _messageAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _messageController, curve: Curves.easeInOut)
+    );
+    
+    // Start with first message visible
+    _messageController.forward();
+    
+    // Start rotating messages every 30 seconds
+    _startMessageRotation();
   }
   
   
+  void _startMessageRotation() {
+    _messageRotationTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      _rotateToNextMessage();
+    });
+  }
+  
+  void _rotateToNextMessage() {
+    // Fade out current message
+    _messageController.reverse().then((_) {
+      // Change to next message
+      setState(() {
+        _currentMessageIndex = (_currentMessageIndex + 1) % _getEncouragementMessages().length;
+      });
+      // Fade in new message
+      _messageController.forward();
+    });
+  }
+  
+  List<String> _getEncouragementMessages() {
+    return [
+      '🌊 Rest your mind like calm waters restore their depths',
+      '🐠 Even fish need to pause in the current',
+      '🌞 The ocean surface brings fresh perspective',
+      '⚓ Anchor yourself in this moment of peace',
+      '🧠 Your brain processes discoveries during breaks',
+      '🐚 Every shell holds the memory of peaceful tides',
+      '🌅 Dawn breaks with new possibilities awaiting',
+      '💨 Breathe deeply, like the ocean\'s gentle rhythm',
+      '🚢 Your vessel needs maintenance between voyages',
+      '🌺 Coral reefs grow strongest in calm waters',
+      '⭐ Stars reflect clearest in still ocean nights',
+      '🏝️ Islands of rest make journeys sustainable',
+      '🐢 Move slowly and deliberately, like ancient sea turtles',
+      '🌙 Lunar tides remind us rest is natural',
+      '🦋 Transformation happens in moments of stillness',
+      '🍃 Let go like seaweed dancing with currents',
+      '💎 Pressure creates pearls, but rest reveals them',
+      '🕊️ Peace flows from accepting this pause',
+      '🌸 Blossoming requires seasons of quiet growth',
+      '🎋 Bend like bamboo, rest like the wise',
+    ];
+  }
+
   @override
   void dispose() {
     _waveController.dispose();
     _cloudsController.dispose();
+    _messageController.dispose();
+    _messageRotationTimer?.cancel();
     super.dispose();
   }
   
@@ -467,15 +534,8 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
   }
   
   Widget _buildBreakEncouragementMessage() {
-    final messages = [
-      '🌊 Rest your mind like calm waters restore their depths',
-      '🐠 Even fish need to pause in the current',
-      '🌞 The ocean surface brings fresh perspective',
-      '⚡ Recharge for your next deep dive',
-      '🧠 Your brain processes discoveries during breaks',
-    ];
-    
-    final randomMessage = messages[DateTime.now().millisecond % messages.length];
+    final messages = _getEncouragementMessages();
+    final currentMessage = messages[_currentMessageIndex];
     
     return Container(
       width: double.infinity,
@@ -496,14 +556,23 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
             size: 16,
           ),
           SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
-          Text(
-            randomMessage,
-            style: TextStyle(
-              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
-              color: Colors.blue[800],
-              fontStyle: FontStyle.italic,
-            ),
-            textAlign: TextAlign.center,
+          // Animated message with fade transitions
+          AnimatedBuilder(
+            animation: _messageAnimation,
+            builder: (context, child) {
+              return Opacity(
+                opacity: _messageAnimation.value,
+                child: Text(
+                  currentMessage,
+                  style: TextStyle(
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
+                    color: Colors.blue[800],
+                    fontStyle: FontStyle.italic,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              );
+            },
           ),
         ],
       ),
