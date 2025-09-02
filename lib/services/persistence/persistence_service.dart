@@ -10,6 +10,7 @@ import 'repositories/ocean_repository.dart';
 import 'repositories/career_repository.dart';
 import 'repositories/equipment_repository.dart';
 import 'repositories/research_repository.dart';
+import 'repositories/mission_repository.dart';
 import '../../data/comprehensive_species_database.dart';
 
 /// Unified persistence service for Flow Pulse
@@ -25,7 +26,7 @@ class PersistenceService {
 
   Database? _database;
   static const String _databaseName = 'flowpulse.db';
-  static const int _databaseVersion = 3;
+  static const int _databaseVersion = 4;
 
   // Repository instances
   SessionRepository? _sessions;
@@ -34,6 +35,7 @@ class PersistenceService {
   CareerRepository? _career;
   EquipmentRepository? _equipment;
   ResearchRepository? _research;
+  MissionRepository? _mission;
   bool _repositoriesInitialized = false;
 
   // Repository getters with auto-initialization
@@ -65,6 +67,11 @@ class PersistenceService {
   ResearchRepository get research {
     _ensureRepositoriesInitialized();
     return _research!;
+  }
+
+  MissionRepository get mission {
+    _ensureRepositoriesInitialized();
+    return _mission!;
   }
 
   // Initialize the service
@@ -102,6 +109,7 @@ class PersistenceService {
     _career = CareerRepository(this);
     _equipment = EquipmentRepository(this);
     _research = ResearchRepository(this);
+    _mission = MissionRepository(this);
     _repositoriesInitialized = true;
   }
 
@@ -172,6 +180,7 @@ class PersistenceService {
     await _createCareerTables(db);
     await _createEquipmentTables(db);
     await _createResearchTables(db);
+    await _createMissionTables(db);
     await _createPreferencesTables(db);
     
     // Create indexes for performance
@@ -190,6 +199,9 @@ class PersistenceService {
     }
     if (oldVersion < 3) {
       await _migrateToV3(db);
+    }
+    if (oldVersion < 4) {
+      await _migrateToV4(db);
     }
   }
 
@@ -219,7 +231,12 @@ class PersistenceService {
         depth REAL DEFAULT 0,
         creatures_discovered TEXT,
         pearls_earned INTEGER DEFAULT 0,
-        xp_earned INTEGER DEFAULT 0,
+        research_points INTEGER DEFAULT 0,
+        base_rp INTEGER DEFAULT 0,
+        bonus_rp INTEGER DEFAULT 0,
+        break_adherence INTEGER DEFAULT 0,
+        streak_bonus INTEGER DEFAULT 0,
+        session_quality INTEGER DEFAULT 1,
         created_at INTEGER NOT NULL
       )
     ''');
@@ -309,7 +326,9 @@ class PersistenceService {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS gamification_state(
         id INTEGER PRIMARY KEY DEFAULT 1,
-        total_xp INTEGER NOT NULL DEFAULT 0,
+        total_rp INTEGER NOT NULL DEFAULT 0,
+        cumulative_rp INTEGER NOT NULL DEFAULT 0,
+        current_depth_zone INTEGER NOT NULL DEFAULT 0,
         current_level INTEGER NOT NULL DEFAULT 1,
         current_streak INTEGER NOT NULL DEFAULT 0,
         longest_streak INTEGER NOT NULL DEFAULT 0,
@@ -337,7 +356,7 @@ class PersistenceService {
         progress REAL DEFAULT 0.0,
         target_value INTEGER,
         current_value INTEGER,
-        xp_reward INTEGER DEFAULT 0,
+        rp_reward INTEGER DEFAULT 0,
         rarity TEXT
       )
     ''');
@@ -348,8 +367,8 @@ class PersistenceService {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS marine_career(
         id INTEGER PRIMARY KEY DEFAULT 1,
-        career_xp INTEGER NOT NULL DEFAULT 0,
-        career_level INTEGER NOT NULL DEFAULT 1,
+        career_rp INTEGER NOT NULL DEFAULT 0,
+        current_career_rp INTEGER NOT NULL DEFAULT 0,
         career_title TEXT DEFAULT 'Marine Biology Intern',
         specialization TEXT,
         total_discoveries INTEGER NOT NULL DEFAULT 0,
@@ -369,7 +388,7 @@ class PersistenceService {
         achieved INTEGER NOT NULL DEFAULT 0,
         achieved_date INTEGER,
         category TEXT,
-        reward_xp INTEGER DEFAULT 0,
+        reward_rp INTEGER DEFAULT 0,
         reward_items TEXT
       )
     ''');
@@ -386,7 +405,7 @@ class PersistenceService {
         icon TEXT,
         is_unlocked INTEGER NOT NULL DEFAULT 0,
         is_equipped INTEGER NOT NULL DEFAULT 0,
-        unlock_level INTEGER NOT NULL,
+        unlock_rp INTEGER NOT NULL,
         unlock_date INTEGER,
         discovery_bonus REAL DEFAULT 0,
         session_bonus REAL DEFAULT 0,
@@ -419,7 +438,7 @@ class PersistenceService {
         published INTEGER NOT NULL DEFAULT 0,
         published_date INTEGER,
         citations INTEGER DEFAULT 0,
-        xp_reward INTEGER DEFAULT 0,
+        rp_reward INTEGER DEFAULT 0,
         required_discoveries TEXT,
         required_level INTEGER DEFAULT 1,
         biome TEXT,
@@ -440,6 +459,41 @@ class PersistenceService {
     ''');
   }
 
+  // Create mission system tables
+  Future<void> _createMissionTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS missions(
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        category TEXT NOT NULL,
+        type TEXT NOT NULL,
+        target_value INTEGER NOT NULL,
+        current_progress INTEGER DEFAULT 0,
+        is_completed INTEGER DEFAULT 0,
+        completed_date INTEGER,
+        reward_rp INTEGER DEFAULT 0,
+        reward_bonus TEXT,
+        expires_at INTEGER,
+        created_at INTEGER NOT NULL,
+        metadata TEXT
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mission_progress(
+        id TEXT PRIMARY KEY,
+        mission_id TEXT NOT NULL,
+        user_id TEXT DEFAULT 'default',
+        progress_value INTEGER DEFAULT 0,
+        is_completed INTEGER DEFAULT 0,
+        completed_at INTEGER,
+        last_updated INTEGER NOT NULL,
+        FOREIGN KEY (mission_id) REFERENCES missions(id)
+      )
+    ''');
+  }
+
   // Create user preferences table
   Future<void> _createPreferencesTables(Database db) async {
     await db.execute('''
@@ -456,6 +510,11 @@ class PersistenceService {
     // Session indexes
     await db.execute('CREATE INDEX IF NOT EXISTS idx_sessions_date ON sessions(start_time DESC)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_sessions_type ON sessions(type)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_sessions_rp ON sessions(research_points)');
+    
+    // Mission indexes
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_missions_category ON missions(category)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_missions_completed ON missions(is_completed)');
     
     // Creature indexes
     await db.execute('CREATE INDEX IF NOT EXISTS idx_creatures_rarity ON creatures(rarity)');
@@ -499,6 +558,46 @@ class PersistenceService {
     await _migrateExistingData(db);
   }
 
+  // Migrate to version 4 (RP System)
+  Future<void> _migrateToV4(Database db) async {
+    // Add RP columns to sessions table
+    await db.execute('ALTER TABLE sessions ADD COLUMN research_points INTEGER DEFAULT 0');
+    await db.execute('ALTER TABLE sessions ADD COLUMN base_rp INTEGER DEFAULT 0');
+    await db.execute('ALTER TABLE sessions ADD COLUMN bonus_rp INTEGER DEFAULT 0');
+    await db.execute('ALTER TABLE sessions ADD COLUMN break_adherence INTEGER DEFAULT 0');
+    await db.execute('ALTER TABLE sessions ADD COLUMN streak_bonus INTEGER DEFAULT 0');
+    await db.execute('ALTER TABLE sessions ADD COLUMN session_quality INTEGER DEFAULT 1');
+    
+    // Update gamification_state table structure
+    await db.execute('ALTER TABLE gamification_state ADD COLUMN total_rp INTEGER DEFAULT 0');
+    await db.execute('ALTER TABLE gamification_state ADD COLUMN cumulative_rp INTEGER DEFAULT 0');
+    await db.execute('ALTER TABLE gamification_state ADD COLUMN current_depth_zone INTEGER DEFAULT 0');
+    
+    // Update career table structure
+    await db.execute('ALTER TABLE marine_career ADD COLUMN career_rp INTEGER DEFAULT 0');
+    await db.execute('ALTER TABLE marine_career ADD COLUMN current_career_rp INTEGER DEFAULT 0');
+    
+    // Update achievements table structure
+    await db.execute('ALTER TABLE achievements ADD COLUMN rp_reward INTEGER DEFAULT 0');
+    
+    // Update research milestones table structure
+    await db.execute('ALTER TABLE research_milestones ADD COLUMN reward_rp INTEGER DEFAULT 0');
+    
+    // Update research papers table structure
+    await db.execute('ALTER TABLE research_papers ADD COLUMN rp_reward INTEGER DEFAULT 0');
+    
+    // Update equipment table structure
+    await db.execute('ALTER TABLE equipment ADD COLUMN unlock_rp INTEGER DEFAULT 0');
+    
+    // Create mission tables
+    await _createMissionTables(db);
+    
+    // Create new indexes
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_sessions_rp ON sessions(research_points)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_missions_category ON missions(category)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_missions_completed ON missions(is_completed)');
+  }
+
   // Migrate existing data from old schema
   Future<void> _migrateExistingData(Database db) async {
     // This would contain logic to migrate data from old tables/structure
@@ -512,7 +611,9 @@ class PersistenceService {
     if (gamificationCount == 0) {
       await db.insert('gamification_state', {
         'id': 1,
-        'total_xp': 0,
+        'total_rp': 0,
+        'cumulative_rp': 0,
+        'current_depth_zone': 0,
         'current_level': 1,
         'current_streak': 0,
         'longest_streak': 0,
@@ -530,8 +631,8 @@ class PersistenceService {
     if (careerCount == 0) {
       await db.insert('marine_career', {
         'id': 1,
-        'career_xp': 0,
-        'career_level': 1,
+        'career_rp': 0,
+        'current_career_rp': 0,
         'career_title': 'Marine Biology Intern',
         'total_discoveries': 0,
         'research_points': 0,

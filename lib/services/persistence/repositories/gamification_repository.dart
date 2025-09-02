@@ -25,7 +25,9 @@ class GamificationRepository {
     // Return default state if none exists
     return {
       'id': 1,
-      'total_xp': 0,
+      'total_rp': 0,
+      'cumulative_rp': 0,
+      'current_depth_zone': 0,
       'current_level': 1,
       'current_streak': 0,
       'longest_streak': 0,
@@ -53,40 +55,56 @@ class GamificationRepository {
     );
   }
 
-  // Update XP and level
-  Future<void> addXP(int xpToAdd) async {
+  // Update RP and level
+  Future<void> addRP(int rpToAdd) async {
     final state = await getGamificationState();
-    final currentXP = state['total_xp'] as int;
-    final newXP = currentXP + xpToAdd;
+    final currentRP = state['total_rp'] as int;
+    final currentCumulativeRP = state['cumulative_rp'] as int;
+    final newRP = currentRP + rpToAdd;
+    final newCumulativeRP = currentCumulativeRP + rpToAdd;
     
     // Calculate new level
-    final newLevel = _calculateLevel(newXP);
+    final newLevel = _calculateLevel(newRP);
     
-    state['total_xp'] = newXP;
+    // Calculate new depth zone based on cumulative RP
+    final newDepthZone = _calculateDepthZone(newCumulativeRP);
+    
+    state['total_rp'] = newRP;
+    state['cumulative_rp'] = newCumulativeRP;
     state['current_level'] = newLevel;
+    state['current_depth_zone'] = newDepthZone;
     
     await saveGamificationState(state);
   }
 
-  // Calculate level from XP
-  int _calculateLevel(int totalXP) {
-    // Level formula: each level requires progressively more XP
+  // Calculate level from RP
+  int _calculateLevel(int totalRP) {
+    // Level formula: each level requires progressively more RP
     int level = 1;
-    int xpNeeded = 0;
+    int rpNeeded = 0;
     
-    while (xpNeeded <= totalXP) {
+    while (rpNeeded <= totalRP) {
       level++;
-      xpNeeded += level * 100; // Each level requires level * 100 XP
+      rpNeeded += level * 50; // Each level requires level * 50 RP (adjusted from XP)
     }
     
     return level - 1;
   }
 
-  // Get XP required for next level
-  Future<int> getXPForNextLevel() async {
+  // Calculate depth zone from cumulative RP
+  int _calculateDepthZone(int cumulativeRP) {
+    // Depth zones based on cumulative RP thresholds
+    if (cumulativeRP >= 501) return 3; // Abyssal Zone
+    if (cumulativeRP >= 201) return 2; // Deep Ocean
+    if (cumulativeRP >= 51) return 1;  // Coral Garden
+    return 0; // Shallow Waters
+  }
+
+  // Get RP required for next level
+  Future<int> getRPForNextLevel() async {
     final state = await getGamificationState();
     final currentLevel = state['current_level'] as int;
-    return (currentLevel + 1) * 100;
+    return (currentLevel + 1) * 50;
   }
 
   // Update streak
@@ -253,7 +271,7 @@ class GamificationRepository {
   // Unlock achievement
   Future<void> unlockAchievementWithDetails(
     String achievementId, {
-    int? xpReward,
+    int? rpReward,
   }) async {
     final db = await _persistence.database;
     
@@ -263,7 +281,7 @@ class GamificationRepository {
         'unlocked': 1,
         'unlocked_date': DateTime.now().millisecondsSinceEpoch,
         'progress': 1.0,
-        if (xpReward != null) 'xp_reward': xpReward,
+        if (rpReward != null) 'rp_reward': rpReward,
       },
       where: 'id = ?',
       whereArgs: [achievementId],
@@ -272,9 +290,9 @@ class GamificationRepository {
     // Also add to gamification state
     await unlockAchievement(achievementId);
     
-    // Add XP if provided
-    if (xpReward != null) {
-      await addXP(xpReward);
+    // Add RP if provided
+    if (rpReward != null) {
+      await addRP(rpReward);
     }
   }
 
@@ -382,7 +400,9 @@ class GamificationRepository {
     // Insert default state
     await db.insert('gamification_state', {
       'id': 1,
-      'total_xp': 0,
+      'total_rp': 0,
+      'cumulative_rp': 0,
+      'current_depth_zone': 0,
       'current_level': 1,
       'current_streak': 0,
       'longest_streak': 0,

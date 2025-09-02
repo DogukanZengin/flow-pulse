@@ -25,8 +25,8 @@ class CareerRepository {
     // Return default career state
     return {
       'id': 1,
-      'career_xp': 0,
-      'career_level': 1,
+      'career_rp': 0,
+      'current_career_rp': 0,
       'career_title': 'Marine Biology Intern',
       'specialization': null,
       'total_discoveries': 0,
@@ -50,69 +50,47 @@ class CareerRepository {
     );
   }
 
-  // Add career XP
-  Future<void> addCareerXP(int xpToAdd) async {
+  // Add career RP
+  Future<void> addCareerRP(int rpToAdd) async {
     final state = await getCareerState();
-    final currentXP = state['career_xp'] as int;
-    final newXP = currentXP + xpToAdd;
+    final currentRP = state['career_rp'] as int;
+    final currentCareerRP = state['current_career_rp'] as int;
+    final newRP = currentRP + rpToAdd;
+    final newCareerRP = currentCareerRP + rpToAdd;
     
-    // Calculate new level
-    final newLevel = _calculateCareerLevel(newXP);
+    // Update title based on RP thresholds
+    final newTitle = _getCareerTitleFromRP(newCareerRP);
     
-    // Update title based on level
-    final newTitle = _getCareerTitle(newLevel);
-    
-    state['career_xp'] = newXP;
-    state['career_level'] = newLevel;
+    state['career_rp'] = newRP;
+    state['current_career_rp'] = newCareerRP;
     state['career_title'] = newTitle;
     
     await saveCareerState(state);
   }
 
-  // Calculate career level from XP
-  int _calculateCareerLevel(int totalXP) {
-    // Exponential progression for career levels
-    int level = 1;
-    int xpRequired = 0;
-    
-    while (level <= 100) {
-      xpRequired = _getXPRequiredForLevel(level + 1);
-      if (totalXP < xpRequired) break;
-      level++;
-    }
-    
-    return level;
-  }
-
-  // Get XP required for a specific level
-  int _getXPRequiredForLevel(int level) {
-    if (level <= 1) return 0;
-    // Exponential growth formula
-    return (100 * (level - 1) * 1.15).round() + _getXPRequiredForLevel(level - 1);
-  }
-
-  // Get career title based on level
-  String _getCareerTitle(int level) {
-    if (level >= 100) return 'Master Marine Biologist';
-    if (level >= 95) return 'Ocean Pioneer';
-    if (level >= 90) return 'Marine Biology Legend';
-    if (level >= 85) return 'World-Renowned Expert';
-    if (level >= 80) return 'Research Institute Director';
-    if (level >= 75) return 'Department Head';
-    if (level >= 70) return 'Marine Biology Professor';
-    if (level >= 65) return 'Research Director';
-    if (level >= 60) return 'Distinguished Researcher';
-    if (level >= 55) return 'Marine Biology Expert';
-    if (level >= 50) return 'Principal Investigator';
-    if (level >= 45) return 'Senior Research Scientist';
-    if (level >= 40) return 'Research Scientist';
-    if (level >= 35) return 'Senior Marine Biologist';
-    if (level >= 30) return 'Marine Biologist';
-    if (level >= 25) return 'Field Researcher';
-    if (level >= 20) return 'Research Associate';
-    if (level >= 15) return 'Marine Biology Student';
-    if (level >= 10) return 'Research Assistant';
-    if (level >= 5) return 'Junior Research Assistant';
+  // Get career title based on RP thresholds
+  String _getCareerTitleFromRP(int cumulativeRP) {
+    // RP-based career titles as defined in implementation plan
+    if (cumulativeRP >= 10500) return 'Master Marine Biologist';
+    if (cumulativeRP >= 9500) return 'Ocean Pioneer';
+    if (cumulativeRP >= 8550) return 'Marine Biology Legend';
+    if (cumulativeRP >= 7650) return 'World-Renowned Expert';
+    if (cumulativeRP >= 6800) return 'Research Institute Director';
+    if (cumulativeRP >= 6000) return 'Department Head';
+    if (cumulativeRP >= 5250) return 'Marine Biology Professor';
+    if (cumulativeRP >= 4550) return 'Research Director';
+    if (cumulativeRP >= 3900) return 'Distinguished Researcher';
+    if (cumulativeRP >= 3300) return 'Marine Biology Expert';
+    if (cumulativeRP >= 2750) return 'Principal Investigator';
+    if (cumulativeRP >= 2250) return 'Senior Research Scientist';
+    if (cumulativeRP >= 1800) return 'Research Scientist';
+    if (cumulativeRP >= 1400) return 'Senior Marine Biologist';
+    if (cumulativeRP >= 1050) return 'Marine Biologist';
+    if (cumulativeRP >= 750) return 'Field Researcher';
+    if (cumulativeRP >= 500) return 'Research Associate';
+    if (cumulativeRP >= 300) return 'Marine Biology Student';
+    if (cumulativeRP >= 150) return 'Research Assistant';
+    if (cumulativeRP >= 50) return 'Junior Research Assistant';
     return 'Marine Biology Intern';
   }
 
@@ -230,7 +208,7 @@ class CareerRepository {
   }
 
   // Achieve milestone
-  Future<void> achieveMilestone(String milestoneId, {int? xpReward}) async {
+  Future<void> achieveMilestone(String milestoneId, {int? rpReward}) async {
     final db = await _persistence.database;
     
     await db.update(
@@ -243,9 +221,9 @@ class CareerRepository {
       whereArgs: [milestoneId],
     );
     
-    // Add XP if provided
-    if (xpReward != null) {
-      await addCareerXP(xpReward);
+    // Add RP if provided
+    if (rpReward != null) {
+      await addCareerRP(rpReward);
     }
   }
 
@@ -321,7 +299,7 @@ class CareerRepository {
   Future<void> _tryAchieveMilestone(
     String milestoneId,
     List<String> achievedList,
-    int xpReward,
+    int rpReward,
   ) async {
     final db = await _persistence.database;
     
@@ -335,7 +313,7 @@ class CareerRepository {
     
     if (existing.isEmpty) {
       // Not yet achieved, achieve it now
-      await achieveMilestone(milestoneId, xpReward: xpReward);
+      await achieveMilestone(milestoneId, rpReward: rpReward);
       achievedList.add(milestoneId);
     }
   }
@@ -345,17 +323,16 @@ class CareerRepository {
     final state = await getCareerState();
     final milestones = await getAchievedMilestones();
     
-    // Calculate progress to next level
-    final currentXP = state['career_xp'] as int;
-    final currentLevel = state['career_level'] as int;
-    final xpForCurrentLevel = _getXPRequiredForLevel(currentLevel);
-    final xpForNextLevel = _getXPRequiredForLevel(currentLevel + 1);
-    final xpProgress = currentXP - xpForCurrentLevel;
-    final xpNeeded = xpForNextLevel - xpForCurrentLevel;
+    // Get career progression based on RP
+    final currentRP = state['career_rp'] as int;
+    final currentCareerRP = state['current_career_rp'] as int;
+    final nextRPMilestone = _getNextRPMilestone(currentCareerRP);
+    final rpProgress = currentCareerRP;
+    final rpNeeded = nextRPMilestone > 0 ? nextRPMilestone - currentCareerRP : 0;
     
     return {
-      'careerXP': currentXP,
-      'careerLevel': currentLevel,
+      'careerRP': currentRP,
+      'currentCareerRP': currentCareerRP,
       'careerTitle': state['career_title'],
       'specialization': state['specialization'],
       'totalDiscoveries': state['total_discoveries'],
@@ -363,10 +340,20 @@ class CareerRepository {
       'papersPublished': state['papers_published'],
       'certificationsEarned': (jsonDecode(state['certifications_earned'] ?? '[]') as List).length,
       'milestonesAchieved': milestones.length,
-      'xpProgress': xpProgress,
-      'xpNeeded': xpNeeded,
-      'progressPercentage': xpNeeded > 0 ? (xpProgress / xpNeeded * 100).toStringAsFixed(1) : '0.0',
+      'rpProgress': rpProgress,
+      'rpNeeded': rpNeeded,
+      'nextTitle': nextRPMilestone > 0 ? _getCareerTitleFromRP(nextRPMilestone) : 'Max Level',
+      'progressPercentage': rpNeeded > 0 ? (rpProgress / nextRPMilestone * 100).toStringAsFixed(1) : '100.0',
     };
+  }
+  
+  // Get next RP milestone for career progression
+  int _getNextRPMilestone(int currentRP) {
+    final milestones = [50, 150, 300, 500, 750, 1050, 1400, 1800, 2250, 2750, 3300, 3900, 4550, 5250, 6000, 6800, 7650, 8550, 9500, 10500];
+    for (final milestone in milestones) {
+      if (currentRP < milestone) return milestone;
+    }
+    return 0; // Max level reached
   }
 
   // Reset career progress
@@ -388,8 +375,8 @@ class CareerRepository {
     // Insert default career state
     await db.insert('marine_career', {
       'id': 1,
-      'career_xp': 0,
-      'career_level': 1,
+      'career_rp': 0,
+      'current_career_rp': 0,
       'career_title': 'Marine Biology Intern',
       'total_discoveries': 0,
       'research_points': 0,
