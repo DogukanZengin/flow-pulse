@@ -196,15 +196,15 @@ class ResearchPoints {
     }
     
     final messages = <String>[];
-    messages.add('Earned ${totalRP} RP total');
+    messages.add('Earned $totalRP RP total');
     
     if (bonusRP > 0) {
       final bonusParts = <String>[];
-      if (qualityBonus > 0) bonusParts.add('${qualityBonus} quality');
-      if (breakAdherenceBonus > 0) bonusParts.add('${breakAdherenceBonus} breaks');
-      if (streakBonus > 0) bonusParts.add('${streakBonus} streak');
+      if (qualityBonus > 0) bonusParts.add('$qualityBonus quality');
+      if (breakAdherenceBonus > 0) bonusParts.add('$breakAdherenceBonus breaks');
+      if (streakBonus > 0) bonusParts.add('$streakBonus streak');
       
-      messages.add('(${baseRP} base + ${bonusRP} bonus: ${bonusParts.join(', ')})');
+      messages.add('($baseRP} base + $bonusRP bonus: ${bonusParts.join(', ')})');
     }
     
     if (isMaximumEfficiency) {
@@ -280,7 +280,7 @@ class ResearchPoints {
 
   @override
   String toString() {
-    return 'ResearchPoints(total: ${totalRP}, base: ${baseRP}, bonus: ${bonusRP}, quality: ${sessionQuality.displayName})';
+    return 'ResearchPoints(total: $totalRP, base: $baseRP, bonus: $bonusRP, quality: ${sessionQuality.displayName})';
   }
 
   @override
@@ -330,13 +330,13 @@ class RPBreakdown {
   /// Get formatted breakdown for display
   String get formattedBreakdown {
     final parts = <String>[];
-    parts.add('Base RP: ${baseRP}');
+    parts.add('Base RP: $baseRP');
     
-    if (qualityBonus > 0) parts.add('Quality Bonus: +${qualityBonus}');
-    if (breakAdherenceBonus > 0) parts.add('Break Bonus: +${breakAdherenceBonus}');
-    if (streakBonus > 0) parts.add('Streak Bonus: +${streakBonus}');
+    if (qualityBonus > 0) parts.add('Quality Bonus: +$qualityBonus');
+    if (breakAdherenceBonus > 0) parts.add('Break Bonus: +$breakAdherenceBonus');
+    if (streakBonus > 0) parts.add('Streak Bonus: +$streakBonus');
     
-    parts.add('Total: ${totalRP} RP');
+    parts.add('Total: $totalRP RP');
     parts.add('Efficiency: ${efficiencyPercentage.toStringAsFixed(1)}%');
     
     return parts.join('\n');

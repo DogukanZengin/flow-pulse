@@ -413,9 +413,9 @@ class _ResearchExpeditionSummaryControllerState
       );
     }
     
-    // Add school of fish for data collection if significant XP (reduced threshold)
-    if (_currentPhase!.name == 'Data Collection' && 
-        _expeditionResult.dataPointsCollected > 150 &&
+    // Add school of fish for data collection if significant RP (reduced threshold)
+    if (_currentPhase!.name == 'Data Collection' &&
+        _expeditionResult.dataPointsCollected > 15 &&  // Adjusted for RP scale (was 150 XP)
         shouldRenderExpensiveEffects) {
       effects.add(
         Positioned.fill(
@@ -551,11 +551,13 @@ class _ResearchExpeditionSummaryControllerState
     }).toList();
     
     return ExpeditionResult(
-      dataPointsCollected: reward.xpGained,
+      dataPointsCollected: reward.rpGained,  // Changed from xpGained to rpGained
       researchNarrative: researchNarrative,
       depthDescription: depthDescription,
       careerProgression: careerProgression,
-      xpGained: reward.xpGained,
+      rpGained: reward.rpGained,  // Already correct
+      baseRP: reward.baseRP,
+      bonusRP: reward.breakAdherenceBonus + reward.streakBonusRP + reward.qualityBonus,
       leveledUp: reward.leveledUp,
       oldLevel: reward.oldLevel,
       newLevel: reward.newLevel,
@@ -563,7 +565,7 @@ class _ResearchExpeditionSummaryControllerState
       oldCareerTitle: reward.oldCareerTitle,
       newCareerTitle: reward.newCareerTitle,
       careerTitleChanged: reward.careerTitleChanged,
-      careerAdvancementNarrative: reward.careerTitleChanged 
+      careerAdvancementNarrative: reward.careerTitleChanged
           ? _generateCareerAdvancementNarrative(reward)
           : null,
       unlockedThemes: reward.unlockedThemes,
@@ -580,10 +582,11 @@ class _ResearchExpeditionSummaryControllerState
       isStudySession: reward.isStudySession,
       researchEfficiency: reward.researchEfficiency,
       qualityAssessment: SessionQualityAssessment.fromEfficiency(reward.researchEfficiency),
-      streakBonusXP: reward.streakBonusXP,
-      streakMultiplier: reward.streakMultiplier,
-      depthBonusXP: reward.depthBonusXP,
-      completionBonusXP: reward.completionBonusXP,
+      streakBonusRP: reward.streakBonusRP,  // Changed from streakBonusXP
+      breakAdherenceBonus: reward.breakAdherenceBonus,  // New field
+      qualityBonus: reward.qualityBonus,  // New field
+      cumulativeRP: reward.cumulativeRP,  // New field
+      currentDepthZone: reward.currentDepthZone,  // New field
       streakBonusNarrative: _generateStreakBonusNarrative(reward),
       nextEquipmentHint: reward.nextEquipmentHint,
       nextAchievementHint: reward.nextAchievementHint,
@@ -598,8 +601,8 @@ class _ResearchExpeditionSummaryControllerState
   String _generateResearchNarrative(GamificationReward reward) {
     final depth = reward.sessionDepthReached;
     final duration = reward.sessionDurationMinutes;
-    final dataPoints = reward.xpGained;
-    final streakBonus = reward.streakBonusXP;
+    final dataPoints = reward.rpGained;  // Changed from xpGained to rpGained
+    final streakBonus = reward.streakBonusRP;  // Changed from streakBonusXP to streakBonusRP
     
     String baseNarrative;
     String conservationImpact;
@@ -734,7 +737,7 @@ class _ResearchExpeditionSummaryControllerState
   }
 
   String _generateStreakBonusNarrative(GamificationReward reward) {
-    return '🔬 Consistent Research Methodology Bonus: +${reward.streakBonusXP} validated observations from ${reward.currentStreak} days of continuous research.';
+    return '🔬 Consistent Research Methodology Bonus: +${reward.streakBonusRP} validated observations from ${reward.currentStreak} days of continuous research.';
   }
 
   String _generateDiscoveryStory(dynamic creature) {
@@ -799,11 +802,11 @@ class _ResearchExpeditionSummaryControllerState
   CelebrationIntensity _calculateCelebrationIntensity(GamificationReward reward) {
     double intensityScore = 0.0;
     
-    // Base intensity from XP gained (normalized to session duration)
-    final xpPerMinute = reward.sessionDurationMinutes > 0 
-        ? reward.xpGained / reward.sessionDurationMinutes 
-        : reward.xpGained;
-    intensityScore += (xpPerMinute / 50.0).clamp(0.0, 0.3); // Up to 30% from XP
+    // Base intensity from RP gained (normalized to session duration)
+    final rpPerMinute = reward.sessionDurationMinutes > 0
+        ? reward.rpGained / reward.sessionDurationMinutes
+        : reward.rpGained;
+    intensityScore += (rpPerMinute / 50.0).clamp(0.0, 0.3); // Up to 30% from RP
     
     // Level up bonus (major achievement)
     if (reward.leveledUp) {

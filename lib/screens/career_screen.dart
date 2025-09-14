@@ -49,7 +49,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
       
       // Get gamification data
       final currentLevel = GamificationService.instance.currentLevel;
-      final totalXP = GamificationService.instance.totalXP;
+      final totalXP = GamificationService.instance.todayRP;
       final currentStreak = GamificationService.instance.currentStreak;
       final totalSessions = GamificationService.instance.totalSessions;
       
@@ -75,7 +75,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
       
       // Safety check: unlock any equipment that should be unlocked at current level
       try {
-        final unlockedEquipment = await PersistenceService.instance.equipment.checkAndUnlockEquipmentByLevel(currentLevel);
+        final unlockedEquipment = await PersistenceService.instance.equipment.checkAndUnlockEquipmentByRP(currentLevel);
         if (unlockedEquipment.isNotEmpty) {
           debugPrint('🎒 Career screen: Unlocked ${unlockedEquipment.length} equipment items for level $currentLevel');
         }

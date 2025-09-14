@@ -14,8 +14,6 @@ class ResearchVesselDeckWidget extends StatefulWidget {
   static const Color _cyan200 = Color(0xFF80DEEA); // Cyan 200
   static const Color _cyan300 = Color(0xFF4DD0E1); // Cyan 300
   static const Color _cyan400 = Color(0xFF26C6DA); // Cyan 400
-  static const Color _softOrange = Color(0xFFFFB74D); // Soft orange for pause
-  static const Color _softGreen = Color(0xFF81C784); // Soft green for play
   
   // Enhanced ocean-themed button colors
   static const Color _warmTurquoise = Color(0xFF4ECDC4); // Start break button
@@ -986,7 +984,7 @@ class _AnimatedOceanButtonState extends State<_AnimatedOceanButton>
 
         return Transform.scale(
           scale: combinedScale,
-          child: Container(
+          child: SizedBox(
             height: widget.height,
             width: widget.width,
             child: Material(

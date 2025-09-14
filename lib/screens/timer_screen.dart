@@ -240,10 +240,6 @@ class TimerScreenState extends State<TimerScreen>
     );
   }
   
-  void _onBreakActivityComplete(String activityType) async {
-    _oceanSystemController.addCompletedBreakActivity(activityType);
-  }
-  
   // Session switching methods
   void _switchToWorkSession() {
     _timerController.switchToWorkSession();

@@ -310,26 +310,82 @@ Future<void> _createIndexes(Database db) async {
 - Streak system doesn't double-award on same day
 - All XP references replaced with RP throughout the system
 
-### Task 1.3: Implement Cumulative Depth Progression
+### Task 1.3: Implement Accelerated Depth Traversal System
 **Priority**: High | **Complexity**: Medium | **Dependencies**: Task 1.2
 
 ```dart
 // Files to modify:
-- lib/services/ocean_biome_service.dart (create if needed)
+- lib/services/ocean_biome_service.dart (create new)
 - lib/constants/depth_constants.dart
+- lib/services/depth_traversal_service.dart (create new)
 ```
 
+**Core Concept**: Experience (RP) affects descent speed, not starting position
+- All dives start at surface (natural diving physics)
+- Higher RP = faster descent through water layers
+- Pass through all biomes during descent (discovery opportunities at all depths)
+
 **Requirements**:
-- Replace session-based depth with cumulative RP depth
-- Depth zones: Shallow (0-50 RP), Coral (51-200 RP), Deep (201-500 RP), Abyssal (501+ RP)
-- Maintain backward compatibility with existing depth visualization
-- Add progress indicators for next depth unlock
+
+1. **Descent Rate Multipliers Based on RP**:
+```dart
+// Base descent rate: 2m per minute
+// Multipliers based on cumulative RP:
+0-50 RP (Beginner): 1.0x speed = 2m/min
+51-200 RP (Experienced): 2.0x speed = 4m/min
+201-500 RP (Expert): 3.0x speed = 6m/min
+501+ RP (Master): 4.0x speed = 8m/min
+```
+
+2. **Depth Calculation Logic**:
+```dart
+class DepthTraversalService {
+  double calculateCurrentDepth(Duration sessionTime, int cumulativeRP) {
+    final minutes = sessionTime.inMinutes;
+    final multiplier = getDescentMultiplier(cumulativeRP);
+    final baseRate = 2.0; // meters per minute
+
+    return minutes * baseRate * multiplier;
+  }
+
+  double getDescentMultiplier(int cumulativeRP) {
+    if (cumulativeRP >= 501) return 4.0;  // Master
+    if (cumulativeRP >= 201) return 3.0;  // Expert
+    if (cumulativeRP >= 51) return 2.0;   // Experienced
+    return 1.0;  // Beginner
+  }
+}
+```
+
+3. **Biome Traversal Tracking**:
+```dart
+// Track which biomes diver passes through during descent
+// Each biome has depth ranges:
+0-20m: Shallow Waters
+20-50m: Coral Garden
+50-100m: Deep Ocean
+100m+: Abyssal Zone
+
+// Discovery eligibility based on time spent in each zone
+// Faster divers can still discover species from shallower zones
+```
+
+**Example Session Depths**:
+
+| Experience Level | 10-min | 25-min | 45-min |
+|-----------------|--------|---------|---------|
+| Beginner (0 RP) | 20m (Shallow) | 50m (Coral edge) | 90m (Deep) |
+| Experienced (100 RP) | 40m (Coral) | 100m (Abyssal edge) | 180m (Deep Abyssal) |
+| Expert (300 RP) | 60m (Deep) | 150m (Abyssal) | 270m (Abyssal) |
+| Master (500+ RP) | 80m (Deep) | 200m (Abyssal) | 360m (Abyssal) |
 
 **Acceptance Criteria**:
-- Multiple short sessions can unlock same depth as one long session
-- Current depth persists between sessions
-- Visual depth progression shows cumulative progress
-- Biome unlocks trigger appropriate celebrations
+- All sessions start at surface (0m) regardless of RP
+- Descent speed increases with cumulative RP (not starting depth)
+- Species discovery possible at all depths passed during descent
+- Short sessions by experienced divers can reach meaningful depths
+- Visual depth animation reflects accelerated descent for experienced divers
+- Depth indicators show both current depth and traversal speed
 
 ---
 
@@ -648,32 +704,65 @@ static const Map<int, int> levelToRPConversion = {
 
 ## Phase 5: Visual System Updates
 
-### Task 5.1: Depth Visualization Redesign (Option 4: Dual Visualization)
-**Priority**: High | **Complexity**: High | **Dependencies**: Phase 1 Complete
+### Task 5.1: Depth Visualization with Accelerated Traversal
+**Priority**: High | **Complexity**: High | **Dependencies**: Phase 2 Task 1.3 Complete
 
 ```dart
 // Files to modify:
 - lib/widgets/full_screen_ocean_widget.dart
 - lib/widgets/dive_computer_widget.dart
 - lib/animations/depth_transition_animation.dart
+- lib/widgets/depth_speed_indicator.dart (create new)
 ```
 
 **Requirements**:
-- Session depth animation: Still based on session duration for immersion
-- Career depth background: Based on cumulative RP for progression
-- Dual visualization system showing both temporary and permanent depth
-- Smooth transitions between session and career environments
+- Session depth animation: Based on accelerated traversal system
+- Visual speed indicators: Show descent multiplier (1x, 2x, 3x, 4x)
+- Biome transitions: Smooth visual transitions as diver descends through zones
+- Depth meter: Real-time depth display with current biome indicator
 
 **Implementation Strategy**:
-- During session: Diver animates to depth based on session duration
-- Session background: Permanent biome based on total RP
-- Post-session: Career depth displayed in journal/progress screens
+
+1. **Visual Descent Mechanics**:
+```dart
+// Animate diver descent based on RP multiplier
+// Beginner: Slow, steady descent animation
+// Expert: Noticeably faster descent through water layers
+// Master: Rapid descent with motion blur effects
+
+class DepthAnimationController {
+  void animateDescent(int cumulativeRP, Duration elapsed) {
+    final multiplier = getDescentMultiplier(cumulativeRP);
+    final targetDepth = calculateDepth(elapsed, multiplier);
+
+    // Faster animation speed for higher multipliers
+    animateToDepth(targetDepth, speed: multiplier);
+  }
+}
+```
+
+2. **Biome Transition Effects**:
+```dart
+// Visual cues as diver passes through biomes
+0-20m: Bright, sunlit waters →
+20-50m: Colorful coral transition →
+50-100m: Darkening blue gradient →
+100m+: Deep abyss with bioluminescence
+```
+
+3. **UI Elements**:
+- **Dive Computer**: Shows current depth, descent rate, biome
+- **Speed Indicator**: "Descent Rate: 2x" with visual speedometer
+- **Biome Progress Bar**: Shows proximity to next biome
+- **Discovery Indicator**: Flash when passing through discovery zones
 
 **Acceptance Criteria**:
-- Session immersion maintained with duration-based diving
-- Career progression visible through permanent biome changes
-- No conflicting depth signals confusing users
-- Visual system supports both short and long session users
+- Natural diving progression from surface to depth
+- Visual feedback clearly shows faster descent for experienced divers
+- Smooth biome transitions during descent
+- No confusion about why experienced divers descend faster
+- Discovery opportunities visible at all depths during descent
+- Speed indicator helps users understand their progression advantage
 
 ### Task 5.2: Progress Indicators and Celebrations
 **Priority**: Medium | **Complexity**: Medium | **Dependencies**: Task 5.1
@@ -806,13 +895,14 @@ CREATE TABLE IF NOT EXISTS mission_progress(
 ## Phase 8: Duration-Based Logic Replacement
 
 ### Task 8.1: Audit and Replace Duration-Based Depth Calculations
-**Priority**: High | **Complexity**: High | **Dependencies**: Phase 1 Complete
+**Priority**: High | **Complexity**: High | **Dependencies**: Phase 2 Task 1.3 Complete
 
 **Files to audit and modify:**
 ```dart
 // Core depth calculation services
 - lib/services/creature_service.dart
-- lib/services/ocean_biome_service.dart (if exists)
+- lib/services/ocean_biome_service.dart (create new)
+- lib/services/depth_traversal_service.dart (create new)
 - lib/widgets/dive_computer_widget.dart
 - lib/widgets/full_screen_ocean_widget.dart
 - lib/services/gamification_service.dart
@@ -822,45 +912,74 @@ CREATE TABLE IF NOT EXISTS mission_progress(
 
 1. **Session-to-Depth Mapping** (from ACTIVITY_LOG.md):
 ```dart
-// OLD: Duration-based depth
+// OLD: Duration-based static depth
 15-20min sessions → 5-10m (Shallow Water Research)
 25-30min sessions → 10-20m (Mid-Water Expedition)
-45-60min sessions → 20-40m (Deep Sea Research)  
+45-60min sessions → 20-40m (Deep Sea Research)
 90min+ sessions → 40m+ (Abyssal Expedition)
 
-// NEW: RP-based cumulative depth
-0-50 RP → Shallow Waters (unlocked)
-51-200 RP → Coral Garden (unlocked)
-201-500 RP → Deep Ocean (unlocked)
-501+ RP → Abyssal Zone (unlocked)
+// NEW: Accelerated traversal system
+// All sessions start at 0m, descent speed based on RP
+class DepthTraversalService {
+  double getCurrentDepth(Duration sessionTime, int cumulativeRP) {
+    final multiplier = getDescentMultiplier(cumulativeRP);
+    return sessionTime.inMinutes * 2.0 * multiplier; // 2m/min base rate
+  }
+
+  List<Biome> getTraversedBiomes(Duration sessionTime, int cumulativeRP) {
+    final currentDepth = getCurrentDepth(sessionTime, cumulativeRP);
+    // Return all biomes from 0m to currentDepth
+  }
+}
 ```
 
 2. **Creature Discovery Rates** (biome-specific):
 ```dart
-// OLD: Session duration determines discovery biome
+// OLD: Session duration determines single discovery biome
 if (sessionMinutes >= 90) { abyssalCreatures() }
 else if (sessionMinutes >= 45) { deepSeaCreatures() }
 else if (sessionMinutes >= 25) { coralGardenCreatures() }
 else { shallowWaterCreatures() }
 
-// NEW: Cumulative RP determines available biomes
-if (cumulativeRP >= 501) { abyssalCreatures() }
-else if (cumulativeRP >= 201) { deepSeaCreatures() }
-else if (cumulativeRP >= 51) { coralGardenCreatures() }
-else { shallowWaterCreatures() }
+// NEW: Discovery from all traversed biomes
+final traversedBiomes = getTraversedBiomes(sessionTime, cumulativeRP);
+final discoveryPool = [];
+
+for (final biome in traversedBiomes) {
+  final timeInBiome = calculateTimeInBiome(biome, sessionTime, cumulativeRP);
+  if (timeInBiome > minimumDiscoveryTime) {
+    discoveryPool.addAll(biome.creatures);
+  }
+}
+
+// Weight discovery chances by time spent in each biome
+selectDiscoveryFromPool(discoveryPool, weights: timeSpentWeights);
+```
+
+3. **Depth-Based Rewards**:
+```dart
+// OLD: Deeper = better rewards
+if (depth >= 40) { bonusRewards() }
+
+// NEW: RP-based with traversal bonuses
+// Rewards based on deepest biome reached + traversal efficiency
+final deepestBiome = getDeepestBiomeReached(sessionTime, cumulativeRP);
+final traversalEfficiency = calculateTraversalEfficiency(sessionTime, cumulativeRP);
+final rewards = calculateRewards(deepestBiome, traversalEfficiency);
 ```
 
 **Requirements**:
-- Replace all session duration checks with cumulative RP checks
-- Maintain biome progression logic but base it on total RP earned
-- Update depth visualization to reflect permanent vs temporary progression
-- Ensure creature discovery respects new biome unlock system
+- Replace static depth mapping with dynamic traversal calculation
+- Implement biome traversal tracking for discovery eligibility
+- Create weighted discovery system based on time in each biome
+- Ensure all depth calculations use accelerated traversal system
 
 **Acceptance Criteria**:
-- No depth calculations based on individual session duration
-- All biome unlocks tied to cumulative RP milestones
-- Creature discoveries respect RP-based biome progression
-- Visual depth progression shows both session animation and permanent depth
+- All sessions start at 0m and descend based on RP multiplier
+- Creature discovery possible from all traversed biomes
+- No direct duration-to-depth mappings remain
+- Visual depth shows real-time descent based on traversal speed
+- Discovery system weights chances by time spent in each biome
 
 ### Task 8.2: Replace Achievement Duration Requirements
 **Priority**: Medium | **Complexity**: Medium | **Dependencies**: Task 8.1
@@ -1257,15 +1376,72 @@ final biome = getUnlockedBiome(user.cumulativeRP);
 - ✅ All constants centralized and well-documented
 - ✅ Comprehensive validation and error handling
 
-### 🔄 NEXT TASK: Phase 2, Task 1.2 - Replace XP System with RP in GamificationService
-**Priority**: High | **Complexity**: Medium | **Dependencies**: Phase 2 Task 1.1 Complete ✅
-
-**Files to modify:**
+### ✅ COMPLETED: Phase 2, Task 1.2 - Replace XP System with RP in GamificationService
+**Date Completed**: 2025-09-03
+**Files Modified**: 
 - `lib/services/gamification_service.dart`
-- `lib/models/gamification_reward.dart`
+- `lib/services/marine_biology_career_service.dart`
 
-**Requirements:**
-- Replace XP calculations with RP-based progression
-- Integrate break adherence detection
-- Add streak bonus calculation  
-- Update reward calculation to show RP breakdown instead of XP
+**Summary**: Successfully replaced XP system with RP-based progression in GamificationService:
+
+**GamificationService Updates:**
+- ✅ Replaced all XP variables with RP equivalents (`_totalRP`, `_cumulativeRP`)
+- ✅ Added depth zone tracking based on cumulative RP
+- ✅ Implemented break adherence detection algorithm (15% break ratio, 30s minimum)
+- ✅ Integrated ResearchPoints model for accurate RP calculations
+- ✅ Added daily RP tracking with streak bonus limits
+- ✅ Updated career progression to use cumulative RP instead of levels
+- ✅ Modified equipment unlock system to use RP thresholds
+- ✅ Implemented proper streak calculation with daily bonus prevention
+
+**GamificationReward Updates:**
+- ✅ Replaced XP fields with RP fields (`rpGained`, `baseRP`, `streakBonusRP`)
+- ✅ Added break adherence bonus tracking
+- ✅ Added quality bonus tracking
+- ✅ Added depth zone progression fields
+- ✅ Added cumulative RP tracking
+- ✅ Maintained backward compatibility with legacy XP fields
+
+**MarineBiologyCareerService Updates:**
+- ✅ Added `getCareerTitleFromRP()` method with all 20 career titles
+- ✅ RP thresholds match ResearchPointsConstants (50 RP → 10,500 RP)
+
+**Acceptance Criteria Met:**
+- ✅ Session completion awards appropriate RP based on duration
+- ✅ Break adherence properly detected and rewarded
+- ✅ Streak system doesn't double-award on same day
+- ✅ All XP references replaced with RP throughout the system
+- ✅ RP breakdown clearly shown in reward calculation
+
+### 🔄 NEXT TASK: Phase 2, Task 1.3 - Implement Accelerated Depth Traversal System
+**Priority**: High | **Complexity**: Medium | **Dependencies**: Task 1.2 Complete ✅
+
+**Files to create/modify:**
+- `lib/services/ocean_biome_service.dart` (create new)
+- `lib/services/depth_traversal_service.dart` (create new)
+- `lib/constants/depth_constants.dart` (update with traversal rates)
+
+**Key Implementation Points:**
+- All dives start at surface (0m) - natural diving physics
+- RP determines descent speed multiplier (1x to 4x)
+- Biome discovery available at all depths passed during descent
+- Visual feedback shows accelerated descent for experienced divers
+
+**Example Implementation:**
+```dart
+// depth_traversal_service.dart
+class DepthTraversalService {
+  static const double BASE_DESCENT_RATE = 2.0; // meters per minute
+
+  double getDescentMultiplier(int cumulativeRP) {
+    if (cumulativeRP >= 501) return 4.0;  // Master: 8m/min
+    if (cumulativeRP >= 201) return 3.0;  // Expert: 6m/min
+    if (cumulativeRP >= 51) return 2.0;   // Experienced: 4m/min
+    return 1.0;  // Beginner: 2m/min
+  }
+
+  double calculateCurrentDepth(Duration sessionTime, int cumulativeRP) {
+    return sessionTime.inMinutes * BASE_DESCENT_RATE * getDescentMultiplier(cumulativeRP);
+  }
+}
+```

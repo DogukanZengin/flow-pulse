@@ -61,6 +61,32 @@ class MarineBiologyCareerService {
     return careerTitles[titleLevel] ?? 'Marine Biology Intern';
   }
 
+  /// Get career title based on cumulative RP (new RP system)
+  static String getCareerTitleFromRP(int cumulativeRP) {
+    // RP-based career titles matching ResearchPointsConstants
+    if (cumulativeRP >= 10500) return 'Master Marine Biologist';
+    if (cumulativeRP >= 9500) return 'Ocean Pioneer';
+    if (cumulativeRP >= 8550) return 'Marine Biology Legend';
+    if (cumulativeRP >= 7650) return 'World-Renowned Expert';
+    if (cumulativeRP >= 6800) return 'Research Institute Director';
+    if (cumulativeRP >= 6000) return 'Department Head';
+    if (cumulativeRP >= 5250) return 'Marine Biology Professor';
+    if (cumulativeRP >= 4550) return 'Research Director';
+    if (cumulativeRP >= 3900) return 'Distinguished Researcher';
+    if (cumulativeRP >= 3300) return 'Marine Biology Expert';
+    if (cumulativeRP >= 2750) return 'Principal Investigator';
+    if (cumulativeRP >= 2250) return 'Senior Research Scientist';
+    if (cumulativeRP >= 1800) return 'Research Scientist';
+    if (cumulativeRP >= 1400) return 'Senior Marine Biologist';
+    if (cumulativeRP >= 1050) return 'Marine Biologist';
+    if (cumulativeRP >= 750) return 'Field Researcher';
+    if (cumulativeRP >= 500) return 'Research Associate';
+    if (cumulativeRP >= 300) return 'Marine Biology Student';
+    if (cumulativeRP >= 150) return 'Research Assistant';
+    if (cumulativeRP >= 50) return 'Junior Research Assistant';
+    return 'Marine Biology Intern';
+  }
+
   /// Calculate XP bonus based on discovery circumstances
   static int calculateDiscoveryXP(Creature creature, {
     required double sessionDepth,

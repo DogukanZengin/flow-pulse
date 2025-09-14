@@ -10,8 +10,10 @@ class ExpeditionResult {
   final String depthDescription;
   final MarineBiologyCareerLevel careerProgression;
   
-  // Original reward data (maintaining compatibility)
-  final int xpGained;
+  // Core reward data (RP-based system)
+  final int rpGained;  // Total RP gained this session
+  final int baseRP;     // Base RP from session duration
+  final int bonusRP;    // Total bonus RP (break + streak + quality)
   final bool leveledUp;
   final int oldLevel;
   final int newLevel;
@@ -46,10 +48,11 @@ class ExpeditionResult {
   final SessionQualityAssessment qualityAssessment;
   
   // Streak and bonus information
-  final int streakBonusXP;
-  final double streakMultiplier;
-  final int depthBonusXP;
-  final int completionBonusXP;
+  final int streakBonusRP;  // Bonus RP from streak
+  final int breakAdherenceBonus;  // Bonus RP from break adherence
+  final int qualityBonus;  // Bonus RP from session quality
+  final int cumulativeRP;  // Total RP accumulated all-time
+  final String currentDepthZone;  // Current depth zone from RP
   final String streakBonusNarrative;
   
   // Progress hints
@@ -67,7 +70,9 @@ class ExpeditionResult {
     required this.researchNarrative,
     required this.depthDescription,
     required this.careerProgression,
-    required this.xpGained,
+    required this.rpGained,
+    this.baseRP = 0,
+    this.bonusRP = 0,
     required this.leveledUp,
     required this.oldLevel,
     required this.newLevel,
@@ -90,10 +95,11 @@ class ExpeditionResult {
     required this.isStudySession,
     required this.researchEfficiency,
     required this.qualityAssessment,
-    required this.streakBonusXP,
-    required this.streakMultiplier,
-    required this.depthBonusXP,
-    required this.completionBonusXP,
+    required this.streakBonusRP,
+    required this.breakAdherenceBonus,
+    required this.qualityBonus,
+    required this.cumulativeRP,
+    required this.currentDepthZone,
     required this.streakBonusNarrative,
     this.nextEquipmentHint,
     this.nextAchievementHint,
@@ -103,9 +109,9 @@ class ExpeditionResult {
     required this.celebrationEffects,
   });
 
-  /// Calculate total research value
+  /// Calculate total research value (RP-based)
   int get totalResearchValue {
-    int total = xpGained;
+    int total = rpGained;  // Changed from xpGained to rpGained
     if (discoveredCreature != null && discoveredCreature is Creature) {
       total += (discoveredCreature as Creature).pearlValue;
     }
@@ -115,6 +121,16 @@ class ExpeditionResult {
       }
     }
     return total;
+  }
+
+  /// Get RP breakdown as readable string
+  String get rpBreakdown {
+    final parts = <String>[];
+    if (baseRP > 0) parts.add('Base: $baseRP');
+    if (streakBonusRP > 0) parts.add('Streak: +$streakBonusRP');
+    if (breakAdherenceBonus > 0) parts.add('Break: +$breakAdherenceBonus');
+    if (qualityBonus > 0) parts.add('Quality: +$qualityBonus');
+    return parts.isEmpty ? 'No RP earned' : parts.join(', ');
   }
 
   /// Check if this session has significant accomplishments

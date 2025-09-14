@@ -314,6 +314,6 @@ class SessionQualityAssessment {
 
   /// Get a summary of the assessment
   String get summary {
-    return '${quality.displayName} session (${(rpMultiplier * 100).toInt()}% RP, +${totalBonusRP} bonus)';
+    return '${quality.displayName} session (${(rpMultiplier * 100).toInt()}% RP, +$totalBonusRP bonus)';
   }
 }
