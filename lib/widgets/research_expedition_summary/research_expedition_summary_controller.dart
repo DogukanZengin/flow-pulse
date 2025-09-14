@@ -551,11 +551,11 @@ class _ResearchExpeditionSummaryControllerState
     }).toList();
     
     return ExpeditionResult(
-      dataPointsCollected: reward.rpGained,  // Changed from xpGained to rpGained
+      dataPointsCollected: reward.rpGained, 
       researchNarrative: researchNarrative,
       depthDescription: depthDescription,
       careerProgression: careerProgression,
-      rpGained: reward.rpGained,  // Already correct
+      rpGained: reward.rpGained, 
       baseRP: reward.baseRP,
       bonusRP: reward.breakAdherenceBonus + reward.streakBonusRP + reward.qualityBonus,
       leveledUp: reward.leveledUp,
@@ -601,8 +601,8 @@ class _ResearchExpeditionSummaryControllerState
   String _generateResearchNarrative(GamificationReward reward) {
     final depth = reward.sessionDepthReached;
     final duration = reward.sessionDurationMinutes;
-    final dataPoints = reward.rpGained;  // Changed from xpGained to rpGained
-    final streakBonus = reward.streakBonusRP;  // Changed from streakBonusXP to streakBonusRP
+    final dataPoints = reward.rpGained; 
+    final streakBonus = reward.streakBonusRP; 
     
     String baseNarrative;
     String conservationImpact;

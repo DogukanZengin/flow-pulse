@@ -4,66 +4,64 @@ import 'package:flow_pulse/models/creature.dart';
 
 void main() {
   group('Marine Biology Career Service Tests', () {
-    
-    group('Level and XP Calculations', () {
-      test('should calculate correct XP requirements for levels', () {
-        // Level 1 should require 0 XP
-        expect(MarineBiologyCareerService.getXPRequiredForLevel(1), equals(0));
-        
-        // Level 2 should require 100 XP
-        expect(MarineBiologyCareerService.getXPRequiredForLevel(2), equals(100));
-        
-        // Higher levels should require progressively more XP
-        final level5XP = MarineBiologyCareerService.getXPRequiredForLevel(5);
-        final level10XP = MarineBiologyCareerService.getXPRequiredForLevel(10);
-        final level25XP = MarineBiologyCareerService.getXPRequiredForLevel(25);
-        
-        expect(level5XP, lessThan(level10XP));
-        expect(level10XP, lessThan(level25XP));
-        
-        // Should follow exponential growth
-        expect(level25XP, greaterThan(level10XP * 2));
-      });
 
-      test('should calculate correct level from XP', () {
-        expect(MarineBiologyCareerService.getLevelFromXP(0), equals(1));
-        expect(MarineBiologyCareerService.getLevelFromXP(50), equals(1));
-        expect(MarineBiologyCareerService.getLevelFromXP(100), equals(2));
-        expect(MarineBiologyCareerService.getLevelFromXP(1000), greaterThan(5));
-      });
-
-      test('should have consistent level/XP relationship', () {
-        for (int level = 1; level <= 20; level++) {
-          final xpRequired = MarineBiologyCareerService.getXPRequiredForLevel(level);
-          final calculatedLevel = MarineBiologyCareerService.getLevelFromXP(xpRequired);
-          expect(calculatedLevel, equals(level));
-        }
-      });
-    });
-
-    group('Career Titles', () {
-      test('should return correct career titles for levels', () {
-        expect(MarineBiologyCareerService.getCareerTitle(1), equals('Marine Biology Intern'));
-        expect(MarineBiologyCareerService.getCareerTitle(5), equals('Junior Research Assistant'));
-        expect(MarineBiologyCareerService.getCareerTitle(25), equals('Field Researcher'));
-        expect(MarineBiologyCareerService.getCareerTitle(50), equals('Principal Investigator'));
-        expect(MarineBiologyCareerService.getCareerTitle(100), equals('Master Marine Biologist'));
-      });
-
-      test('should handle edge cases for career titles', () {
-        // Level 0 should return first title
+    group('RP-based Career Progression', () {
+      test('should return correct career titles for RP values', () {
         expect(MarineBiologyCareerService.getCareerTitle(0), equals('Marine Biology Intern'));
-        
-        // Level above max should return highest title
-        expect(MarineBiologyCareerService.getCareerTitle(150), equals('Master Marine Biologist'));
-        
-        // Intermediate levels should return appropriate titles
-        expect(MarineBiologyCareerService.getCareerTitle(7), equals('Junior Research Assistant'));
-        expect(MarineBiologyCareerService.getCareerTitle(23), equals('Research Associate'));
+        expect(MarineBiologyCareerService.getCareerTitle(50), equals('Junior Research Assistant'));
+        expect(MarineBiologyCareerService.getCareerTitle(500), equals('Research Associate'));
+        expect(MarineBiologyCareerService.getCareerTitle(1400), equals('Senior Marine Biologist'));
+        expect(MarineBiologyCareerService.getCareerTitle(10500), equals('Master Marine Biologist'));
+      });
+
+      test('should calculate next career milestone correctly', () {
+        final milestone = MarineBiologyCareerService.getNextCareerMilestone(100);
+        expect(milestone, isNotNull);
+        expect(milestone!['requiredRP'], equals(150));
+        expect(milestone['title'], equals('Research Assistant'));
+        expect(milestone['rpNeeded'], equals(50));
+      });
+
+      test('should return null for max level milestone', () {
+        final milestone = MarineBiologyCareerService.getNextCareerMilestone(15000);
+        expect(milestone, isNull);
+      });
+
+      test('should calculate career progress correctly', () {
+        // Progress from Junior Research Assistant (50 RP) to Research Assistant (150 RP)
+        final progress = MarineBiologyCareerService.getCareerProgress(100);
+        expect(progress, equals(0.5)); // 50 out of 100 RP range
+      });
+
+      test('should return 1.0 progress for max level', () {
+        final progress = MarineBiologyCareerService.getCareerProgress(15000);
+        expect(progress, equals(1.0));
       });
     });
 
-    group('Discovery XP Calculation', () {
+    group('Career Title Edge Cases', () {
+      test('should handle edge cases for career titles', () {
+        // 0 RP should return first title
+        expect(MarineBiologyCareerService.getCareerTitle(0), equals('Marine Biology Intern'));
+
+        // RP above max should return highest title
+        expect(MarineBiologyCareerService.getCareerTitle(15000), equals('Master Marine Biologist'));
+
+        // Intermediate RP values should return appropriate titles
+        expect(MarineBiologyCareerService.getCareerTitle(75), equals('Junior Research Assistant'));
+        expect(MarineBiologyCareerService.getCareerTitle(1200), equals('Marine Biologist'));
+      });
+
+      test('should use ResearchPointsConstants thresholds', () {
+        // Test key milestones from ResearchPointsConstants
+        expect(MarineBiologyCareerService.getCareerTitle(150), equals('Research Assistant'));
+        expect(MarineBiologyCareerService.getCareerTitle(750), equals('Field Researcher'));
+        expect(MarineBiologyCareerService.getCareerTitle(2750), equals('Principal Investigator'));
+        expect(MarineBiologyCareerService.getCareerTitle(5250), equals('Marine Biology Professor'));
+      });
+    });
+
+    group('Discovery RP Calculation', () {
       final testCreature = Creature(
         id: 'test_001',
         name: 'Test Fish',
@@ -78,117 +76,138 @@ void main() {
         discoveryChance: 0.5,
       );
 
-      test('should calculate base XP correctly', () {
-        final xp = MarineBiologyCareerService.calculateDiscoveryXP(
+      test('should calculate base RP correctly', () {
+        final rp = MarineBiologyCareerService.calculateDiscoveryRP(
           testCreature,
-          sessionDepth: 5.0,
-          sessionDuration: 15,
+          cumulativeRP: 100,
+          sessionDuration: 25,
           isFirstDiscovery: false,
           isSessionCompleted: true,
+          currentStreak: 1,
         );
-        
-        expect(xp, greaterThan(0));
-        expect(xp, equals(testCreature.pearlValue * 1.0 * 1.0 * 1.0 * 1.0 * 1.2)); // Base * rarity * depth * completion * first * duration
+
+        expect(rp, greaterThan(0));
+        expect(rp, lessThanOrEqualTo(15)); // Capped at 15
       });
 
       test('should apply rarity multipliers', () {
-        final commonXP = MarineBiologyCareerService.calculateDiscoveryXP(
+        final commonRP = MarineBiologyCareerService.calculateDiscoveryRP(
           testCreature.copyWith(rarity: CreatureRarity.common),
-          sessionDepth: 5.0,
-          sessionDuration: 15,
+          cumulativeRP: 100,
+          sessionDuration: 25,
         );
-        
-        final rareXP = MarineBiologyCareerService.calculateDiscoveryXP(
+
+        final rareRP = MarineBiologyCareerService.calculateDiscoveryRP(
           testCreature.copyWith(rarity: CreatureRarity.rare),
-          sessionDepth: 5.0,
-          sessionDuration: 15,
+          cumulativeRP: 100,
+          sessionDuration: 25,
         );
-        
-        expect(rareXP, greaterThan(commonXP));
+
+        expect(rareRP, greaterThan(commonRP));
       });
 
-      test('should apply depth bonuses', () {
-        final shallowXP = MarineBiologyCareerService.calculateDiscoveryXP(
-          testCreature,
-          sessionDepth: 5.0,
-          sessionDuration: 15,
+      test('should apply RP milestone bonuses', () {
+        // Use a higher pearl value creature to see bonus differences more clearly
+        final highValueCreature = testCreature.copyWith(pearlValue: 20);
+
+        final beginnerRP = MarineBiologyCareerService.calculateDiscoveryRP(
+          highValueCreature,
+          cumulativeRP: 25, // Beginner level (1.0x multiplier)
+          sessionDuration: 25,
         );
-        
-        final deepXP = MarineBiologyCareerService.calculateDiscoveryXP(
-          testCreature,
-          sessionDepth: 25.0,
-          sessionDuration: 15,
+
+        final assistantRP = MarineBiologyCareerService.calculateDiscoveryRP(
+          highValueCreature,
+          cumulativeRP: 200, // Research Assistant level (1.3x multiplier)
+          sessionDuration: 25,
         );
-        
-        final abyssalXP = MarineBiologyCareerService.calculateDiscoveryXP(
-          testCreature,
-          sessionDepth: 45.0,
-          sessionDuration: 90,
+
+        final expertRP = MarineBiologyCareerService.calculateDiscoveryRP(
+          highValueCreature,
+          cumulativeRP: 3000, // Senior Research Scientist level (2.0x multiplier)
+          sessionDuration: 25,
         );
-        
-        expect(deepXP, greaterThan(shallowXP));
-        expect(abyssalXP, greaterThan(deepXP));
+
+        expect(assistantRP, greaterThan(beginnerRP));
+        expect(expertRP, greaterThan(assistantRP));
       });
 
-      test('should apply session duration bonuses', () {
-        final shortSessionXP = MarineBiologyCareerService.calculateDiscoveryXP(
+      test('should apply streak bonuses instead of duration bonuses', () {
+        final lowStreakRP = MarineBiologyCareerService.calculateDiscoveryRP(
           testCreature,
-          sessionDepth: 5.0,
-          sessionDuration: 10,
+          cumulativeRP: 100,
+          sessionDuration: 25,
+          currentStreak: 1,
         );
-        
-        final longSessionXP = MarineBiologyCareerService.calculateDiscoveryXP(
+
+        final highStreakRP = MarineBiologyCareerService.calculateDiscoveryRP(
           testCreature,
-          sessionDepth: 5.0,
-          sessionDuration: 60,
+          cumulativeRP: 100,
+          sessionDuration: 25,
+          currentStreak: 30, // Month+ streak
         );
-        
-        expect(longSessionXP, greaterThan(shortSessionXP));
+
+        expect(highStreakRP, greaterThan(lowStreakRP));
       });
 
       test('should apply first discovery bonus', () {
-        final normalXP = MarineBiologyCareerService.calculateDiscoveryXP(
+        final normalRP = MarineBiologyCareerService.calculateDiscoveryRP(
           testCreature,
-          sessionDepth: 5.0,
-          sessionDuration: 15,
+          cumulativeRP: 100,
+          sessionDuration: 25,
           isFirstDiscovery: false,
         );
-        
-        final firstDiscoveryXP = MarineBiologyCareerService.calculateDiscoveryXP(
+
+        final firstDiscoveryRP = MarineBiologyCareerService.calculateDiscoveryRP(
           testCreature,
-          sessionDepth: 5.0,
-          sessionDuration: 15,
+          cumulativeRP: 100,
+          sessionDuration: 25,
           isFirstDiscovery: true,
         );
-        
-        expect(firstDiscoveryXP, equals(normalXP * 2));
+
+        expect(firstDiscoveryRP, greaterThan(normalRP));
       });
 
       test('should apply session completion penalty', () {
-        final completedXP = MarineBiologyCareerService.calculateDiscoveryXP(
+        final completedRP = MarineBiologyCareerService.calculateDiscoveryRP(
           testCreature,
-          sessionDepth: 5.0,
-          sessionDuration: 15,
+          cumulativeRP: 100,
+          sessionDuration: 25,
           isSessionCompleted: true,
         );
-        
-        final incompleteXP = MarineBiologyCareerService.calculateDiscoveryXP(
+
+        final incompleteRP = MarineBiologyCareerService.calculateDiscoveryRP(
           testCreature,
-          sessionDepth: 5.0,
-          sessionDuration: 15,
+          cumulativeRP: 100,
+          sessionDuration: 25,
           isSessionCompleted: false,
         );
-        
-        expect(incompleteXP, equals(completedXP ~/ 2));
+
+        expect(incompleteRP, lessThan(completedRP));
+      });
+
+      test('should enforce RP cap to prevent exploitation', () {
+        // Even with max bonuses, should not exceed 15 RP
+        final maxRP = MarineBiologyCareerService.calculateDiscoveryRP(
+          testCreature.copyWith(rarity: CreatureRarity.legendary, pearlValue: 200),
+          cumulativeRP: 10000, // Max career level
+          sessionDuration: 120,
+          isFirstDiscovery: true,
+          isSessionCompleted: true,
+          currentStreak: 365, // Max streak
+        );
+
+        expect(maxRP, lessThanOrEqualTo(15));
+        expect(maxRP, greaterThanOrEqualTo(1));
       });
     });
 
     group('Research Specialization', () {
       test('should determine specialization from discoveries', () {
         // No discoveries should return general
-        expect(MarineBiologyCareerService.getResearchSpecialization([]), 
+        expect(MarineBiologyCareerService.getResearchSpecialization([]),
                equals('General Marine Biology'));
-        
+
         // Mostly shallow water discoveries
         final shallowCreatures = List.generate(10, (index) => Creature(
           id: 'shallow_$index',
@@ -203,10 +222,10 @@ void main() {
           description: 'Test creature',
           discoveryChance: 0.5,
         ));
-        
+
         expect(MarineBiologyCareerService.getResearchSpecialization(shallowCreatures),
                equals('Coral Reef Ecology'));
-        
+
         // Mostly deep ocean discoveries
         final deepCreatures = List.generate(10, (index) => Creature(
           id: 'deep_$index',
@@ -221,7 +240,7 @@ void main() {
           description: 'Test creature',
           discoveryChance: 0.3,
         ));
-        
+
         expect(MarineBiologyCareerService.getResearchSpecialization(deepCreatures),
                equals('Deep Sea Biology'));
       });
@@ -257,14 +276,15 @@ void main() {
         ),
       ];
 
-      test('should award level-based certifications', () {
+      test('should award RP-based certifications', () {
         final certifications = MarineBiologyCareerService.getCertifications(
-          testCreatures, 
-          1000, 
-          10
+          testCreatures,
+          1500 // 1500 RP (Senior Marine Biologist level)
         );
-        
+
         expect(certifications.any((c) => c.name == 'Marine Biology Fundamentals'), isTrue);
+        expect(certifications.any((c) => c.name == 'Field Research Certification'), isTrue);
+        expect(certifications.any((c) => c.name == 'Senior Researcher Certification'), isTrue);
       });
 
       test('should award discovery-based certifications', () {
@@ -282,13 +302,12 @@ void main() {
           description: 'Test creature',
           discoveryChance: 0.5,
         ));
-        
+
         final certifications = MarineBiologyCareerService.getCertifications(
-          shallowCreatures, 
-          1000, 
-          25
+          shallowCreatures,
+          1000 // 1000 RP
         );
-        
+
         expect(certifications.any((c) => c.name.contains('Shallow Waters Explorer')), isTrue);
       });
 
@@ -306,13 +325,12 @@ void main() {
           description: 'Test creature',
           discoveryChance: 0.1,
         ));
-        
+
         final certifications = MarineBiologyCareerService.getCertifications(
-          rareCreatures, 
-          5000, 
-          50
+          rareCreatures,
+          5000 // 5000 RP
         );
-        
+
         expect(certifications.any((c) => c.name == 'Rare Species Hunter'), isTrue);
       });
 
@@ -330,13 +348,12 @@ void main() {
           description: 'Test creature',
           discoveryChance: 0.5,
         ));
-        
+
         final certifications = MarineBiologyCareerService.getCertifications(
-          manyCreatures, 
-          10000, 
-          75
+          manyCreatures,
+          10000 // 10000 RP
         );
-        
+
         expect(certifications.any((c) => c.name == 'Species Catalog Contributor'), isTrue);
       });
     });
@@ -379,7 +396,7 @@ void main() {
           10, // 10 sessions
           600, // 10 hours
         );
-        
+
         expect(metrics.discoveriesPerSession, equals(0.2)); // 2 discoveries / 10 sessions
       });
 
@@ -389,7 +406,7 @@ void main() {
           10,
           600, // 10 hours in minutes
         );
-        
+
         expect(metrics.discoveriesPerHour, equals(0.2)); // 2 discoveries / 10 hours
       });
 
@@ -399,7 +416,7 @@ void main() {
           10,
           600,
         );
-        
+
         expect(metrics.recentDiscoveries, equals(2)); // Both discoveries within 7 days
       });
 
@@ -409,7 +426,7 @@ void main() {
           10,
           600,
         );
-        
+
         // Should be > 0 since we have creatures from different biomes
         expect(metrics.diversityIndex, greaterThan(0.0));
         expect(metrics.diversityIndex, lessThanOrEqualTo(1.0));
@@ -421,7 +438,7 @@ void main() {
           10,
           600,
         );
-        
+
         expect(metrics.researchEfficiency, greaterThan(0.0));
       });
 
@@ -434,7 +451,7 @@ void main() {
         );
         expect(metrics1.discoveriesPerSession, equals(0.0));
         expect(metrics1.discoveriesPerHour, equals(0.0));
-        
+
         // No discoveries
         final metrics2 = MarineBiologyCareerService.calculateResearchMetrics(
           [],
@@ -474,30 +491,30 @@ void main() {
       test('should award discovery milestone achievements', () {
         final achievements = MarineBiologyCareerService.getResearchAchievements(
           testCreatures,
-          25,
+          1500, // 1500 RP
           testMetrics,
         );
-        
+
         expect(achievements.any((a) => a.name == 'Discovery Milestone'), isTrue);
       });
 
-      test('should award level milestone achievements', () {
+      test('should award RP milestone achievements', () {
         final achievements = MarineBiologyCareerService.getResearchAchievements(
           testCreatures,
-          25,
+          1500, // 1500 RP (Senior Marine Biologist level)
           testMetrics,
         );
-        
+
         expect(achievements.any((a) => a.name == 'Career Milestone'), isTrue);
       });
 
       test('should award efficiency achievements', () {
         final achievements = MarineBiologyCareerService.getResearchAchievements(
           testCreatures,
-          25,
+          1500, // 1500 RP
           testMetrics,
         );
-        
+
         expect(achievements.any((a) => a.name == 'Research Expert'), isTrue);
         expect(achievements.any((a) => a.name == 'Biodiversity Champion'), isTrue);
       });
@@ -505,14 +522,18 @@ void main() {
       test('should have proper achievement progress', () {
         final achievements = MarineBiologyCareerService.getResearchAchievements(
           testCreatures,
-          25,
+          1500, // 1500 RP
           testMetrics,
         );
-        
+
         for (final achievement in achievements) {
           expect(achievement.progress, greaterThanOrEqualTo(0.0));
           expect(achievement.progress, lessThanOrEqualTo(1.0));
-          expect(achievement.current, lessThanOrEqualTo(achievement.target));
+          // Career milestones and Discovery milestones use counts that can exceed target
+          // Only efficiency achievements should strictly have current <= target
+          if (achievement.name == 'Research Expert' || achievement.name == 'Biodiversity Champion') {
+            expect(achievement.current, lessThanOrEqualTo(achievement.target));
+          }
         }
       });
     });

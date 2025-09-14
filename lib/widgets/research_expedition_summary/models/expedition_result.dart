@@ -111,7 +111,7 @@ class ExpeditionResult {
 
   /// Calculate total research value (RP-based)
   int get totalResearchValue {
-    int total = rpGained;  // Changed from xpGained to rpGained
+    int total = rpGained; 
     if (discoveredCreature != null && discoveredCreature is Creature) {
       total += (discoveredCreature as Creature).pearlValue;
     }

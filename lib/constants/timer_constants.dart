@@ -44,8 +44,4 @@ class TimerConstants {
   // Timer warning thresholds
   static const Duration warningThreshold = Duration(minutes: 5);
   static const Duration criticalThreshold = Duration(minutes: 1);
-  
-  // Session completion bonus XP
-  static const int completedSessionBonusXP = 10;
-  static const int perfectSessionBonusXP = 25; // No interruptions
 }

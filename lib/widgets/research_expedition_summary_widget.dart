@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/gamification_service.dart';
 import 'research_expedition_summary/research_expedition_summary_controller.dart';
 
-/// Research Expedition Summary Widget - Session Completion Celebration
-/// Now uses modular architecture for better maintainability and enhanced theming
 /// This is a wrapper that maintains backward compatibility while using the new system
 class ResearchExpeditionSummaryWidget extends StatelessWidget {
   final GamificationReward reward;

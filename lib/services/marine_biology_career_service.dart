@@ -1,138 +1,110 @@
 import '../models/creature.dart';
+import '../constants/research_points_constants.dart';
 
-/// Marine Biology Career Progression System for Phase 2
-/// Handles XP tracking, level progression, titles, and certifications
 class MarineBiologyCareerService {
   
-  /// Career Level Definitions
-  static const Map<int, String> careerTitles = {
-    1: 'Marine Biology Intern',
-    5: 'Junior Research Assistant', 
-    10: 'Research Assistant',
-    15: 'Marine Biology Student',
-    20: 'Research Associate',
-    25: 'Field Researcher',
-    30: 'Marine Biologist',
-    35: 'Senior Marine Biologist',
-    40: 'Research Scientist',
-    45: 'Senior Research Scientist',
-    50: 'Principal Investigator',
-    55: 'Marine Biology Expert',
-    60: 'Distinguished Researcher',
-    65: 'Research Director',
-    70: 'Marine Biology Professor',
-    75: 'Department Head',
-    80: 'Research Institute Director',
-    85: 'World-Renowned Expert',
-    90: 'Marine Biology Legend',
-    95: 'Ocean Pioneer',
-    100: 'Master Marine Biologist',
-  };
+  /// Career titles based on RP progression (using ResearchPointsConstants)
+  /// This uses the same RP thresholds defined in ResearchPointsConstants.careerTitleThresholds
+  static Map<int, String> get careerTitles => ResearchPointsConstants.careerTitleThresholds;
 
-  /// XP required for each level (exponential progression)
-  static int getXPRequiredForLevel(int level) {
-    if (level <= 1) return 0;
-    // Base XP requirement with exponential growth
-    return (100 * (level - 1) * 1.15).round() + getXPRequiredForLevel(level - 1);
-  }
-
-  /// Calculate current level from total XP
-  static int getLevelFromXP(int totalXP) {
-    int level = 1;
-    while (level <= 100) {
-      final requiredXP = getXPRequiredForLevel(level + 1);
-      if (totalXP < requiredXP) break;
-      level++;
+  /// Get career title based on cumulative RP (primary method)
+  static String getCareerTitle(int cumulativeRP) {
+    // Find the highest RP threshold user has achieved
+    int highestRP = 0;
+    for (final rpThreshold in careerTitles.keys) {
+      if (cumulativeRP >= rpThreshold && rpThreshold > highestRP) {
+        highestRP = rpThreshold;
+      }
     }
-    return level;
+    return careerTitles[highestRP] ?? 'Marine Biology Intern';
   }
 
-  /// Get career title for current level
-  static String getCareerTitle(int level) {
-    // Find the highest title level that the player has achieved
-    int titleLevel = 1;
+  /// Get next career milestone information
+  static Map<String, dynamic>? getNextCareerMilestone(int cumulativeRP) {
     for (final entry in careerTitles.entries) {
-      if (level >= entry.key) {
-        titleLevel = entry.key;
-      } else {
+      if (cumulativeRP < entry.key) {
+        return {
+          'requiredRP': entry.key,
+          'title': entry.value,
+          'rpNeeded': entry.key - cumulativeRP,
+        };
+      }
+    }
+    return null; // Max level reached
+  }
+
+  /// Get career progress percentage to next title
+  static double getCareerProgress(int cumulativeRP) {
+    final currentTitle = getCareerTitle(cumulativeRP);
+    final nextMilestone = getNextCareerMilestone(cumulativeRP);
+
+    if (nextMilestone == null) return 1.0; // Max level reached
+
+    // Find current RP threshold
+    int currentRP = 0;
+    for (final entry in careerTitles.entries) {
+      if (entry.value == currentTitle) {
+        currentRP = entry.key;
         break;
       }
     }
-    return careerTitles[titleLevel] ?? 'Marine Biology Intern';
+
+    final nextRP = nextMilestone['requiredRP'] as int;
+    final progressRange = nextRP - currentRP;
+    final currentProgress = cumulativeRP - currentRP;
+
+    return progressRange > 0 ? currentProgress / progressRange : 1.0;
   }
 
-  /// Get career title based on cumulative RP (new RP system)
-  static String getCareerTitleFromRP(int cumulativeRP) {
-    // RP-based career titles matching ResearchPointsConstants
-    if (cumulativeRP >= 10500) return 'Master Marine Biologist';
-    if (cumulativeRP >= 9500) return 'Ocean Pioneer';
-    if (cumulativeRP >= 8550) return 'Marine Biology Legend';
-    if (cumulativeRP >= 7650) return 'World-Renowned Expert';
-    if (cumulativeRP >= 6800) return 'Research Institute Director';
-    if (cumulativeRP >= 6000) return 'Department Head';
-    if (cumulativeRP >= 5250) return 'Marine Biology Professor';
-    if (cumulativeRP >= 4550) return 'Research Director';
-    if (cumulativeRP >= 3900) return 'Distinguished Researcher';
-    if (cumulativeRP >= 3300) return 'Marine Biology Expert';
-    if (cumulativeRP >= 2750) return 'Principal Investigator';
-    if (cumulativeRP >= 2250) return 'Senior Research Scientist';
-    if (cumulativeRP >= 1800) return 'Research Scientist';
-    if (cumulativeRP >= 1400) return 'Senior Marine Biologist';
-    if (cumulativeRP >= 1050) return 'Marine Biologist';
-    if (cumulativeRP >= 750) return 'Field Researcher';
-    if (cumulativeRP >= 500) return 'Research Associate';
-    if (cumulativeRP >= 300) return 'Marine Biology Student';
-    if (cumulativeRP >= 150) return 'Research Assistant';
-    if (cumulativeRP >= 50) return 'Junior Research Assistant';
-    return 'Marine Biology Intern';
-  }
 
-  /// Calculate XP bonus based on discovery circumstances
-  static int calculateDiscoveryXP(Creature creature, {
-    required double sessionDepth,
+  /// Calculate RP bonus based on discovery circumstances (aligned with RP system)
+  static int calculateDiscoveryRP(Creature creature, {
+    required int cumulativeRP,
     required int sessionDuration,
     bool isFirstDiscovery = false,
     bool isSessionCompleted = true,
+    int currentStreak = 1,
   }) {
-    int baseXP = creature.pearlValue;
-    
-    // Rarity multiplier
-    double rarityMultiplier = creature.rarity.pearlMultiplier.toDouble();
-    
-    // Depth bonus (deeper discoveries worth more)
-    double depthMultiplier = 1.0;
-    if (sessionDepth > 40) {
-      depthMultiplier = 2.5; // Abyssal zone
-    } else if (sessionDepth > 20) {
-      depthMultiplier = 2.0; // Deep ocean
-    } else if (sessionDepth > 10) {
-      depthMultiplier = 1.5; // Coral garden
-    } else {
-      depthMultiplier = 1.0; // Shallow waters
+    int baseRP = creature.pearlValue ~/ 2; // Base RP is lower than pearl value
+
+    // Rarity multiplier (adjusted for RP system)
+    double rarityMultiplier = creature.rarity.pearlMultiplier.toDouble() * 0.5;
+
+    // RP milestone bonus (based on cumulative RP, not session depth)
+    double rpMilestoneMultiplier = 1.0;
+    if (cumulativeRP >= 2250) {
+      rpMilestoneMultiplier = 2.0; // Senior Research Scientist+
+    } else if (cumulativeRP >= 750) {
+      rpMilestoneMultiplier = 1.6; // Field Researcher+
+    } else if (cumulativeRP >= 150) {
+      rpMilestoneMultiplier = 1.3; // Research Assistant+
+    } else if (cumulativeRP >= 50) {
+      rpMilestoneMultiplier = 1.1; // Junior Research Assistant+
     }
-    
+
     // Session completion bonus
-    double completionMultiplier = isSessionCompleted ? 1.0 : 0.5;
-    
+    double completionMultiplier = isSessionCompleted ? 1.0 : 0.3;
+
     // First discovery bonus
-    double firstDiscoveryMultiplier = isFirstDiscovery ? 2.0 : 1.0;
-    
-    // Session duration bonus (longer sessions = more research value)
-    double durationMultiplier = 1.0;
-    if (sessionDuration >= 90) {
-      durationMultiplier = 2.0; // Abyssal expeditions
-    } else if (sessionDuration >= 60) {
-      durationMultiplier = 1.8; // Deep sea research
-    } else if (sessionDuration >= 30) {
-      durationMultiplier = 1.5; // Mid-water expeditions
-    } else if (sessionDuration >= 15) {
-      durationMultiplier = 1.2; // Shallow water research
+    double firstDiscoveryMultiplier = isFirstDiscovery ? 1.5 : 1.0;
+
+    // Streak bonus (consistency reward instead of duration)
+    double streakMultiplier = 1.0;
+    if (currentStreak >= 30) {
+      streakMultiplier = 1.5; // Month+ streak
+    } else if (currentStreak >= 14) {
+      streakMultiplier = 1.3; // 2+ week streak
+    } else if (currentStreak >= 7) {
+      streakMultiplier = 1.2; // Week+ streak
+    } else if (currentStreak >= 3) {
+      streakMultiplier = 1.1; // 3+ day streak
     }
-    
-    final totalXP = (baseXP * rarityMultiplier * depthMultiplier * 
-                    completionMultiplier * firstDiscoveryMultiplier * durationMultiplier).round();
-    
-    return totalXP;
+
+    final totalRP = (baseRP * rarityMultiplier * rpMilestoneMultiplier *
+                    completionMultiplier * firstDiscoveryMultiplier * streakMultiplier).round();
+
+    // Cap discovery RP to prevent exploitation
+    return totalRP.clamp(1, 15);
   }
 
   /// Get research specialization based on discoveries
@@ -170,57 +142,56 @@ class MarineBiologyCareerService {
     }
   }
 
-  /// Get research certifications earned
+  /// Get research certifications earned based on cumulative RP
   static List<ResearchCertification> getCertifications(
     List<Creature> discoveredCreatures,
-    int totalXP,
-    int currentLevel,
+    int cumulativeRP,
   ) {
     final certifications = <ResearchCertification>[];
-    
-    // Level-based certifications
-    if (currentLevel >= 10) {
+
+    // RP-based certifications aligned with career progression
+    if (cumulativeRP >= 150) { // Research Assistant level
       certifications.add(const ResearchCertification(
         name: 'Marine Biology Fundamentals',
         description: 'Basic understanding of marine ecosystems',
         icon: '🎓',
-        earnedAt: 'Level 10',
+        earnedAt: '150 RP',
       ));
     }
-    
-    if (currentLevel >= 25) {
+
+    if (cumulativeRP >= 500) { // Research Associate level
       certifications.add(const ResearchCertification(
         name: 'Field Research Certification',
         description: 'Qualified to conduct independent field research',
         icon: '🔬',
-        earnedAt: 'Level 25',
+        earnedAt: '500 RP',
       ));
     }
-    
-    if (currentLevel >= 50) {
+
+    if (cumulativeRP >= 1400) { // Senior Marine Biologist level
       certifications.add(const ResearchCertification(
         name: 'Senior Researcher Certification',
         description: 'Authorized to lead research expeditions',
         icon: '🏆',
-        earnedAt: 'Level 50',
+        earnedAt: '1400 RP',
       ));
     }
-    
-    if (currentLevel >= 75) {
+
+    if (cumulativeRP >= 5250) { // Marine Biology Professor level
       certifications.add(const ResearchCertification(
         name: 'Marine Biology Expert',
         description: 'Recognized expert in marine biology',
         icon: '⭐',
-        earnedAt: 'Level 75',
+        earnedAt: '5250 RP',
       ));
     }
-    
-    if (currentLevel >= 100) {
+
+    if (cumulativeRP >= 10500) { // Master Marine Biologist level
       certifications.add(const ResearchCertification(
         name: 'Master Marine Biologist',
         description: 'Ultimate achievement in marine biology research',
         icon: '👑',
-        earnedAt: 'Level 100',
+        earnedAt: '10500 RP',
       ));
     }
     
@@ -374,14 +345,14 @@ class MarineBiologyCareerService {
     );
   }
 
-  /// Get research achievements based on progress
+  /// Get research achievements based on progress (RP-based)
   static List<ResearchAchievement> getResearchAchievements(
     List<Creature> discoveredCreatures,
-    int currentLevel,
+    int cumulativeRP,
     ResearchMetrics metrics,
   ) {
     final achievements = <ResearchAchievement>[];
-    
+
     // Discovery milestones
     final milestones = [1, 5, 10, 25, 50, 75, 100, 125, 144];
     for (final milestone in milestones) {
@@ -396,22 +367,32 @@ class MarineBiologyCareerService {
         ));
       }
     }
-    
-    // Level achievements
-    final levelMilestones = [10, 25, 50, 75, 100];
-    for (final milestone in levelMilestones) {
-      if (currentLevel >= milestone) {
+
+    // Career RP milestones (major career progression points)
+    final rpMilestones = [150, 500, 1050, 2750, 5250, 10500];
+    final rpMilestoneNames = [
+      'Research Assistant',
+      'Research Associate',
+      'Marine Biologist',
+      'Principal Investigator',
+      'Marine Biology Professor',
+      'Master Marine Biologist'
+    ];
+
+    for (int i = 0; i < rpMilestones.length; i++) {
+      final milestone = rpMilestones[i];
+      if (cumulativeRP >= milestone) {
         achievements.add(ResearchAchievement(
           name: 'Career Milestone',
-          description: 'Reached level $milestone',
+          description: 'Achieved ${rpMilestoneNames[i]} ($milestone RP)',
           icon: '📈',
           progress: 1.0,
           target: milestone,
-          current: currentLevel,
+          current: cumulativeRP,
         ));
       }
     }
-    
+
     // Efficiency achievements
     if (metrics.researchEfficiency >= 10.0) {
       achievements.add(const ResearchAchievement(
@@ -423,7 +404,7 @@ class MarineBiologyCareerService {
         current: 10,
       ));
     }
-    
+
     if (metrics.diversityIndex >= 0.8) {
       achievements.add(const ResearchAchievement(
         name: 'Biodiversity Champion',
@@ -434,7 +415,7 @@ class MarineBiologyCareerService {
         current: 1,
       ));
     }
-    
+
     return achievements;
   }
 

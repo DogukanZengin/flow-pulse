@@ -88,8 +88,6 @@ class TimerScreenState extends State<TimerScreen>
   
   void _onSessionCompleted(GamificationReward reward) {
     if (mounted) {
-      // Only show research expedition summary dialog for completed study sessions
-      // Break sessions should not trigger the expedition summary
       if (reward.isStudySession) {
         _showResearchExpeditionSummary(reward);
       }

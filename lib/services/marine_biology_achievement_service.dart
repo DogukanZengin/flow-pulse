@@ -225,7 +225,6 @@ class MarineBiologyAchievementService {
   /// Career Progression Achievements
   static List<MarineBiologyAchievement> getCareerAchievements(
     int currentLevel,
-    int totalXP,
     ResearchMetrics metrics,
   ) {
     final achievements = <MarineBiologyAchievement>[];
@@ -497,7 +496,6 @@ class MarineBiologyAchievementService {
   static List<MarineBiologyAchievement> getAllAchievements(
     List<Creature> discoveredCreatures,
     int currentLevel,
-    int totalXP,
     ResearchMetrics metrics,
     int currentStreak,
     int totalSessions,
@@ -507,7 +505,7 @@ class MarineBiologyAchievementService {
     allAchievements.addAll(getDiscoveryAchievements(discoveredCreatures, currentLevel, metrics));
     allAchievements.addAll(getRarityAchievements(discoveredCreatures));
     allAchievements.addAll(getBiomeAchievements(discoveredCreatures));
-    allAchievements.addAll(getCareerAchievements(currentLevel, totalXP, metrics));
+    allAchievements.addAll(getCareerAchievements(currentLevel, metrics));
     allAchievements.addAll(getStreakAchievements(currentStreak, totalSessions, metrics.averageSessionTime));
     allAchievements.addAll(getSpecialAchievements(discoveredCreatures, currentLevel, metrics));
     

@@ -50,7 +50,6 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
       
       // Get gamification data
       final currentLevel = GamificationService.instance.currentLevel;
-      final totalXP = GamificationService.instance.todayRP;
       final currentStreak = GamificationService.instance.currentStreak;
       final totalSessions = GamificationService.instance.totalSessions;
       
@@ -65,7 +64,6 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
       final achievements = MarineBiologyAchievementService.getAllAchievements(
         discoveredCreatures,
         currentLevel,
-        totalXP,
         metrics,
         currentStreak,
         totalSessions,

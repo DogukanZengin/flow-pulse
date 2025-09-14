@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 
 /// Service to handle fast forward mode for accelerated timer testing
-/// Allows testing XP progress and ocean gamification features at accelerated speeds
 class FastForwardService extends ChangeNotifier {
   static final FastForwardService instance = FastForwardService._internal();
   
@@ -130,9 +129,6 @@ class FastForwardService extends ChangeNotifier {
     return 1; // Still subtract 1 second, but tick faster
   }
 
-  /// Calculate accelerated session duration for XP calculations
-  /// This ensures XP is calculated based on the intended session duration,
-  /// not the accelerated completion time
   Duration getEffectiveSessionDuration(Duration acceleratedDuration) {
     if (!_isEnabled || _speedMultiplier <= 1.0) {
       return acceleratedDuration;

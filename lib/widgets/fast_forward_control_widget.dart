@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/fast_forward_service.dart';
 
 /// Widget for controlling fast forward mode during development/testing
-/// Provides easy access to speed presets and controls for testing XP progression
 class FastForwardControlWidget extends StatefulWidget {
   const FastForwardControlWidget({super.key});
 
@@ -222,8 +221,8 @@ class _FastForwardControlWidgetState extends State<FastForwardControlWidget> {
                   SizedBox(height: 4),
                   Text(
                     '• Enable fast forward before starting a timer session\n'
-                    '• Timer will run at accelerated speed for XP testing\n'
-                    '• XP calculations remain accurate for intended session duration\n'
+                    '• Timer will run at accelerated speed for RP testing\n'
+                    '• RP calculations remain accurate for intended session duration\n'
                     '• Use "Lightning" or "Time Warp" for instant session completion\n'
                     '• Remember to disable for normal productivity sessions',
                     style: TextStyle(

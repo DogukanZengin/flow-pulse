@@ -4,15 +4,15 @@ import '../services/marine_biology_career_service.dart';
 import '../utils/responsive_helper.dart';
 
 /// Marine Biology Career Progression Widget
-/// Shows current level, title, XP progress, certifications, and achievements
+/// Shows current career title, RP progress, certifications, and achievements
 class MarineBiologyCareerWidget extends StatefulWidget {
-  final int totalXP;
+  final int cumulativeRP;
   final List<Creature> discoveredCreatures;
   final VoidCallback? onTap;
 
   const MarineBiologyCareerWidget({
     super.key,
-    required this.totalXP,
+    required this.cumulativeRP,
     required this.discoveredCreatures,
     this.onTap,
   });
@@ -28,10 +28,9 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
   late Animation<double> _progressAnimation;
   late Animation<double> _scaleAnimation;
   
-  int _currentLevel = 1;
-  int _nextLevelXP = 100;
-  int _currentLevelXP = 0;
   String _careerTitle = 'Marine Biology Intern';
+  Map<String, dynamic>? _nextMilestone;
+  double _careerProgress = 0.0;
   String _specialization = 'General Marine Biology';
   List<ResearchCertification> _certifications = [];
   ResearchMetrics? _metrics;
@@ -74,13 +73,13 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
   void didUpdateWidget(MarineBiologyCareerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     
-    if (oldWidget.totalXP != widget.totalXP || 
+    if (oldWidget.cumulativeRP != widget.cumulativeRP ||
         oldWidget.discoveredCreatures.length != widget.discoveredCreatures.length) {
-      final oldLevel = _currentLevel;
+      final oldTitle = _careerTitle;
       _updateCareerStats();
-      
-      // Trigger level up animation if level increased
-      if (_currentLevel > oldLevel) {
+
+      // Trigger level up animation if career title changed
+      if (_careerTitle != oldTitle) {
         _levelUpController.forward().then((_) {
           _levelUpController.reverse();
         });
@@ -99,17 +98,14 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
   }
 
   void _updateCareerStats() async {
-    final level = MarineBiologyCareerService.getLevelFromXP(widget.totalXP);
-    final title = MarineBiologyCareerService.getCareerTitle(level);
+    final title = MarineBiologyCareerService.getCareerTitle(widget.cumulativeRP);
+    final nextMilestone = MarineBiologyCareerService.getNextCareerMilestone(widget.cumulativeRP);
+    final progress = MarineBiologyCareerService.getCareerProgress(widget.cumulativeRP);
     final specialization = MarineBiologyCareerService.getResearchSpecialization(widget.discoveredCreatures);
     final certifications = MarineBiologyCareerService.getCertifications(
       widget.discoveredCreatures,
-      widget.totalXP,
-      level,
+      widget.cumulativeRP,
     );
-    
-    final nextLevelXP = MarineBiologyCareerService.getXPRequiredForLevel(level + 1);
-    final currentLevelXP = level > 1 ? MarineBiologyCareerService.getXPRequiredForLevel(level) : 0;
     
     // Get session metrics (mock data for now - should come from actual session tracking)
     final metrics = MarineBiologyCareerService.calculateResearchMetrics(
@@ -119,21 +115,19 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
     );
     
     setState(() {
-      _currentLevel = level;
       _careerTitle = title;
+      _nextMilestone = nextMilestone;
+      _careerProgress = progress;
       _specialization = specialization;
       _certifications = certifications;
-      _nextLevelXP = nextLevelXP;
-      _currentLevelXP = currentLevelXP;
       _metrics = metrics;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final progressToNextLevel = _nextLevelXP > _currentLevelXP 
-        ? (widget.totalXP - _currentLevelXP) / (_nextLevelXP - _currentLevelXP)
-        : 1.0;
+    // Use the calculated career progress
+    final progressToNextMilestone = _careerProgress;
     
     return GestureDetector(
       onTap: widget.onTap,
@@ -146,17 +140,17 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
             colors: [
               const Color(0xFF1A237E).withValues(alpha: 0.9),
               const Color(0xFF3F51B5).withValues(alpha: 0.9),
-              _getLevelColor().withValues(alpha: 0.3),
+              _getProgressColor().withValues(alpha: 0.3),
             ],
           ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: _getLevelColor().withValues(alpha: 0.5),
+            color: _getProgressColor().withValues(alpha: 0.5),
             width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: _getLevelColor().withValues(alpha: 0.3),
+              color: _getProgressColor().withValues(alpha: 0.3),
               blurRadius: 8,
               spreadRadius: 2,
             ),
@@ -177,8 +171,8 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          _getLevelColor(),
-                          _getLevelColor().withValues(alpha: 0.7),
+                          _getProgressColor(),
+                          _getProgressColor().withValues(alpha: 0.7),
                         ],
                       ),
                       border: Border.all(
@@ -188,7 +182,8 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                     ),
                     child: Center(
                       child: Text(
-                        '$_currentLevel',
+                        '${widget.cumulativeRP}',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
@@ -223,9 +218,9 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                       ),
                       SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
                       Text(
-                        '${widget.totalXP.toStringAsFixed(0)} XP',
+                        '${widget.cumulativeRP} RP',
                         style: TextStyle(
-                          color: _getLevelColor(),
+                          color: _getProgressColor(),
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -267,11 +262,11 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
             
             SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')),
             
-            // XP Progress Bar
+            // Career Progress Bar
             Row(
               children: [
                 Text(
-                  'Level $_currentLevel',
+                  _careerTitle,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 12,
@@ -279,7 +274,7 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
                 ),
                 const Spacer(),
                 Text(
-                  'Level ${_currentLevel + 1}',
+                  _nextMilestone != null ? _nextMilestone!['title'] : 'Max Level',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 12,
@@ -294,9 +289,9 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
               animation: _progressAnimation,
               builder: (context, child) {
                 return LinearProgressIndicator(
-                  value: progressToNextLevel * _progressAnimation.value,
+                  value: progressToNextMilestone * _progressAnimation.value,
                   backgroundColor: Colors.white.withValues(alpha: 0.2),
-                  valueColor: AlwaysStoppedAnimation<Color>(_getLevelColor()),
+                  valueColor: AlwaysStoppedAnimation<Color>(_getProgressColor()),
                   minHeight: 8,
                 );
               },
@@ -308,16 +303,18 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${widget.totalXP - _currentLevelXP} / ${_nextLevelXP - _currentLevelXP} XP',
+                  _nextMilestone != null
+                    ? '${_nextMilestone!['rpNeeded']} RP needed'
+                    : 'Max level reached',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.7),
                     fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                   ),
                 ),
                 Text(
-                  '${(progressToNextLevel * 100).toStringAsFixed(1)}%',
+                  '${(progressToNextMilestone * 100).toStringAsFixed(1)}%',
                   style: TextStyle(
-                    color: _getLevelColor(),
+                    color: _getProgressColor(),
                     fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                     fontWeight: FontWeight.bold,
                   ),
@@ -482,23 +479,25 @@ class _MarineBiologyCareerWidgetState extends State<MarineBiologyCareerWidget>
     );
   }
 
-  Color _getLevelColor() {
-    if (_currentLevel >= 100) return Colors.purple;
-    if (_currentLevel >= 75) return Colors.orange;
-    if (_currentLevel >= 50) return Colors.amber;
-    if (_currentLevel >= 25) return Colors.green;
-    return Colors.cyan;
+  Color _getProgressColor() {
+    // Color based on career tier/RP amount
+    if (widget.cumulativeRP >= 7650) return Colors.purple;   // World-class researchers
+    if (widget.cumulativeRP >= 4550) return Colors.orange;   // Research leadership
+    if (widget.cumulativeRP >= 1800) return Colors.amber;    // Senior researchers
+    if (widget.cumulativeRP >= 500) return Colors.green;     // Qualified researchers
+    if (widget.cumulativeRP >= 50) return Colors.blue;       // Entry-level researchers
+    return Colors.cyan;                                      // Interns
   }
 }
 
 /// Detailed Career Progress Screen
 class MarineBiologyCareerScreen extends StatefulWidget {
-  final int totalXP;
+  final int cumulativeRP;
   final List<Creature> discoveredCreatures;
 
   const MarineBiologyCareerScreen({
     super.key,
-    required this.totalXP,
+    required this.cumulativeRP,
     required this.discoveredCreatures,
   });
 
@@ -527,22 +526,20 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
   }
 
   void _loadCareerData() {
-    final level = MarineBiologyCareerService.getLevelFromXP(widget.totalXP);
     final certifications = MarineBiologyCareerService.getCertifications(
       widget.discoveredCreatures,
-      widget.totalXP,
-      level,
+      widget.cumulativeRP,
     );
-    
+
     final metrics = MarineBiologyCareerService.calculateResearchMetrics(
       widget.discoveredCreatures,
       100, // Mock data
       6000,
     );
-    
+
     final achievements = MarineBiologyCareerService.getResearchAchievements(
       widget.discoveredCreatures,
-      level,
+      widget.cumulativeRP,
       metrics,
     );
     
@@ -600,7 +597,7 @@ class _MarineBiologyCareerScreenState extends State<MarineBiologyCareerScreen>
       child: Column(
         children: [
           MarineBiologyCareerWidget(
-            totalXP: widget.totalXP,
+            cumulativeRP: widget.cumulativeRP,
             discoveredCreatures: widget.discoveredCreatures,
           ),
           

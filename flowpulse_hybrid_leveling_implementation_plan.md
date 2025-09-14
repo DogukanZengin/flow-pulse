@@ -1663,5 +1663,60 @@ final biome = getUnlockedBiome(user.cumulativeRP);
 - Database integration uses existing creature discovery persistence layer
 - Simplified service architecture reduces complexity and maintenance overhead
 
-### 🔄 NEXT TASK: Phase 3, Task 3.2 - Enhanced Research Journal Integration
-**Priority**: Low | **Complexity**: Medium | **Dependencies**: Task 3.1 Complete ✅
+### ✅ COMPLETED: Phase 4, Task 4.1 - Replace XP-based Career Titles with RP Progression
+**Date Completed**: 2025-09-14
+**Files Modified:**
+- `lib/services/marine_biology_career_service.dart`
+
+**Summary**: Successfully replaced XP-based career progression with RP-based system:
+
+**Career System Updates:**
+- ✅ Replaced level-based career title lookup with RP-based lookup using ResearchPointsConstants
+- ✅ Removed all XP-based level calculation methods (getXPRequiredForLevel, getLevelFromXP)
+- ✅ Updated main getCareerTitle() method to use cumulative RP instead of level
+- ✅ Added getNextCareerMilestone() and getCareerProgress() methods for RP progression
+- ✅ Career titles now reference ResearchPointsConstants.careerTitleThresholds directly
+
+**Certification System Updates:**
+- ✅ Updated getCertifications() method to use cumulative RP instead of level thresholds
+- ✅ RP-based certification requirements: 150 RP, 500 RP, 1400 RP, 5250 RP, 10500 RP
+- ✅ Certifications aligned with career progression milestones
+- ✅ Updated certification display to show RP requirements instead of level requirements
+
+**Research Achievements Updates:**
+- ✅ Updated getResearchAchievements() to use cumulative RP instead of level
+- ✅ Career milestone achievements now based on major RP thresholds
+- ✅ Achievement descriptions show RP requirements and career titles achieved
+- ✅ Maintained discovery-based and efficiency-based achievements
+
+**Discovery System Updates:**
+- ✅ Replaced calculateDiscoveryXP() with calculateDiscoveryRP()
+- ✅ Discovery bonuses now based on cumulative RP milestones instead of session depth
+- ✅ Added streak-based multipliers instead of duration-based bonuses
+- ✅ RP milestone multipliers: 1.1x (50+ RP) → 2.0x (2250+ RP)
+- ✅ Capped discovery RP at 15 to prevent exploitation
+
+**Core Features Implemented:**
+- ✅ All 20 existing career titles preserved (Marine Biology Intern → Master Marine Biologist)
+- ✅ Level requirements converted from XP to RP-based calculations
+- ✅ Career progression uses ResearchPointsConstants thresholds (50 RP → 10500 RP)
+- ✅ Certification system aligned with career milestones
+- ✅ Discovery rewards promote consistency over session duration
+- ✅ Streak bonuses integrated into discovery calculation
+
+**Acceptance Criteria Met:**
+- ✅ All existing career titles preserved for engagement and progression
+- ✅ Level requirements converted from XP to RP-based calculations
+- ✅ Streak bonuses and missions can accelerate progression through RP rewards
+- ✅ Visual indicators ready to show progress toward next career level with detailed titles
+- ✅ Discovery system rewards research consistency over marathon sessions
+- ✅ No XP references remain in career progression system
+
+**Integration Notes:**
+- Career progression fully integrated with existing GamificationService RP tracking
+- Discovery RP calculation ready for integration with species discovery system
+- All career methods updated to use cumulative RP parameter instead of level
+- Backward compatibility maintained where needed for UI transition
+
+### 🔄 NEXT TASK: Phase 4, Task 4.2 - Equipment Progression Integration with RP System
+**Priority**: Low | **Complexity**: Medium | **Dependencies**: Task 4.1 Complete ✅, Phase 1 Complete ✅

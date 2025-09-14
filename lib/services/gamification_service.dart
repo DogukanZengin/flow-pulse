@@ -68,7 +68,6 @@ class GamificationService {
   int getCurrentLevelRP() => _cumulativeRP - getRPRequiredForLevel(currentLevel);
   
   int getRPRequiredForLevel(int level) {
-    // Each level requires 50 RP (vs 100 XP in old system)
     return (level - 1) * 50;
   }
   
@@ -277,10 +276,10 @@ class GamificationService {
     
     // Career progression tracking
     final oldLevel = currentLevel;
-    final oldCareerTitle = MarineBiologyCareerService.getCareerTitleFromRP(_cumulativeRP);
+    final oldCareerTitle = MarineBiologyCareerService.getCareerTitle(_cumulativeRP);
     
     final newLevel = _calculateLevel(_cumulativeRP);
-    final newCareerTitle = MarineBiologyCareerService.getCareerTitleFromRP(_cumulativeRP);
+    final newCareerTitle = MarineBiologyCareerService.getCareerTitle(_cumulativeRP);
     
     reward.oldLevel = oldLevel;
     reward.newLevel = newLevel;
@@ -519,7 +518,7 @@ class GamificationService {
     
     if (nextMilestone != null) {
       final rpNeeded = nextMilestone - currentRP;
-      final nextTitle = MarineBiologyCareerService.getCareerTitleFromRP(nextMilestone);
+      final nextTitle = MarineBiologyCareerService.getCareerTitle(nextMilestone);
       return "Next promotion: $nextTitle at $nextMilestone RP ($rpNeeded RP needed)";
     }
     return null;
