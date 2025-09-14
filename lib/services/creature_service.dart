@@ -89,8 +89,8 @@ class CreatureService {
       return null;
     }
     
-    // Determine rarity based on weighted random
-    final rarity = _selectRarity();
+    // Determine rarity based on biome depth (deeper = higher rarity chances)
+    final rarity = _selectRarityForBiome(getBiomeFromDepth(depth));
     
     // Filter creatures by selected rarity
     final candidateCreatures = undiscoveredCreatures
@@ -112,19 +112,60 @@ class CreatureService {
     return selectedCreature;
   }
   
-  /// Select rarity based on weighted random
-  static CreatureRarity _selectRarity() {
+
+  /// Select rarity based on biome depth (deeper biomes have higher rare species chances)
+  static CreatureRarity _selectRarityForBiome(BiomeType biome) {
     final roll = _random.nextDouble();
+    Map<CreatureRarity, double> biomeRarityChances;
+
+    switch (biome) {
+      case BiomeType.shallowWaters:
+        // Higher chance of common species
+        biomeRarityChances = {
+          CreatureRarity.common: 0.80,     // 80%
+          CreatureRarity.uncommon: 0.15,   // 15%
+          CreatureRarity.rare: 0.04,       // 4%
+          CreatureRarity.legendary: 0.01,  // 1%
+        };
+        break;
+      case BiomeType.coralGarden:
+        // Balanced distribution
+        biomeRarityChances = {
+          CreatureRarity.common: 0.65,     // 65%
+          CreatureRarity.uncommon: 0.25,   // 25%
+          CreatureRarity.rare: 0.08,       // 8%
+          CreatureRarity.legendary: 0.02,  // 2%
+        };
+        break;
+      case BiomeType.deepOcean:
+        // Higher chance of rare species
+        biomeRarityChances = {
+          CreatureRarity.common: 0.50,     // 50%
+          CreatureRarity.uncommon: 0.30,   // 30%
+          CreatureRarity.rare: 0.15,       // 15%
+          CreatureRarity.legendary: 0.05,  // 5%
+        };
+        break;
+      case BiomeType.abyssalZone:
+        // Highest chance of legendary species
+        biomeRarityChances = {
+          CreatureRarity.common: 0.30,     // 30%
+          CreatureRarity.uncommon: 0.35,   // 35%
+          CreatureRarity.rare: 0.25,       // 25%
+          CreatureRarity.legendary: 0.10,  // 10%
+        };
+        break;
+    }
+
     double cumulative = 0.0;
-    
-    for (final entry in rarityChances.entries) {
+    for (final entry in biomeRarityChances.entries) {
       cumulative += entry.value;
       if (roll < cumulative) {
         return entry.key;
       }
     }
-    
-    // Fallback to common (should never reach here)
+
+    // Fallback to common
     return CreatureRarity.common;
   }
   
@@ -266,56 +307,50 @@ class CreatureService {
     }
   }
 
-  /// Apply depth-based discovery rates according to Master Plan
+  /// Apply biome-based discovery rates using the new depth system
+  /// Rewards reaching deeper biomes regardless of session duration
   static double applyDepthBasedDiscoveryRates(double baseChance, int sessionDuration, double depth) {
     double discoveryChance = baseChance;
-    
-    // Expedition type bonuses based on Master Plan
-    if (sessionDuration >= 15 && sessionDuration <= 20 && depth <= 10) {
-      // Shallow Water Research (15-20min, 5-10m depth)
-      discoveryChance += 0.40; // High discovery rate (40% chance)
-    } else if (sessionDuration >= 25 && sessionDuration <= 30 && depth <= 20) {
-      // Mid-Water Expedition (25-30min, 10-20m depth)  
-      discoveryChance += 0.25; // Medium discovery rate (25% chance)
-    } else if (sessionDuration >= 45 && sessionDuration <= 60 && depth <= 40) {
-      // Deep Sea Research (45-60min, 20-40m depth)
-      discoveryChance += 0.15; // Low but valuable (15% chance)
-    } else if (sessionDuration >= 90 && depth > 40) {
-      // Abyssal Expedition (90min+, 40m+ depth)
-      discoveryChance += 0.05; // Very rare but legendary (5% chance)
+
+    // Biome-based discovery bonuses (encourages depth progression, not duration)
+    final biome = getBiomeFromDepth(depth);
+
+    switch (biome) {
+      case BiomeType.shallowWaters:
+        // Common species, high discovery rate
+        discoveryChance += 0.30; // +30% chance
+        break;
+      case BiomeType.coralGarden:
+        // Diverse ecosystem, good discovery rate
+        discoveryChance += 0.25; // +25% chance
+        break;
+      case BiomeType.deepOcean:
+        // Fewer but more valuable species
+        discoveryChance += 0.15; // +15% chance
+        break;
+      case BiomeType.abyssalZone:
+        // Very rare but legendary species
+        discoveryChance += 0.08; // +8% chance, but higher rarity
+        break;
     }
-    
+
     return discoveryChance.clamp(0.0, 0.8);
   }
 
   /// Get biome type based on session depth
+  /// Updated to match the accelerated depth traversal system boundaries
   static BiomeType getBiomeFromDepth(double depth) {
-    if (depth <= 10) {
-      return BiomeType.shallowWaters;
-    } else if (depth <= 20) {
-      return BiomeType.coralGarden;
-    } else if (depth <= 40) {
-      return BiomeType.deepOcean;
+    if (depth < 20) {
+      return BiomeType.shallowWaters;  // 0-20m
+    } else if (depth < 50) {
+      return BiomeType.coralGarden;    // 20-50m
+    } else if (depth < 100) {
+      return BiomeType.deepOcean;      // 50-100m
     } else {
-      return BiomeType.abyssalZone;
+      return BiomeType.abyssalZone;    // 100m+
     }
   }
 
-  /// Calculate depth progression based on session progress (0.0 to 1.0)
-  static double calculateSessionDepth(int sessionDurationMinutes, double progress) {
-    // Target depth based on session duration (Master Plan)
-    double targetDepth;
-    if (sessionDurationMinutes <= 20) {
-      targetDepth = 10; // Shallow Water Research (5-10m)
-    } else if (sessionDurationMinutes <= 30) {
-      targetDepth = 20; // Mid-Water Expedition (10-20m)
-    } else if (sessionDurationMinutes <= 60) {
-      targetDepth = 40; // Deep Sea Research (20-40m)
-    } else {
-      targetDepth = 60; // Abyssal Expedition (40m+)
-    }
-    
-    // Return current depth based on session progress
-    return targetDepth * progress;
-  }
+  // Note: Session depth calculation is now handled by DepthTraversalService
+  // which uses the RP-based accelerated traversal system for dynamic depth calculation
 }

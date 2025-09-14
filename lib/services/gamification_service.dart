@@ -203,10 +203,6 @@ class GamificationService {
     int qualityBonus = 0;
     
     if (isStudySession && sessionCompleted) {
-      // For proper RP calculation, don't pass fake break duration
-      // Break adherence bonus should only be awarded for actual breaks taken
-      // TODO: Implement actual break tracking during sessions
-
       // Create session quality model with correct break data
       final sessionQuality = SessionQualityModel.fromSessionData(
         sessionDuration: Duration(minutes: durationMinutes),

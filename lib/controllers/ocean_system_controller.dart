@@ -4,6 +4,8 @@ import '../models/creature.dart';
 import '../models/coral.dart';
 import '../services/creature_service.dart';
 import '../services/ocean_audio_service.dart';
+import '../services/depth_traversal_service.dart';
+import '../services/gamification_service.dart';
 
 class OceanSystemController extends ChangeNotifier {
   Aquarium? _aquarium;
@@ -126,7 +128,13 @@ class OceanSystemController extends ChangeNotifier {
   Future<Creature?> checkForCreatureDiscovery(int sessionDuration) async {
     if (_aquarium == null) return null;
     
-    final sessionDepth = CreatureService.calculateSessionDepth(sessionDuration, 1.0);
+    // Calculate session depth using the RP-based accelerated traversal system
+    final gamificationService = GamificationService.instance;
+    final cumulativeRP = gamificationService.cumulativeRP;
+    final sessionDepth = DepthTraversalService.calculateCurrentDepth(
+      Duration(minutes: sessionDuration),
+      cumulativeRP,
+    );
     final discoveredCreature = await CreatureService.checkForCreatureDiscovery(
       aquarium: _aquarium!,
       sessionDurationMinutes: sessionDuration,
