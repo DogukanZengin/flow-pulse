@@ -11,6 +11,7 @@ import '../services/ocean_activity_service.dart';
 import '../services/ocean_audio_service.dart';
 import '../services/fast_forward_service.dart';
 import '../services/efficient_background_timer_service.dart';
+import '../services/depth_traversal_service.dart';
 import '../models/coral.dart';
 import '../models/aquarium.dart';
 import '../models/creature.dart';
@@ -330,20 +331,16 @@ class TimerController extends ChangeNotifier {
         allDiscoveredCreatures = [discoveredCreature];
       }
       
-      // Calculate session depth based on duration (simplified for now)
-      // TODO: Get actual depth from ocean system when method is available
-      if (sessionDuration >= 90) {
-        sessionDepthReached = 45.0; // Abyssal expedition
-      } else if (sessionDuration >= 60) {
-        sessionDepthReached = 30.0; // Deep sea research
-      } else if (sessionDuration >= 30) {
-        sessionDepthReached = 15.0; // Mid-water expedition
-      } else {
-        sessionDepthReached = 8.0; // Shallow water research
-      }
+      // Calculate session depth using the RP-based accelerated traversal system
+      final gamificationService = GamificationService.instance;
+      final cumulativeRP = gamificationService.cumulativeRP;
+
+      sessionDepthReached = DepthTraversalService.calculateCurrentDepth(
+        Duration(minutes: sessionDuration),
+        cumulativeRP,
+      );
     }
     
-    // Award XP and rewards with comprehensive session data
     final reward = await GamificationService.instance.completeSession(
       durationMinutes: sessionDuration,
       isStudySession: wasStudySession,
