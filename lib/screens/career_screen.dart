@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/achievement_display_widget.dart';
 import '../widgets/enhanced_equipment_display_widget.dart';
 import '../widgets/research_paper_display_widget.dart';
+import '../widgets/missions_display_widget.dart';
 import '../services/marine_biology_achievement_service.dart';
 import '../services/equipment_progression_service.dart';
 import '../services/research_paper_service.dart';
@@ -321,6 +322,13 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Missions Section
+          MissionsDisplayWidget(
+            compactView: true,
+            maxVisible: 3,
+          ),
+          const SizedBox(height: 24),
+
           // Quick Stats Card
           Container(
             margin: const EdgeInsets.only(bottom: 16),
