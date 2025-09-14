@@ -115,12 +115,8 @@ class SessionQualityModel {
     required Duration sessionDuration,
     Duration? breakDuration,
   }) {
-    // Sessions under 30 minutes don't require breaks
-    if (sessionDuration.inMinutes < 30) {
-      return true;
-    }
-
-    // No break taken for longer sessions
+    // Only award break adherence bonus if an actual break was taken
+    // Standard Pomodoro (25min) sessions don't automatically get break bonus
     if (breakDuration == null || breakDuration.inSeconds == 0) {
       return false;
     }

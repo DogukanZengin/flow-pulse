@@ -5,7 +5,6 @@ import 'marine_biology_career_service.dart';
 import '../models/research_points.dart';
 import '../models/session_quality.dart';
 import '../constants/research_points_constants.dart';
-import '../models/session.dart';
 
 class GamificationService {
   static GamificationService? _instance;
@@ -165,40 +164,6 @@ class GamificationService {
     return ((daysSinceFirstDay + firstDayOfYear.weekday - 1) / 7).ceil();
   }
   
-  /// Calculate break adherence based on recent sessions
-  Future<bool> _calculateBreakAdherence() async {
-    try {
-      // Get recent sessions from the database
-      final now = DateTime.now();
-      final startOfDay = DateTime(now.year, now.month, now.day);
-      final sessions = await PersistenceService.instance.sessions
-          .getSessionsByDateRange(startOfDay, now);
-
-      if (sessions.isEmpty) return false;
-
-      // Check if last session was a focus session and this is a break
-      // Or if we've had proper break ratio
-      int focusTime = 0;
-      int breakTime = 0;
-
-      for (final session in sessions) {
-        if (session.type == SessionType.focus) {
-          focusTime += session.duration;
-        } else {
-          breakTime += session.duration;
-        }
-      }
-
-      if (focusTime == 0) return false;
-
-      // Check break ratio (at least 15% break time)
-      final breakRatio = breakTime.toDouble() / (focusTime + breakTime).toDouble();
-      return breakRatio >= 0.15 && breakTime >= 30; // At least 15% and minimum 30 seconds
-    } catch (e) {
-      debugPrint('Error calculating break adherence: $e');
-      return false;
-    }
-  }
 
   Future<GamificationReward> completeSession({
     required int durationMinutes,
@@ -238,15 +203,16 @@ class GamificationService {
     int qualityBonus = 0;
     
     if (isStudySession && sessionCompleted) {
-      // Calculate break adherence
-      final hasBreakAdherence = await _calculateBreakAdherence();
-      
-      // Create session quality model using the factory method
+      // For proper RP calculation, don't pass fake break duration
+      // Break adherence bonus should only be awarded for actual breaks taken
+      // TODO: Implement actual break tracking during sessions
+
+      // Create session quality model with correct break data
       final sessionQuality = SessionQualityModel.fromSessionData(
         sessionDuration: Duration(minutes: durationMinutes),
         isCompleted: sessionCompleted,
         wasInterrupted: !sessionCompleted,
-        breakDuration: hasBreakAdherence ? Duration(minutes: 5) : null,
+        breakDuration: null, // No break duration unless actually tracked
         notes: 'Focus session',
         timestamp: now,
       );
