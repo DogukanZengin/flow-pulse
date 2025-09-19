@@ -1,22 +1,32 @@
 import 'package:flutter/material.dart';
-import '../services/gamification_service.dart';
 import '../themes/ocean_theme.dart';
 import '../utils/responsive_helper.dart';
+import '../services/depth_traversal_service.dart';
 
 /// Marine biology research progress display
-/// Shows current research level, species discovered, papers published, and certification progress
+/// Shows current RP, career title, species discovered in current biome, papers published, and session depth progress
 class ResearchProgressWidget extends StatefulWidget {
-  final int speciesDiscovered;
+  final int speciesDiscoveredInCurrentBiome;
   final int totalSpeciesInCurrentBiome;
+  final int totalSpeciesDiscovered; // For reference/tooltip
   final int researchPapersPublished;
-  final double certificationProgress; // 0.0 to 1.0
+  final int cumulativeRP;
+  final String currentDepthZone;
+  final String currentCareerTitle;
+  final int secondsElapsed; // Current session elapsed time in seconds
+  final int totalSessionSeconds; // Total session duration in seconds
 
   const ResearchProgressWidget({
     super.key,
-    required this.speciesDiscovered,
+    required this.speciesDiscoveredInCurrentBiome,
     required this.totalSpeciesInCurrentBiome,
+    required this.totalSpeciesDiscovered,
     required this.researchPapersPublished,
-    required this.certificationProgress,
+    required this.cumulativeRP,
+    required this.currentDepthZone,
+    required this.currentCareerTitle,
+    required this.secondsElapsed,
+    required this.totalSessionSeconds,
   });
 
   @override
@@ -52,30 +62,67 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
     super.dispose();
   }
 
-  String _getResearcherTitle() {
-    final level = GamificationService.instance.currentLevel;
-    if (level >= 76) return 'Ocean Explorer';
-    if (level >= 51) return 'Marine Biologist';
-    if (level >= 26) return 'Deep Water Researcher';
-    if (level >= 11) return 'Open Water Diver';
-    return 'Snorkeling Enthusiast';
+  Color _getDepthZoneColor() {
+    switch (widget.currentDepthZone) {
+      case 'Abyssal Zone':
+        return OceanTheme.rarePurple; // Deep abyss - purple
+      case 'Deep Ocean':
+        return OceanTheme.diveTeal; // Deep waters - teal
+      case 'Coral Garden':
+        return OceanTheme.successGreen; // Coral reef - green
+      case 'Shallow Waters':
+      default:
+        return OceanTheme.shallowWaterBlue; // Surface waters - light blue
+    }
   }
 
-  Color _getLevelColor() {
-    final level = GamificationService.instance.currentLevel;
-    if (level >= 76) return OceanTheme.rarePurple; // Master level - purple
-    if (level >= 51) return OceanTheme.uncommonBlue; // Expert level - blue
-    if (level >= 26) return OceanTheme.diveTeal; // Advanced level - teal
-    if (level >= 11) return OceanTheme.successGreen; // Intermediate level - green
-    return OceanTheme.shallowWaterBlue; // Beginner level - light blue
+  IconData _getDepthZoneIcon() {
+    switch (widget.currentDepthZone) {
+      case 'Abyssal Zone':
+        return Icons.water_drop; // Deep abyss
+      case 'Deep Ocean':
+        return Icons.waves; // Deep waters
+      case 'Coral Garden':
+        return Icons.filter_vintage; // Coral reef
+      case 'Shallow Waters':
+      default:
+        return Icons.wb_sunny; // Surface waters
+    }
   }
+
+  double _getCurrentDepth() {
+    // Use the actual RP-based depth calculation system
+    final elapsedTime = Duration(seconds: widget.secondsElapsed);
+    return DepthTraversalService.calculateCurrentDepth(elapsedTime, widget.cumulativeRP);
+  }
+
+  double _getMaxDepth() {
+    // Calculate max depth for full session
+    final totalTime = Duration(seconds: widget.totalSessionSeconds);
+    return DepthTraversalService.calculateCurrentDepth(totalTime, widget.cumulativeRP);
+  }
+
+  double _getSessionDepthProgress() {
+    final maxDepth = _getMaxDepth();
+    if (maxDepth <= 0) return 0.0;
+
+    final currentDepth = _getCurrentDepth();
+    return (currentDepth / maxDepth).clamp(0.0, 1.0);
+  }
+
+  String _getDepthStatus() {
+    final currentDepth = _getCurrentDepth();
+    final maxDepth = _getMaxDepth();
+    return '${currentDepth.toStringAsFixed(1)}/${maxDepth.toStringAsFixed(1)}m';
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    final level = GamificationService.instance.currentLevel;
-    final levelColor = _getLevelColor();
-    final speciesProgress = widget.totalSpeciesInCurrentBiome > 0 
-        ? widget.speciesDiscovered / widget.totalSpeciesInCurrentBiome 
+    final depthZoneColor = _getDepthZoneColor();
+    final sessionDepthProgress = _getSessionDepthProgress();
+    final speciesProgress = widget.totalSpeciesInCurrentBiome > 0
+        ? widget.speciesDiscoveredInCurrentBiome / widget.totalSpeciesInCurrentBiome
         : 0.0;
 
     return AnimatedBuilder(
@@ -101,12 +148,12 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
               ],
             ),
             border: Border.all(
-              color: levelColor.withValues(alpha: _glowAnimation.value),
+              color: depthZoneColor.withValues(alpha: _glowAnimation.value),
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: levelColor.withValues(alpha: 0.3 * _glowAnimation.value),
+                color: depthZoneColor.withValues(alpha: 0.3 * _glowAnimation.value),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -123,7 +170,7 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                   children: [
                     Icon(
                       Icons.science,
-                      color: levelColor,
+                      color: depthZoneColor,
                       size: 16,
                     ),
                     const SizedBox(width: 6),
@@ -140,14 +187,14 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 4),
-                
-                // Level and title
+
+                // RP and career title
                 Text(
-                  'Level $level: ${_getResearcherTitle()}',
+                  '${widget.cumulativeRP} RP: ${widget.currentCareerTitle}',
                   style: TextStyle(
-                    color: levelColor,
+                    color: depthZoneColor,
                     fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                     fontWeight: FontWeight.w600,
                   ),
@@ -165,7 +212,7 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                           Text(
-                            'Species: ${widget.speciesDiscovered}/${widget.totalSpeciesInCurrentBiome}',
+                            '${widget.currentDepthZone}: ${widget.speciesDiscoveredInCurrentBiome}/${widget.totalSpeciesInCurrentBiome}',
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
@@ -189,68 +236,65 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                 
                 const SizedBox(height: 4),
                 
-                // Papers and certification
+                // Papers and depth zone progress
                 Flexible(
                   child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Papers: ${widget.researchPapersPublished}',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Papers: ${widget.researchPapersPublished}',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Next Level: ${(widget.certificationProgress * 100).round()}%',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Depth: ${_getDepthStatus()}',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          LinearProgressIndicator(
-                            value: widget.certificationProgress.clamp(0.0, 1.0),
-                            backgroundColor: Colors.white.withValues(alpha: 0.1),
-                            valueColor: AlwaysStoppedAnimation<Color>(levelColor),
-                            minHeight: ResponsiveHelper.isMobile(context) ? 2 : 3,
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Level badge
-                    Container(
-                      width: ResponsiveHelper.isMobile(context) ? 32 : 36,
-                      height: ResponsiveHelper.isMobile(context) ? 32 : 36,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            levelColor.withValues(alpha: 0.8),
-                            levelColor.withValues(alpha: 0.4),
+                            const SizedBox(height: 2),
+                            LinearProgressIndicator(
+                              value: sessionDepthProgress.clamp(0.0, 1.0),
+                              backgroundColor: Colors.white.withValues(alpha: 0.1),
+                              valueColor: AlwaysStoppedAnimation<Color>(depthZoneColor),
+                              minHeight: ResponsiveHelper.isMobile(context) ? 2 : 3,
+                            ),
                           ],
                         ),
-                        border: Border.all(
-                          color: levelColor,
-                          width: 2,
-                        ),
                       ),
-                      child: Center(
-                        child: Text(
-                          '$level',
-                          style: TextStyle(
+                      // Depth zone badge
+                      Container(
+                        width: ResponsiveHelper.isMobile(context) ? 32 : 36,
+                        height: ResponsiveHelper.isMobile(context) ? 32 : 36,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              depthZoneColor.withValues(alpha: 0.8),
+                              depthZoneColor.withValues(alpha: 0.4),
+                            ],
+                          ),
+                          border: Border.all(
+                            color: depthZoneColor,
+                            width: 2,
+                          ),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            _getDepthZoneIcon(),
                             color: Colors.white,
-                            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
-                            fontWeight: FontWeight.bold,
+                            size: ResponsiveHelper.isMobile(context) ? 16 : 18,
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
                   ),
                 ),
               ],

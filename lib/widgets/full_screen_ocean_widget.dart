@@ -12,6 +12,7 @@ import '../rendering/advanced_creature_renderer.dart';
 import '../rendering/biome_environment_renderer.dart';
 import '../widgets/enhanced_research_journal.dart';
 import '../data/comprehensive_species_database.dart';
+import '../services/marine_biology_career_service.dart';
 import '../themes/ocean_theme.dart';
 import '../constants/timer_constants.dart';
 import '../utils/responsive_helper.dart';
@@ -334,6 +335,28 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     return 'Ascending';
   }
 
+  /// Calculate how many species have been discovered in the current biome
+  BiomeType _getRPBasedBiome() {
+    // Get biome based on RP progression for species filtering
+    final depthZoneName = GamificationService.instance.getDepthZoneName();
+    switch (depthZoneName) {
+      case 'Abyssal Zone':
+        return BiomeType.abyssalZone;
+      case 'Deep Ocean':
+        return BiomeType.deepOcean;
+      case 'Coral Garden':
+        return BiomeType.coralGarden;
+      case 'Shallow Waters':
+      default:
+        return BiomeType.shallowWaters;
+    }
+  }
+
+  int _getSpeciesDiscoveredInCurrentBiome() {
+    final currentBiome = _getCurrentBiome();
+    return _discoveredCreatures.where((creature) => creature.habitat == currentBiome).length;
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -415,10 +438,15 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                     Flexible(
                       flex: 1,
                       child: ResearchProgressWidget(
-                        speciesDiscovered: _discoveredCreatures.length,
+                        speciesDiscoveredInCurrentBiome: _getSpeciesDiscoveredInCurrentBiome(),
                         totalSpeciesInCurrentBiome: ComprehensiveSpeciesDatabase.getSpeciesForBiome(_getCurrentBiome()).length,
+                        totalSpeciesDiscovered: _discoveredCreatures.length,
                         researchPapersPublished: _publishedPapersCount,
-                        certificationProgress: GamificationService.instance.getLevelProgress(),
+                        cumulativeRP: GamificationService.instance.cumulativeRP,
+                        currentDepthZone: _getCurrentBiome().displayName,
+                        currentCareerTitle: MarineBiologyCareerService.getCareerTitle(GamificationService.instance.cumulativeRP),
+                        secondsElapsed: widget.totalSessionSeconds - widget.secondsRemaining,
+                        totalSessionSeconds: widget.totalSessionSeconds,
                       ),
                     ),
                   ],
@@ -892,6 +920,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
   Widget _buildCollapsedJournal() {
     return Center(
       child: Stack(
+        clipBehavior: Clip.none,  // Allow badge to overflow
         alignment: Alignment.center,
         children: [
           const Icon(
@@ -901,39 +930,39 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
           ),
           if (_discoveredCreatures.isNotEmpty)
             Positioned(
-              top: 4,
-              right: 2,
+              top: -2,
+              right: -4,
               child: Container(
-                // Dynamic width based on number of digits
-                constraints: const BoxConstraints(
-                  minWidth: 18,
-                  minHeight: 18,
+                // Compact size with dynamic width
+                constraints: BoxConstraints(
+                  minWidth: _discoveredCreatures.length >= 10 ? 16 : 14,
+                  minHeight: 14,
                 ),
                 padding: EdgeInsets.symmetric(
-                  horizontal: _discoveredCreatures.length >= 100 ? 3 : 4,
-                  vertical: 2,
+                  horizontal: _discoveredCreatures.length >= 100 ? 2 : _discoveredCreatures.length >= 10 ? 3 : 2,
+                  vertical: 1,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.red,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.white, width: 1.5),
+                  borderRadius: BorderRadius.circular(_discoveredCreatures.length >= 10 ? 7 : 7),
+                  border: Border.all(color: Colors.white, width: 1),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.3),
-                      blurRadius: 3,
+                      blurRadius: 2,
                       offset: const Offset(0, 1),
                     ),
                   ],
                 ),
                 child: Center(
                   child: Text(
-                    // Format large numbers
-                    _discoveredCreatures.length > 999
-                        ? '999+'
+                    // Format large numbers more compactly
+                    _discoveredCreatures.length > 99
+                        ? '99+'
                         : '${_discoveredCreatures.length}',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: _discoveredCreatures.length >= 100 ? 9 : 10,
+                      fontSize: _discoveredCreatures.length >= 10 ? 8 : 9,
                       fontWeight: FontWeight.bold,
                       height: 1.0, // Tight line height
                     ),
@@ -1046,7 +1075,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
             ),
             const SizedBox(height: 8),
             Text(
-              'Total Discoveries: ${_discoveredCreatures.length > 999 ? "999+" : _discoveredCreatures.length}',
+              'Total Discoveries: ${_discoveredCreatures.length > 99 ? "99+" : _discoveredCreatures.length}',
               style: TextStyle(
                 color: Colors.amber.withValues(alpha: 0.8),
                 fontSize: 11,
