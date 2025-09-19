@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/creature.dart';
 import 'marine_biology_career_service.dart';
@@ -9,25 +10,27 @@ class MarineBiologyAchievementService {
   /// Discovery Achievement Categories
   static List<MarineBiologyAchievement> getDiscoveryAchievements(
     List<Creature> discoveredCreatures,
-    int currentLevel,
+    int cumulativeRP,
     ResearchMetrics metrics,
   ) {
     final achievements = <MarineBiologyAchievement>[];
-    
-    // First Contact Achievements
-    if (discoveredCreatures.isNotEmpty) {
-      achievements.add(const MarineBiologyAchievement(
-        id: 'first_contact',
-        category: AchievementCategory.discovery,
-        title: 'First Contact',
-        description: 'Discover your first marine species',
-        icon: '🐠',
-        rarity: AchievementRarity.common,
-        researchValue: 50,
-        unlocksAt: 'First species discovery',
-        isUnlocked: true,
-      ));
-    }
+
+    // First Contact Achievement - always show for progress tracking
+    final hasFirstDiscovery = discoveredCreatures.isNotEmpty;
+    achievements.add(MarineBiologyAchievement(
+      id: 'first_contact',
+      category: AchievementCategory.discovery,
+      title: 'First Contact',
+      description: 'Discover your first marine species',
+      icon: '🐠',
+      rarity: AchievementRarity.common,
+      researchValue: 50,
+      unlocksAt: 'First species discovery',
+      isUnlocked: hasFirstDiscovery,
+      progress: hasFirstDiscovery ? 1.0 : 0.0,
+      current: discoveredCreatures.length.clamp(0, 1),
+      target: 1,
+    ));
     
     // Discovery Milestone Achievements
     final discoveryMilestones = [
@@ -45,21 +48,24 @@ class MarineBiologyAchievementService {
       final (count, title, description, icon) = milestone;
       final isUnlocked = discoveredCreatures.length >= count;
       final progress = discoveredCreatures.length / count;
-      
-      achievements.add(MarineBiologyAchievement(
-        id: 'discovery_$count',
-        category: AchievementCategory.discovery,
-        title: title,
-        description: description,
-        icon: icon,
-        rarity: _getRarityForMilestone(count),
-        researchValue: count * 5,
-        unlocksAt: '$count total discoveries',
-        isUnlocked: isUnlocked,
-        progress: progress.clamp(0.0, 1.0),
-        current: discoveredCreatures.length,
-        target: count,
-      ));
+
+      // Always show at least the first few milestones for progress tracking
+      if (count <= 25 || discoveredCreatures.length >= count * 0.1) {
+        achievements.add(MarineBiologyAchievement(
+          id: 'discovery_$count',
+          category: AchievementCategory.discovery,
+          title: title,
+          description: description,
+          icon: icon,
+          rarity: _getRarityForMilestone(count),
+          researchValue: count * 5,
+          unlocksAt: '$count total discoveries',
+          isUnlocked: isUnlocked,
+          progress: progress.clamp(0.0, 1.0),
+          current: discoveredCreatures.length,
+          target: count,
+        ));
+      }
     }
     
     return achievements;
@@ -224,39 +230,43 @@ class MarineBiologyAchievementService {
   
   /// Career Progression Achievements
   static List<MarineBiologyAchievement> getCareerAchievements(
-    int currentLevel,
+    int cumulativeRP,
     ResearchMetrics metrics,
   ) {
     final achievements = <MarineBiologyAchievement>[];
     
-    // Level Milestone Achievements
-    final levelMilestones = [
-      (10, 'Research Assistant', 'Graduate to Research Assistant level', '🎓'),
-      (25, 'Field Researcher', 'Achieve Field Researcher status', '🏕️'),
-      (50, 'Marine Biologist', 'Become a certified Marine Biologist', '🔬'),
-      (75, 'Senior Scientist', 'Reach Senior Scientist level', '👨‍🔬'),
-      (100, 'Research Legend', 'Achieve legendary researcher status', '🏆'),
+    // RP Milestone Achievements (aligned with career progression)
+    final rpMilestones = [
+      (150, 'Research Assistant', 'Graduate to Research Assistant level', '🎓'),
+      (500, 'Research Associate', 'Achieve Research Associate status', '🏕️'),
+      (1050, 'Marine Biologist', 'Become a certified Marine Biologist', '🔬'),
+      (2750, 'Principal Investigator', 'Reach Principal Investigator level', '👨‍🔬'),
+      (5250, 'Marine Biology Professor', 'Achieve Professor status', '🏆'),
+      (10500, 'Master Marine Biologist', 'Achieve legendary researcher status', '👑'),
     ];
-    
-    for (final milestone in levelMilestones) {
-      final (level, title, description, icon) = milestone;
-      final isUnlocked = currentLevel >= level;
-      final progress = currentLevel / level;
-      
-      achievements.add(MarineBiologyAchievement(
-        id: 'career_level_$level',
-        category: AchievementCategory.career,
-        title: title,
-        description: description,
-        icon: icon,
-        rarity: _getRarityForLevel(level),
-        researchValue: level * 20,
-        unlocksAt: 'Level $level',
-        isUnlocked: isUnlocked,
-        progress: progress.clamp(0.0, 1.0),
-        current: currentLevel,
-        target: level,
-      ));
+
+    for (final milestone in rpMilestones) {
+      final (requiredRP, title, description, icon) = milestone;
+      final isUnlocked = cumulativeRP >= requiredRP;
+      final progress = cumulativeRP / requiredRP;
+
+      // Always show first few milestones and any that are in progress
+      if (requiredRP <= 1050 || cumulativeRP >= requiredRP * 0.1) {
+        achievements.add(MarineBiologyAchievement(
+          id: 'career_rp_$requiredRP',
+          category: AchievementCategory.career,
+          title: title,
+          description: description,
+          icon: icon,
+          rarity: _getRarityForRP(requiredRP),
+          researchValue: (requiredRP / 10).round(),
+          unlocksAt: '$requiredRP RP',
+          isUnlocked: isUnlocked,
+          progress: progress.clamp(0.0, 1.0),
+          current: cumulativeRP,
+          target: requiredRP,
+        ));
+      }
     }
     
     // Research Efficiency Achievements
@@ -342,21 +352,24 @@ class MarineBiologyAchievementService {
       final (days, title, description, icon) = milestone;
       final isUnlocked = currentStreak >= days;
       final progress = currentStreak / days;
-      
-      achievements.add(MarineBiologyAchievement(
-        id: 'streak_$days',
-        category: AchievementCategory.streak,
-        title: title,
-        description: description,
-        icon: icon,
-        rarity: _getRarityForStreak(days),
-        researchValue: days * 15,
-        unlocksAt: '$days-day streak',
-        isUnlocked: isUnlocked,
-        progress: progress.clamp(0.0, 1.0),
-        current: currentStreak,
-        target: days,
-      ));
+
+      // Always show early streak milestones
+      if (days <= 14 || currentStreak >= days * 0.5) {
+        achievements.add(MarineBiologyAchievement(
+          id: 'streak_$days',
+          category: AchievementCategory.streak,
+          title: title,
+          description: description,
+          icon: icon,
+          rarity: _getRarityForStreak(days),
+          researchValue: days * 15,
+          unlocksAt: '$days-day streak',
+          isUnlocked: isUnlocked,
+          progress: progress.clamp(0.0, 1.0),
+          current: currentStreak,
+          target: days,
+        ));
+      }
     }
     
     // Session Count Achievements
@@ -373,21 +386,24 @@ class MarineBiologyAchievementService {
       final (count, title, description, icon) = milestone;
       final isUnlocked = totalSessions >= count;
       final progress = totalSessions / count;
-      
-      achievements.add(MarineBiologyAchievement(
-        id: 'sessions_$count',
-        category: AchievementCategory.productivity,
-        title: title,
-        description: description,
-        icon: icon,
-        rarity: _getRarityForSessions(count),
-        researchValue: count * 5,
-        unlocksAt: '$count completed sessions',
-        isUnlocked: isUnlocked,
-        progress: progress.clamp(0.0, 1.0),
-        current: totalSessions,
-        target: count,
-      ));
+
+      // Always show early session milestones
+      if (count <= 50 || totalSessions >= count * 0.3) {
+        achievements.add(MarineBiologyAchievement(
+          id: 'sessions_$count',
+          category: AchievementCategory.productivity,
+          title: title,
+          description: description,
+          icon: icon,
+          rarity: _getRarityForSessions(count),
+          researchValue: count * 5,
+          unlocksAt: '$count completed sessions',
+          isUnlocked: isUnlocked,
+          progress: progress.clamp(0.0, 1.0),
+          current: totalSessions,
+          target: count,
+        ));
+      }
     }
     
     // Deep Dive Session Achievements
@@ -425,7 +441,7 @@ class MarineBiologyAchievementService {
   /// Special Research Achievements
   static List<MarineBiologyAchievement> getSpecialAchievements(
     List<Creature> discoveredCreatures,
-    int currentLevel,
+    int cumulativeRP,
     ResearchMetrics metrics,
   ) {
     final achievements = <MarineBiologyAchievement>[];
@@ -495,19 +511,29 @@ class MarineBiologyAchievementService {
   /// Get all achievements for display
   static List<MarineBiologyAchievement> getAllAchievements(
     List<Creature> discoveredCreatures,
-    int currentLevel,
+    int cumulativeRP,
     ResearchMetrics metrics,
     int currentStreak,
     int totalSessions,
   ) {
     final allAchievements = <MarineBiologyAchievement>[];
-    
-    allAchievements.addAll(getDiscoveryAchievements(discoveredCreatures, currentLevel, metrics));
-    allAchievements.addAll(getRarityAchievements(discoveredCreatures));
-    allAchievements.addAll(getBiomeAchievements(discoveredCreatures));
-    allAchievements.addAll(getCareerAchievements(currentLevel, metrics));
-    allAchievements.addAll(getStreakAchievements(currentStreak, totalSessions, metrics.averageSessionTime));
-    allAchievements.addAll(getSpecialAchievements(discoveredCreatures, currentLevel, metrics));
+
+    final discoveryAchievements = getDiscoveryAchievements(discoveredCreatures, cumulativeRP, metrics);
+    final rarityAchievements = getRarityAchievements(discoveredCreatures);
+    final biomeAchievements = getBiomeAchievements(discoveredCreatures);
+    final careerAchievements = getCareerAchievements(cumulativeRP, metrics);
+    final streakAchievements = getStreakAchievements(currentStreak, totalSessions, metrics.averageSessionTime);
+    final specialAchievements = getSpecialAchievements(discoveredCreatures, cumulativeRP, metrics);
+
+    // Debug logging
+    debugPrint('🏆 Achievement Service: Generated ${discoveryAchievements.length + rarityAchievements.length + biomeAchievements.length + careerAchievements.length + streakAchievements.length + specialAchievements.length} total achievements');
+
+    allAchievements.addAll(discoveryAchievements);
+    allAchievements.addAll(rarityAchievements);
+    allAchievements.addAll(biomeAchievements);
+    allAchievements.addAll(careerAchievements);
+    allAchievements.addAll(streakAchievements);
+    allAchievements.addAll(specialAchievements);
     
     // Sort by category then by unlock status
     allAchievements.sort((a, b) {
@@ -535,6 +561,13 @@ class MarineBiologyAchievementService {
     if (level >= 100) return AchievementRarity.legendary;
     if (level >= 50) return AchievementRarity.rare;
     if (level >= 25) return AchievementRarity.uncommon;
+    return AchievementRarity.common;
+  }
+
+  static AchievementRarity _getRarityForRP(int rp) {
+    if (rp >= 10500) return AchievementRarity.legendary; // Master Marine Biologist
+    if (rp >= 2750) return AchievementRarity.rare; // Principal Investigator+
+    if (rp >= 500) return AchievementRarity.uncommon; // Research Associate+
     return AchievementRarity.common;
   }
   

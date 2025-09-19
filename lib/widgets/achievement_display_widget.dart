@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../services/marine_biology_achievement_service.dart';
 
@@ -16,15 +17,19 @@ class AchievementDisplayWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final filteredAchievements = showOnlyUnlocked 
+    final filteredAchievements = showOnlyUnlocked
         ? achievements.where((a) => a.isUnlocked).toList()
         : achievements;
-    
+
+    // Debug logging
+    debugPrint('🏅 AchievementDisplayWidget: ${achievements.length} total, ${filteredAchievements.length} filtered, showOnlyUnlocked: $showOnlyUnlocked, compactView: $compactView');
+
     if (filteredAchievements.isEmpty) {
+      debugPrint('🏅 AchievementDisplayWidget: Showing empty state');
       return _buildEmptyState();
     }
-    
-    return compactView 
+
+    return compactView
         ? _buildCompactView(filteredAchievements)
         : _buildFullView(filteredAchievements);
   }

@@ -11,7 +11,7 @@ class ResearchPaperService {
   /// Get available research papers based on user progress
   static List<ResearchPaper> getAvailablePapers(
     List<Creature> discoveredCreatures,
-    int userLevel,
+    int cumulativeRP,
     List<String> publishedPaperIds,
   ) {
     final papers = <ResearchPaper>[];
@@ -31,7 +31,7 @@ class ResearchPaperService {
         .toList();
     
     // Biome-specific papers
-    if (shallowWaterCreatures.length >= 5 && userLevel >= 5) {
+    if (shallowWaterCreatures.length >= 5 && cumulativeRP >= 200) { // Level 5 = 200 RP
       papers.add(ResearchPaper(
         id: 'shallow_waters_survey',
         title: 'Shallow Waters Biodiversity Survey',
@@ -48,7 +48,7 @@ class ResearchPaperService {
       ));
     }
     
-    if (coralGardenCreatures.length >= 10 && userLevel >= 15) {
+    if (coralGardenCreatures.length >= 10 && cumulativeRP >= 700) { // Level 15 = 700 RP
       papers.add(ResearchPaper(
         id: 'coral_garden_ecology',
         title: 'Coral Garden Ecosystem Dynamics',
@@ -65,7 +65,7 @@ class ResearchPaperService {
       ));
     }
     
-    if (deepOceanCreatures.length >= 8 && userLevel >= 25) {
+    if (deepOceanCreatures.length >= 8 && cumulativeRP >= 1200) { // Level 25 = 1200 RP
       papers.add(ResearchPaper(
         id: 'deep_ocean_adaptations',
         title: 'Deep Ocean Pressure Adaptations',
@@ -82,7 +82,7 @@ class ResearchPaperService {
       ));
     }
     
-    if (abyssalCreatures.length >= 5 && userLevel >= 40) {
+    if (abyssalCreatures.length >= 5 && cumulativeRP >= 1950) { // Level 40 = 1950 RP
       papers.add(ResearchPaper(
         id: 'abyssal_bioluminescence',
         title: 'Bioluminescence in the Abyssal Zone',
@@ -105,7 +105,7 @@ class ResearchPaperService {
     final rareCount = discoveredCreatures.where((c) => c.rarity == CreatureRarity.rare).length;
     final legendaryCount = discoveredCreatures.where((c) => c.rarity == CreatureRarity.legendary).length;
     
-    if (commonCount >= 20 && userLevel >= 10) {
+    if (commonCount >= 20 && cumulativeRP >= 450) { // Level 10 = 450 RP
       papers.add(ResearchPaper(
         id: 'common_species_catalog',
         title: 'Common Marine Species Catalog',
@@ -122,7 +122,7 @@ class ResearchPaperService {
       ));
     }
     
-    if (uncommonCount >= 10 && userLevel >= 20) {
+    if (uncommonCount >= 10 && cumulativeRP >= 950) { // Level 20 = 950 RP
       papers.add(ResearchPaper(
         id: 'uncommon_species_behavior',
         title: 'Behavioral Patterns of Uncommon Species',
@@ -139,7 +139,7 @@ class ResearchPaperService {
       ));
     }
     
-    if (rareCount >= 5 && userLevel >= 35) {
+    if (rareCount >= 5 && cumulativeRP >= 1700) { // Level 35 = 1700 RP
       papers.add(ResearchPaper(
         id: 'rare_species_discovery',
         title: 'Rare Species Discovery Report',
@@ -156,7 +156,7 @@ class ResearchPaperService {
       ));
     }
     
-    if (legendaryCount >= 1 && userLevel >= 50) {
+    if (legendaryCount >= 1 && cumulativeRP >= 2450) { // Level 50 = 2450 RP
       papers.add(ResearchPaper(
         id: 'legendary_creature_thesis',
         title: 'Legendary Creature Research Thesis',
@@ -174,7 +174,7 @@ class ResearchPaperService {
     }
     
     // Comparative and special papers
-    if (discoveredCreatures.length >= 30 && userLevel >= 30) {
+    if (discoveredCreatures.length >= 30 && cumulativeRP >= 1450) { // Level 30 = 1450 RP
       papers.add(ResearchPaper(
         id: 'comparative_marine_biology',
         title: 'Comparative Marine Biology Analysis',
@@ -191,7 +191,7 @@ class ResearchPaperService {
       ));
     }
     
-    if (discoveredCreatures.length >= 50 && userLevel >= 45) {
+    if (discoveredCreatures.length >= 50 && cumulativeRP >= 2200) { // Level 45 = 2200 RP
       papers.add(ResearchPaper(
         id: 'ocean_biodiversity_report',
         title: 'Comprehensive Ocean Biodiversity Report',
@@ -208,7 +208,7 @@ class ResearchPaperService {
       ));
     }
     
-    if (discoveredCreatures.length >= 75 && userLevel >= 60) {
+    if (discoveredCreatures.length >= 75 && cumulativeRP >= 2950) { // Level 60 = 2950 RP
       papers.add(ResearchPaper(
         id: 'marine_conservation_thesis',
         title: 'Marine Conservation Strategy Thesis',
@@ -225,7 +225,7 @@ class ResearchPaperService {
       ));
     }
     
-    if (discoveredCreatures.length >= 100 && userLevel >= 75) {
+    if (discoveredCreatures.length >= 100 && cumulativeRP >= 3700) { // Level 75 = 3700 RP
       papers.add(ResearchPaper(
         id: 'marine_biology_textbook',
         title: 'Marine Biology Research Textbook',
@@ -242,7 +242,7 @@ class ResearchPaperService {
       ));
     }
     
-    if (discoveredCreatures.length >= 144 && userLevel >= 100) {
+    if (discoveredCreatures.length >= 144 && cumulativeRP >= 4950) { // Level 100 = 4950 RP
       papers.add(ResearchPaper(
         id: 'complete_ocean_encyclopedia',
         title: 'Complete Ocean Life Encyclopedia',
