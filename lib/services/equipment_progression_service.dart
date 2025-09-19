@@ -209,10 +209,6 @@ class EquipmentProgressionService {
     return (cumulativeRP / 50).floor() + 1;
   }
 
-  /// Convert level to required RP
-  int _calculateRPForLevel(int level) {
-    return (level - 1) * 50;
-  }
 }
 
 /// Research Equipment Model

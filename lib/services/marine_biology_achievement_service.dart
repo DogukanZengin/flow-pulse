@@ -556,13 +556,6 @@ class MarineBiologyAchievementService {
     return AchievementRarity.common;
   }
   
-  static AchievementRarity _getRarityForLevel(int level) {
-    if (level >= 100) return AchievementRarity.legendary;
-    if (level >= 50) return AchievementRarity.rare;
-    if (level >= 25) return AchievementRarity.uncommon;
-    return AchievementRarity.common;
-  }
-
   static AchievementRarity _getRarityForRP(int rp) {
     if (rp >= 10500) return AchievementRarity.legendary; // Master Marine Biologist
     if (rp >= 2750) return AchievementRarity.rare; // Principal Investigator+
