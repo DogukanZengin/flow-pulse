@@ -901,23 +901,41 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
           ),
           if (_discoveredCreatures.isNotEmpty)
             Positioned(
-              top: 8,
-              right: 8,
+              top: 4,
+              right: 2,
               child: Container(
-                width: 12,
-                height: 12,
+                // Dynamic width based on number of digits
+                constraints: const BoxConstraints(
+                  minWidth: 18,
+                  minHeight: 18,
+                ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: _discoveredCreatures.length >= 100 ? 3 : 4,
+                  vertical: 2,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.red,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.white, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 3,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
                 child: Center(
                   child: Text(
-                    '${_discoveredCreatures.length}',
-                    style: const TextStyle(
+                    // Format large numbers
+                    _discoveredCreatures.length > 999
+                        ? '999+'
+                        : '${_discoveredCreatures.length}',
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 8,
+                      fontSize: _discoveredCreatures.length >= 100 ? 9 : 10,
                       fontWeight: FontWeight.bold,
+                      height: 1.0, // Tight line height
                     ),
                   ),
                 ),
@@ -1028,7 +1046,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
             ),
             const SizedBox(height: 8),
             Text(
-              'Total Discoveries: ${_discoveredCreatures.length}',
+              'Total Discoveries: ${_discoveredCreatures.length > 999 ? "999+" : _discoveredCreatures.length}',
               style: TextStyle(
                 color: Colors.amber.withValues(alpha: 0.8),
                 fontSize: 11,
