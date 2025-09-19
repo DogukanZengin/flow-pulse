@@ -44,65 +44,99 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
   }
   
   Future<void> _loadCareerData() async {
+    List<MarineBiologyAchievement> achievements = [];
+
     try {
       // Load discovered creatures from persistence
       final discoveredCreatures = await PersistenceService.instance.ocean.getDiscoveredCreatures();
-      
+
       // Get gamification data
-      final currentLevel = GamificationService.instance.currentLevel;
+      final cumulativeRP = GamificationService.instance.cumulativeRP;
       final currentStreak = GamificationService.instance.currentStreak;
       final totalSessions = GamificationService.instance.totalSessions;
-      
+
       // Calculate research metrics
       final metrics = MarineBiologyCareerService.calculateResearchMetrics(
         discoveredCreatures,
         totalSessions,
         (GamificationService.instance.totalFocusTime / 60.0).round(), // Convert to minutes (int)
       );
-      
-      // Load achievements
-      final achievements = MarineBiologyAchievementService.getAllAchievements(
+
+      // Load achievements (isolated from equipment/paper loading errors)
+      achievements = MarineBiologyAchievementService.getAllAchievements(
         discoveredCreatures,
-        currentLevel,
+        cumulativeRP,
         metrics,
         currentStreak,
         totalSessions,
       );
-      
-      // Load equipment data
-      final equipmentService = EquipmentProgressionService(PersistenceService.instance.equipment);
-      
-      // Safety check: unlock any equipment that should be unlocked at current level
+
+      // Debug logging
+      debugPrint('🎯 Career Screen: Loaded ${achievements.length} achievements (${achievements.where((a) => a.isUnlocked).length} unlocked)');
+
+      // Try to load equipment and papers (these might fail but shouldn't affect achievements)
       try {
-        final unlockedEquipment = await PersistenceService.instance.equipment.checkAndUnlockEquipmentByRP(currentLevel);
-        if (unlockedEquipment.isNotEmpty) {
-          debugPrint('🎒 Career screen: Unlocked ${unlockedEquipment.length} equipment items for level $currentLevel');
+        // Load equipment data
+        final equipmentService = EquipmentProgressionService(PersistenceService.instance.equipment);
+
+        // Safety check: ensure equipment data is initialized
+        try {
+          await PersistenceService.instance.equipment.initializeDefaultEquipment();
+        } catch (e) {
+          debugPrint('⚠️ Warning: Could not ensure equipment initialization: $e');
+        }
+
+        // Safety check: unlock any equipment that should be unlocked at current level
+        try {
+          final unlockedEquipment = await PersistenceService.instance.equipment.checkAndUnlockEquipmentByRP(cumulativeRP);
+          if (unlockedEquipment.isNotEmpty) {
+            debugPrint('🎒 Career screen: Unlocked ${unlockedEquipment.length} equipment items for $cumulativeRP RP');
+          }
+        } catch (e) {
+          debugPrint('❌ Error checking equipment unlocks: $e');
+        }
+
+        final equipment = await equipmentService.getAllEquipment(cumulativeRP, discoveredCreatures, []);
+        final equipmentBonuses = await equipmentService.calculateEquipmentBonuses([], cumulativeRP, discoveredCreatures);
+
+        // Load research papers
+        final availablePapers = ResearchPaperService.getAvailablePapers(discoveredCreatures, cumulativeRP, []);
+        final publishedPapers = <ResearchPaper>[]; // Initialize as empty list for now
+
+        if (mounted) {
+          setState(() {
+            _achievements = achievements;
+            _equipment = equipment;
+            _equipmentBonuses = equipmentBonuses;
+            _availablePapers = availablePapers;
+            _publishedPapers = publishedPapers;
+          });
         }
       } catch (e) {
-        debugPrint('❌ Error checking equipment unlocks: $e');
-      }
-      
-      final equipment = await equipmentService.getAllEquipment(currentLevel, discoveredCreatures, []);
-      final equipmentBonuses = await equipmentService.calculateEquipmentBonuses([], currentLevel, discoveredCreatures);
-      
-      // Load research papers
-      final availablePapers = ResearchPaperService.getAvailablePapers(discoveredCreatures, currentLevel, []);
-      final publishedPapers = <ResearchPaper>[]; // Initialize as empty list for now
-      
-      if (mounted) {
-        setState(() {
-          _achievements = achievements;
-          _equipment = equipment;
-          _equipmentBonuses = equipmentBonuses;
-          _availablePapers = availablePapers;
-          _publishedPapers = publishedPapers;
-        });
+        debugPrint('Error loading equipment/papers: $e');
+        // Set achievements and fallback equipment state
+        if (mounted) {
+          setState(() {
+            _achievements = achievements; // Preserve achievements
+            _equipmentBonuses = const EquipmentBonuses(
+              discoveryRateBonus: 0.0,
+              sessionXPBonus: 0.0,
+              equippedCount: 0,
+              availableCount: 0,
+              totalCount: 0,
+              categoryBonuses: {},
+            );
+          });
+        }
       }
     } catch (e) {
-      debugPrint('Error loading career data: $e');
-      // Fallback to empty state
+      debugPrint('Error loading core career data: $e');
+      // Even if everything fails, try to set achievements if we got them
       if (mounted) {
         setState(() {
+          if (achievements.isNotEmpty) {
+            _achievements = achievements;
+          }
           _equipmentBonuses = const EquipmentBonuses(
             discoveryRateBonus: 0.0,
             sessionXPBonus: 0.0,

@@ -9,44 +9,49 @@ class EquipmentProgressionService {
   
   EquipmentProgressionService(this._equipmentRepository);
   
-  /// Get all available equipment based on user level and discoveries
+  /// Get all available equipment based on cumulative RP and discoveries
   Future<List<ResearchEquipment>> getAllEquipment(
-    int userLevel,
+    int cumulativeRP,
     List<Creature> discoveredCreatures,
     List<String> unlockedEquipment,
   ) async {
     final equipmentData = await _equipmentRepository.getAllEquipment();
     final List<ResearchEquipment> equipment = [];
-    
+
     for (final data in equipmentData) {
-      final isUnlocked = (data['is_unlocked'] as int) == 1;
-      final isEquipped = (data['is_equipped'] as int) == 1;
-      
+      // Safely handle nullable integers with proper defaults
+      final isUnlocked = ((data['is_unlocked'] as int?) ?? 0) == 1;
+      final isEquipped = ((data['is_equipped'] as int?) ?? 0) == 1;
+
+      // Get unlock_rp and calculate level from it
+      final unlockRP = (data['unlock_rp'] as int?) ?? 0;
+      final unlockLevel = _calculateLevelFromRP(unlockRP);
+
       equipment.add(ResearchEquipment(
         id: data['id'] as String,
         name: data['name'] as String,
-        description: data['description'] as String,
-        icon: data['icon'] as String,
-        unlockLevel: data['unlock_level'] as int,
-        category: _parseCategory(data['category'] as String),
-        rarity: _parseRarity(data['rarity'] as String),
+        description: data['description'] as String? ?? '',
+        icon: data['icon'] as String? ?? '🔬',
+        unlockLevel: unlockLevel,
+        category: _parseCategory(data['category'] as String? ?? 'documentation'),
+        rarity: _parseRarity(data['rarity'] as String? ?? 'common'),
         benefits: _generateBenefits(data),
         discoveryBonus: (data['discovery_bonus'] as num?)?.toDouble() ?? 0.0,
         sessionBonus: (data['session_bonus'] as num?)?.toDouble() ?? 0.0,
         isUnlocked: isUnlocked,
         isEquipped: isEquipped,
-        unlockCondition: 'Reach level ${data['unlock_level']}',
+        unlockCondition: 'Reach level $unlockLevel ($unlockRP RP)',
         requiredDiscoveries: (data['required_discoveries'] as int?) ?? 0,
         requiredRareSpecies: (data['required_rare_species'] as int?) ?? 0,
         requiredLegendarySpecies: (data['required_legendary_species'] as int?) ?? 0,
       ));
     }
-    
+
     return equipment;
   }
   
   /// Calculate total equipment bonuses
-  Future<EquipmentBonuses> calculateEquipmentBonuses(List<String> equippedEquipment, int userLevel, List<Creature> discoveredCreatures) async {
+  Future<EquipmentBonuses> calculateEquipmentBonuses(List<String> equippedEquipment, int cumulativeRP, List<Creature> discoveredCreatures) async {
     final allEquipment = await _equipmentRepository.getAllEquipment();
     final equippedItems = await _equipmentRepository.getEquippedItems();
     final unlockedItems = await _equipmentRepository.getUnlockedEquipment();
@@ -76,35 +81,37 @@ class EquipmentProgressionService {
   }
   
   /// Get next equipment unlock
-  Future<ResearchEquipment?> getNextUnlock(int userLevel, List<Creature> discoveredCreatures, List<String> unlockedEquipment) async {
+  Future<ResearchEquipment?> getNextUnlock(int cumulativeRP, List<Creature> discoveredCreatures, List<String> unlockedEquipment) async {
     final equipmentData = await _equipmentRepository.getAllEquipment();
-    
+
     for (final data in equipmentData) {
-      final isUnlocked = (data['is_unlocked'] as int) == 1;
-      final unlockLevel = data['unlock_level'] as int;
-      
+      final isUnlocked = ((data['is_unlocked'] as int?) ?? 0) == 1;
+      final unlockRP = (data['unlock_rp'] as int?) ?? 0;
+      final unlockLevel = _calculateLevelFromRP(unlockRP);
+
+      final userLevel = _calculateLevelFromRP(cumulativeRP);
       if (!isUnlocked && unlockLevel <= userLevel + 3) { // Show items up to 3 levels ahead
         return ResearchEquipment(
           id: data['id'] as String,
           name: data['name'] as String,
-          description: data['description'] as String,
-          icon: data['icon'] as String,
+          description: data['description'] as String? ?? '',
+          icon: data['icon'] as String? ?? '🔬',
           unlockLevel: unlockLevel,
-          category: _parseCategory(data['category'] as String),
-          rarity: _parseRarity(data['rarity'] as String),
+          category: _parseCategory(data['category'] as String? ?? 'documentation'),
+          rarity: _parseRarity(data['rarity'] as String? ?? 'common'),
           benefits: _generateBenefits(data),
           discoveryBonus: (data['discovery_bonus'] as num?)?.toDouble() ?? 0.0,
           sessionBonus: (data['session_bonus'] as num?)?.toDouble() ?? 0.0,
           isUnlocked: false,
           isEquipped: false,
-          unlockCondition: 'Reach level $unlockLevel',
+          unlockCondition: 'Reach level $unlockLevel ($unlockRP RP)',
           requiredDiscoveries: (data['required_discoveries'] as int?) ?? 0,
           requiredRareSpecies: (data['required_rare_species'] as int?) ?? 0,
           requiredLegendarySpecies: (data['required_legendary_species'] as int?) ?? 0,
         );
       }
     }
-    
+
     return null;
   }
   
@@ -195,6 +202,16 @@ class EquipmentProgressionService {
     }
     
     return benefits;
+  }
+
+  /// Convert RP to level (same formula as GamificationService)
+  int _calculateLevelFromRP(int cumulativeRP) {
+    return (cumulativeRP / 50).floor() + 1;
+  }
+
+  /// Convert level to required RP
+  int _calculateRPForLevel(int level) {
+    return (level - 1) * 50;
   }
 }
 
