@@ -13,6 +13,7 @@ import '../rendering/biome_environment_renderer.dart';
 import '../widgets/enhanced_research_journal.dart';
 import '../data/comprehensive_species_database.dart';
 import '../services/marine_biology_career_service.dart';
+import '../services/depth_traversal_service.dart';
 import '../themes/ocean_theme.dart';
 import '../constants/timer_constants.dart';
 import '../utils/responsive_helper.dart';
@@ -253,24 +254,17 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
   }
 
   /// Calculate current depth based on session progress and session type
-  int _getCurrentDepth() {
-    final baseDepth = widget.sessionProgress * _getTargetDepth();
-    return baseDepth.round();
+  double _getCurrentDepth() {
+    // Use RP-based depth calculation system
+    final elapsedTime = Duration(seconds: widget.totalSessionSeconds - widget.secondsRemaining);
+    return DepthTraversalService.calculateCurrentDepth(elapsedTime, GamificationService.instance.cumulativeRP);
   }
 
-  /// Get target depth based on session duration (diving expedition type)
-  int _getTargetDepth() {
-    final sessionMinutes = widget.totalSessionSeconds / 60;
-    
-    if (sessionMinutes >= 90) {
-      return 50; // Abyssal expedition
-    } else if (sessionMinutes >= 45) {
-      return 35; // Deep sea research
-    } else if (sessionMinutes >= 25) {
-      return 20; // Mid-water expedition
-    } else {
-      return 10; // Shallow water research
-    }
+  /// Get target depth based on RP-based depth calculation for full session
+  double _getTargetDepth() {
+    // Calculate max depth achievable in this full session using RP-based system
+    final totalTime = Duration(seconds: widget.totalSessionSeconds);
+    return DepthTraversalService.calculateCurrentDepth(totalTime, GamificationService.instance.cumulativeRP);
   }
 
   BiomeType _getCurrentBiome() {
@@ -333,23 +327,6 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     if (!widget.isRunning) return 'Surface';
     if (widget.isStudySession) return 'Diving';
     return 'Ascending';
-  }
-
-  /// Calculate how many species have been discovered in the current biome
-  BiomeType _getRPBasedBiome() {
-    // Get biome based on RP progression for species filtering
-    final depthZoneName = GamificationService.instance.getDepthZoneName();
-    switch (depthZoneName) {
-      case 'Abyssal Zone':
-        return BiomeType.abyssalZone;
-      case 'Deep Ocean':
-        return BiomeType.deepOcean;
-      case 'Coral Garden':
-        return BiomeType.coralGarden;
-      case 'Shallow Waters':
-      default:
-        return BiomeType.shallowWaters;
-    }
   }
 
   int _getSpeciesDiscoveredInCurrentBiome() {
@@ -422,13 +399,14 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                     Flexible(
                       flex: 1,
                       child: DiveComputerWidget(
-                        currentDepthMeters: currentDepth,
-                        targetDepthMeters: targetDepth,
+                        currentDepthMeters: currentDepth.round(),
+                        targetDepthMeters: targetDepth.round(),
                         oxygenTimeNotifier: widget.secondsRemainingNotifier,
                         oxygenTimeSeconds: widget.secondsRemaining,
                         isDiving: widget.isRunning,
                         diveStatus: _getDiveStatus(),
-                        depthProgress: widget.sessionProgress,
+                        depthProgress: targetDepth > 0 ? (currentDepth / targetDepth).clamp(0.0, 1.0) : 0.0,
+                        currentBiome: _getCurrentBiome().displayName,
                       ),
                     ),
                     
@@ -445,8 +423,6 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                         cumulativeRP: GamificationService.instance.cumulativeRP,
                         currentDepthZone: _getCurrentBiome().displayName,
                         currentCareerTitle: MarineBiologyCareerService.getCareerTitle(GamificationService.instance.cumulativeRP),
-                        secondsElapsed: widget.totalSessionSeconds - widget.secondsRemaining,
-                        totalSessionSeconds: widget.totalSessionSeconds,
                       ),
                     ),
                   ],
@@ -493,7 +469,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
         return CustomPaint(
           painter: DepthParticlesPainter(
             progress: _bubbleController.value,
-            depth: _getCurrentDepth(),
+            depth: _getCurrentDepth().round(),
             isActive: widget.isRunning,
           ),
           size: screenSize,
@@ -573,7 +549,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
         painter: AdvancedCreaturePainter(
           creature: creature,
           swimDirection: _fishAnimations[index].value.dx > 0.5 ? 1 : -1,
-          depthLevel: _getCurrentDepth(),
+          depthLevel: _getCurrentDepth().round(),
           animationValue: _fishControllers[index].value,
         ),
       ),

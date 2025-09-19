@@ -14,6 +14,7 @@ class DiveComputerWidget extends StatefulWidget {
   final bool isDiving;
   final String diveStatus;
   final double depthProgress; // 0.0 to 1.0
+  final String currentBiome; // Current biome name for context
 
   const DiveComputerWidget({
     super.key,
@@ -24,6 +25,7 @@ class DiveComputerWidget extends StatefulWidget {
     required this.isDiving,
     required this.diveStatus,
     required this.depthProgress,
+    required this.currentBiome,
   });
 
   @override
@@ -155,30 +157,51 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Header
+                  // Technical header
                   Row(
                     children: [
                       Icon(
-                        Icons.speed,
+                        Icons.dashboard,
                         color: _getDepthColor(),
                         size: 16,
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        'DIVE COMPUTER',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
+                      Expanded(
+                        child: Text(
+                          'DIVE COMPUTER',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                            fontFamily: 'monospace', // Technical font
+                          ),
+                        ),
+                      ),
+                      // Status indicator
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: widget.isDiving ? Colors.green : Colors.grey,
+                          boxShadow: widget.isDiving
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.green.withValues(alpha: 0.6),
+                                    blurRadius: 4,
+                                    spreadRadius: 1,
+                                  ),
+                                ]
+                              : null,
                         ),
                       ),
                     ],
                   ),
-                  
-                  const SizedBox(height: 4),
-                  
-                  // Depth information
+
+                  const SizedBox(height: 8),
+
+                  // Session depth progression
                   Row(
                     children: [
                       Expanded(
@@ -186,93 +209,127 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Current: ${widget.currentDepthMeters}m',
+                              '${widget.currentDepthMeters}m → ${widget.targetDepthMeters}m',
                               style: TextStyle(
                                 color: _getDepthColor(),
                                 fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Target: ${widget.targetDepthMeters}m',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
-                              ),
+                            const SizedBox(height: 6),
+                            // Session progress bar
+                            LinearProgressIndicator(
+                              value: widget.depthProgress.clamp(0.0, 1.0),
+                              backgroundColor: Colors.white.withValues(alpha: 0.1),
+                              valueColor: AlwaysStoppedAnimation<Color>(_getDepthColor()),
+                              minHeight: ResponsiveHelper.isMobile(context) ? 3 : 4,
                             ),
                           ],
                         ),
                       ),
-                      // Depth gauge
-                      SizedBox(
-                        width: ResponsiveHelper.responsiveValue(
-                          context: context,
-                          mobile: 60.0,
-                          tablet: 70.0,
-                          desktop: 80.0,
+                      // Session progress percentage
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: _getDepthColor().withValues(alpha: 0.2),
+                          border: Border.all(
+                            color: _getDepthColor().withValues(alpha: 0.3),
+                            width: 1,
+                          ),
                         ),
-                        height: ResponsiveHelper.responsiveValue(
-                          context: context,
-                          mobile: 40.0,
-                          tablet: 45.0,
-                          desktop: 50.0,
-                        ),
-                        child: CustomPaint(
-                          painter: DepthGaugePainter(
-                            progress: widget.depthProgress,
+                        child: Text(
+                          '${(widget.depthProgress * 100).round()}%',
+                          style: TextStyle(
                             color: _getDepthColor(),
+                            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  
-                  const SizedBox(height: 4),
-                  
-                  // Oxygen time
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.air,
-                        color: widget.oxygenTimeSeconds < TimerConstants.warningThreshold.inSeconds 
-                            ? OceanTheme.warningOrange 
-                            : OceanTheme.oxygenBlue,
-                        size: 14,
+
+                  const SizedBox(height: 8),
+
+                  // Critical oxygen time
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: widget.oxygenTimeSeconds < TimerConstants.warningThreshold.inSeconds
+                          ? OceanTheme.warningOrange.withValues(alpha: 0.1)
+                          : OceanTheme.oxygenBlue.withValues(alpha: 0.1),
+                      border: Border.all(
+                        color: widget.oxygenTimeSeconds < TimerConstants.warningThreshold.inSeconds
+                            ? OceanTheme.warningOrange.withValues(alpha: 0.3)
+                            : OceanTheme.oxygenBlue.withValues(alpha: 0.3),
+                        width: 1,
                       ),
-                      const SizedBox(width: 6),
-                      widget.oxygenTimeNotifier != null
-                          ? ValueListenableBuilder<int>(
-                              valueListenable: widget.oxygenTimeNotifier!,
-                              builder: (context, oxygenTime, child) {
-                                return Text(
-                                  'O₂ Time: ${_formatTime(oxygenTime)}',
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          widget.oxygenTimeSeconds < TimerConstants.criticalThreshold.inSeconds
+                              ? Icons.warning
+                              : Icons.air,
+                          color: widget.oxygenTimeSeconds < TimerConstants.warningThreshold.inSeconds
+                              ? OceanTheme.warningOrange
+                              : OceanTheme.oxygenBlue,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: widget.oxygenTimeNotifier != null
+                              ? ValueListenableBuilder<int>(
+                                  valueListenable: widget.oxygenTimeNotifier!,
+                                  builder: (context, oxygenTime, child) {
+                                    return Text(
+                                      'O₂: ${_formatTime(oxygenTime)}',
+                                      style: TextStyle(
+                                        color: oxygenTime < TimerConstants.warningThreshold.inSeconds
+                                            ? OceanTheme.warningOrange
+                                            : OceanTheme.oxygenBlue,
+                                        fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Text(
+                                  'O₂: ${_formatTime(widget.oxygenTimeSeconds)}',
                                   style: TextStyle(
-                                    color: oxygenTime < TimerConstants.warningThreshold.inSeconds 
-                                        ? OceanTheme.warningOrange 
+                                    color: widget.oxygenTimeSeconds < TimerConstants.warningThreshold.inSeconds
+                                        ? OceanTheme.warningOrange
                                         : OceanTheme.oxygenBlue,
                                     fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                );
-                              },
-                            )
-                          : Text(
-                              'O₂ Time: ${_formatTime(widget.oxygenTimeSeconds)}',
+                                ),
+                        ),
+                        if (widget.oxygenTimeSeconds < TimerConstants.criticalThreshold.inSeconds)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(4),
+                              color: OceanTheme.warningOrange,
+                            ),
+                            child: Text(
+                              'CRITICAL',
                               style: TextStyle(
-                                color: widget.oxygenTimeSeconds < TimerConstants.warningThreshold.inSeconds 
-                            ? OceanTheme.warningOrange 
-                            : OceanTheme.oxygenBlue,
-                                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
-                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                                fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                    ],
+                          ),
+                      ],
+                    ),
                   ),
-                  
-                  const SizedBox(height: 6),
-                  
-                  // Status
+
+                  const SizedBox(height: 10),
+
+                  // Status with biome context
                   Row(
                     children: [
                       Container(
@@ -293,12 +350,15 @@ class _DiveComputerWidgetState extends State<DiveComputerWidget>
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        widget.diveStatus,
-                        style: TextStyle(
-                          color: widget.isDiving ? Colors.green : Colors.grey,
-                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
-                          fontWeight: FontWeight.w600,
+                      Expanded(
+                        child: Text(
+                          '${widget.diveStatus} • ${widget.currentBiome}',
+                          style: TextStyle(
+                            color: widget.isDiving ? Colors.green : Colors.grey,
+                            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],

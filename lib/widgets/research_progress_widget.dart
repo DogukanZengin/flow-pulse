@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../themes/ocean_theme.dart';
 import '../utils/responsive_helper.dart';
-import '../services/depth_traversal_service.dart';
+import '../services/marine_biology_career_service.dart';
 
 /// Marine biology research progress display
-/// Shows current RP, career title, species discovered in current biome, papers published, and session depth progress
+/// Shows career progression, species discoveries, research papers, and achievement milestones
 class ResearchProgressWidget extends StatefulWidget {
   final int speciesDiscoveredInCurrentBiome;
   final int totalSpeciesInCurrentBiome;
@@ -13,8 +13,6 @@ class ResearchProgressWidget extends StatefulWidget {
   final int cumulativeRP;
   final String currentDepthZone;
   final String currentCareerTitle;
-  final int secondsElapsed; // Current session elapsed time in seconds
-  final int totalSessionSeconds; // Total session duration in seconds
 
   const ResearchProgressWidget({
     super.key,
@@ -25,8 +23,6 @@ class ResearchProgressWidget extends StatefulWidget {
     required this.cumulativeRP,
     required this.currentDepthZone,
     required this.currentCareerTitle,
-    required this.secondsElapsed,
-    required this.totalSessionSeconds,
   });
 
   @override
@@ -76,51 +72,31 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
     }
   }
 
-  IconData _getDepthZoneIcon() {
-    switch (widget.currentDepthZone) {
-      case 'Abyssal Zone':
-        return Icons.water_drop; // Deep abyss
-      case 'Deep Ocean':
-        return Icons.waves; // Deep waters
-      case 'Coral Garden':
-        return Icons.filter_vintage; // Coral reef
-      case 'Shallow Waters':
-      default:
-        return Icons.wb_sunny; // Surface waters
+
+  Map<String, dynamic>? _getNextCareerMilestone() {
+    return MarineBiologyCareerService.getNextCareerMilestone(widget.cumulativeRP);
+  }
+
+  double _getCareerProgress() {
+    return MarineBiologyCareerService.getCareerProgress(widget.cumulativeRP);
+  }
+
+  String _getCareerProgressText() {
+    final nextMilestone = _getNextCareerMilestone();
+    if (nextMilestone == null) {
+      return 'Max Career Level Reached';
     }
-  }
 
-  double _getCurrentDepth() {
-    // Use the actual RP-based depth calculation system
-    final elapsedTime = Duration(seconds: widget.secondsElapsed);
-    return DepthTraversalService.calculateCurrentDepth(elapsedTime, widget.cumulativeRP);
-  }
-
-  double _getMaxDepth() {
-    // Calculate max depth for full session
-    final totalTime = Duration(seconds: widget.totalSessionSeconds);
-    return DepthTraversalService.calculateCurrentDepth(totalTime, widget.cumulativeRP);
-  }
-
-  double _getSessionDepthProgress() {
-    final maxDepth = _getMaxDepth();
-    if (maxDepth <= 0) return 0.0;
-
-    final currentDepth = _getCurrentDepth();
-    return (currentDepth / maxDepth).clamp(0.0, 1.0);
-  }
-
-  String _getDepthStatus() {
-    final currentDepth = _getCurrentDepth();
-    final maxDepth = _getMaxDepth();
-    return '${currentDepth.toStringAsFixed(1)}/${maxDepth.toStringAsFixed(1)}m';
+    final required = nextMilestone['requiredRP'] as int;
+    final needed = required - widget.cumulativeRP;
+    return 'Next: ${nextMilestone['title']} ($needed RP needed)';
   }
 
 
   @override
   Widget build(BuildContext context) {
     final depthZoneColor = _getDepthZoneColor();
-    final sessionDepthProgress = _getSessionDepthProgress();
+    final careerProgress = _getCareerProgress();
     final speciesProgress = widget.totalSpeciesInCurrentBiome > 0
         ? widget.speciesDiscoveredInCurrentBiome / widget.totalSpeciesInCurrentBiome
         : 0.0;
@@ -148,12 +124,12 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
               ],
             ),
             border: Border.all(
-              color: depthZoneColor.withValues(alpha: _glowAnimation.value),
+              color: OceanTheme.successGreen.withValues(alpha: _glowAnimation.value),
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: depthZoneColor.withValues(alpha: 0.3 * _glowAnimation.value),
+                color: OceanTheme.successGreen.withValues(alpha: 0.3 * _glowAnimation.value),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -165,12 +141,12 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Header
+                // Academic header
                 Row(
                   children: [
                     Icon(
-                      Icons.science,
-                      color: depthZoneColor,
+                      Icons.school,
+                      color: OceanTheme.successGreen,
                       size: 16,
                     ),
                     const SizedBox(width: 6),
@@ -185,16 +161,36 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                         ),
                       ),
                     ),
+                    // Career level indicator
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: OceanTheme.successGreen.withValues(alpha: 0.2),
+                        border: Border.all(
+                          color: OceanTheme.successGreen.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        '${widget.cumulativeRP} RP',
+                        style: TextStyle(
+                          color: OceanTheme.successGreen,
+                          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
 
                 const SizedBox(height: 4),
 
-                // RP and career title
+                // Career title
                 Text(
-                  '${widget.cumulativeRP} RP: ${widget.currentCareerTitle}',
+                  widget.currentCareerTitle,
                   style: TextStyle(
-                    color: depthZoneColor,
+                    color: OceanTheme.successGreen,
                     fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                     fontWeight: FontWeight.w600,
                   ),
@@ -223,7 +219,7 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                             value: speciesProgress.clamp(0.0, 1.0),
                             backgroundColor: Colors.white.withValues(alpha: 0.1),
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              OceanTheme.successGreen,
+                              depthZoneColor, // Use biome color for species discovery
                             ),
                             minHeight: ResponsiveHelper.isMobile(context) ? 2 : 3,
                           ),
@@ -233,10 +229,10 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                   ],
                   ),
                 ),
-                
-                const SizedBox(height: 4),
-                
-                // Papers and depth zone progress
+
+                const SizedBox(height: 8),
+
+                // Papers and career progression
                 Flexible(
                   child: Row(
                     children: [
@@ -251,25 +247,26 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                                 fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 4),
                             Text(
-                              'Depth: ${_getDepthStatus()}',
+                              _getCareerProgressText(),
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 2),
                             LinearProgressIndicator(
-                              value: sessionDepthProgress.clamp(0.0, 1.0),
+                              value: careerProgress.clamp(0.0, 1.0),
                               backgroundColor: Colors.white.withValues(alpha: 0.1),
-                              valueColor: AlwaysStoppedAnimation<Color>(depthZoneColor),
+                              valueColor: AlwaysStoppedAnimation<Color>(OceanTheme.successGreen),
                               minHeight: ResponsiveHelper.isMobile(context) ? 2 : 3,
                             ),
                           ],
                         ),
                       ),
-                      // Depth zone badge
+                      // Career level badge
                       Container(
                         width: ResponsiveHelper.isMobile(context) ? 32 : 36,
                         height: ResponsiveHelper.isMobile(context) ? 32 : 36,
@@ -277,18 +274,18 @@ class _ResearchProgressWidgetState extends State<ResearchProgressWidget>
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
                             colors: [
-                              depthZoneColor.withValues(alpha: 0.8),
-                              depthZoneColor.withValues(alpha: 0.4),
+                              OceanTheme.successGreen.withValues(alpha: 0.8),
+                              OceanTheme.successGreen.withValues(alpha: 0.4),
                             ],
                           ),
                           border: Border.all(
-                            color: depthZoneColor,
+                            color: OceanTheme.successGreen,
                             width: 2,
                           ),
                         ),
                         child: Center(
                           child: Icon(
-                            _getDepthZoneIcon(),
+                            Icons.school,
                             color: Colors.white,
                             size: ResponsiveHelper.isMobile(context) ? 16 : 18,
                           ),
