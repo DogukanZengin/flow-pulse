@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import '../widgets/social_research_display_widget.dart';
-import '../services/social_research_service.dart';
-import '../services/gamification_service.dart';
 
 /// Community Screen - Phase 4 Social Hub
 /// Houses leaderboards, collaborations, and community goals
@@ -13,84 +10,142 @@ class CommunityScreen extends StatefulWidget {
 }
 
 class _CommunityScreenState extends State<CommunityScreen> {
-  // Current user profile
-  late ResearcherProfile _currentUser;
-  
-  // Leaderboard data
-  List<ResearcherProfile> _leaderboard = [];
-  LeaderboardCategory _selectedCategory = LeaderboardCategory.totalDiscoveries;
-  
-  // Collaboration data
-  List<CollaborationOpportunity> _collaborations = [];
-  
-  // Community goals
-  List<CommunityGoal> _communityGoals = [];
-  
   bool _isLoading = true;
   
   @override
   void initState() {
     super.initState();
-    _loadSocialData();
-  }
-  
-  Future<void> _loadSocialData() async {
-    // Create current user profile with clean data
-    final userLevel = GamificationService.instance.currentLevel;
-    
-    _currentUser = ResearcherProfile(
-      id: 'current_user',
-      name: 'You',
-      researchLevel: userLevel,
-      totalDiscoveries: 0, // Start with 0 discoveries
-      currentStreak: GamificationService.instance.currentStreak,
-      researchEfficiency: 0.0, // Start with 0 efficiency
-      weeklyDiscoveries: 0,
-      legendaryDiscoveries: 0,
-      specialization: 'Marine Biology Research',
-      joinedDate: DateTime.now(),
-      lastActiveDate: DateTime.now(),
-      achievements: 0,
-      publicationsCount: 0,
-      collaborationsCount: 0,
-      ranking: 1, // Solo player starts at rank 1
-    );
-    
-    setState(() {
-      // Generate empty leaderboards and collaborations
-      _leaderboard = SocialResearchService.generateLeaderboards(
-        _currentUser,
-        _selectedCategory,
-      );
-      
-      // Get empty collaboration opportunities
-      _collaborations = SocialResearchService.getCollaborationOpportunities(_currentUser);
-      
-      // Get empty community goals
-      _communityGoals = SocialResearchService.getCommunityGoals();
-      
-      _isLoading = false;
+    // Simulate a brief loading period for the coming soon screen
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     });
   }
   
-  void _onCategoryChange(LeaderboardCategory category) {
-    setState(() {
-      _selectedCategory = category;
-      _leaderboard = SocialResearchService.generateLeaderboards(
-        _currentUser,
-        category,
-      );
-    });
-  }
-  
-  void _onJoinCollaboration(CollaborationOpportunity collaboration) {
-    // In production, this would handle joining a collaboration
-    showDialog(
-      context: context,
-      builder: (context) => _buildCollaborationDialog(collaboration),
+  Widget _buildComingSoonOverlay() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Ocean-themed coming soon icon
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.cyan.withValues(alpha: 0.3),
+                    Colors.blue.withValues(alpha: 0.2),
+                  ],
+                ),
+                border: Border.all(
+                  color: Colors.cyan.withValues(alpha: 0.5),
+                  width: 2,
+                ),
+              ),
+              child: const Icon(
+                Icons.waves,
+                size: 64,
+                color: Colors.cyan,
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // Coming Soon text
+            const Text(
+              'Coming Soon',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Description
+            const Text(
+              'The Research Community is currently under development.\nConnect with marine researchers worldwide in a future update!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white70,
+                height: 1.5,
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // Features preview
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.cyan.withValues(alpha: 0.1),
+                    Colors.blue.withValues(alpha: 0.05),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.cyan.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Upcoming Features:',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.cyan,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildFeatureItem(Icons.leaderboard, 'Global Leaderboards'),
+                  _buildFeatureItem(Icons.group_work, 'Research Collaborations'),
+                  _buildFeatureItem(Icons.flag, 'Community Goals'),
+                  _buildFeatureItem(Icons.school, 'Mentorship Programs'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
-  
+
+  Widget _buildFeatureItem(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: Colors.cyan.withValues(alpha: 0.8),
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            text,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.white70,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -142,25 +197,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         ],
                       ),
                     ),
-                    // User rank badge
-                    if (!_isLoading)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: _getRankColors(_currentUser.ranking),
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          _currentUser.rankingDisplay,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -171,253 +207,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     ? const Center(
                         child: CircularProgressIndicator(color: Colors.cyan),
                       )
-                    : Padding(
-                        padding: EdgeInsets.only(
-                          left: MediaQuery.of(context).size.width * 0.02,
-                          right: MediaQuery.of(context).size.width * 0.02,
-                        ),
-                        child: SocialResearchDisplayWidget(
-                          leaderboard: _leaderboard,
-                          collaborations: _collaborations,
-                          communityGoals: _communityGoals,
-                          currentUser: _currentUser,
-                          selectedCategory: _selectedCategory,
-                          onCategoryChange: _onCategoryChange,
-                          onJoinCollaboration: _onJoinCollaboration,
-                        ),
-                      ),
+                    : _buildComingSoonOverlay(),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-  
-  List<Color> _getRankColors(int rank) {
-    switch (rank) {
-      case 1:
-        return [Colors.amber, Colors.yellow];
-      case 2:
-        return [Colors.grey, Colors.white];
-      case 3:
-        return [Colors.orange, Colors.deepOrange];
-      default:
-        if (rank <= 10) return [Colors.blue, Colors.cyan];
-        return [Colors.blue.shade800, Colors.blue.shade600];
-    }
-  }
-  
-  Widget _buildCollaborationDialog(CollaborationOpportunity collaboration) {
-    return Dialog(
-      backgroundColor: const Color(0xFF1E3A5F),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              collaboration.category.color.withValues(alpha: 0.3),
-              collaboration.category.color.withValues(alpha: 0.1),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: collaboration.category.color.withValues(alpha: 0.5),
-            width: 2,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  _getCollaborationIcon(collaboration.category),
-                  color: collaboration.category.color,
-                  size: 32,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    collaboration.title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              collaboration.description,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.white70,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Rewards:',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.star, color: Colors.amber, size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  '+${collaboration.rewards.xpBonus} XP',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.amber,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Icon(Icons.badge, color: Colors.purple, size: 16),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    collaboration.rewards.specialBadge,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.purple,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.pets, color: Colors.green, size: 16),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    collaboration.rewards.exclusiveSpecies,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.green,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Requirements:',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            ...collaboration.requirements.map((req) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    collaboration.isEligible ? Icons.check_circle : Icons.cancel,
-                    color: collaboration.isEligible ? Colors.green : Colors.red,
-                    size: 14,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      req,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.8),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )),
-            const SizedBox(height: 16),
-            LinearProgressIndicator(
-              value: collaboration.completionPercentage,
-              backgroundColor: Colors.grey.withValues(alpha: 0.3),
-              valueColor: AlwaysStoppedAnimation<Color>(collaboration.category.color),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${collaboration.currentParticipants}/${collaboration.maxParticipants} participants',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.white.withValues(alpha: 0.7),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${collaboration.daysRemaining} days remaining',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.orange.withValues(alpha: 0.8),
-                  ),
-                ),
-                Row(
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Cancel'),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: collaboration.isEligible
-                          ? () {
-                              Navigator.of(context).pop();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Joined: ${collaboration.title}'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            }
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: collaboration.category.color,
-                        disabledBackgroundColor: Colors.grey.withValues(alpha: 0.3),
-                      ),
-                      child: Text(
-                        collaboration.isEligible ? 'Join Collaboration' : 'Requirements Not Met',
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  
-  IconData _getCollaborationIcon(CollaborationType type) {
-    switch (type) {
-      case CollaborationType.expedition:
-        return Icons.explore;
-      case CollaborationType.conservation:
-        return Icons.eco;
-      case CollaborationType.documentation:
-        return Icons.description;
-      case CollaborationType.mentorship:
-        return Icons.school;
-    }
   }
 }
