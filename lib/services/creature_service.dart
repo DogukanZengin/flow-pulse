@@ -6,6 +6,7 @@ import '../models/coral.dart';
 import '../models/aquarium.dart';
 import '../models/ocean_activity.dart';
 import 'persistence/persistence_service.dart';
+import 'persistence/repositories/equipment_repository.dart';
 import 'gamification_service.dart';
 
 class CreatureService {
@@ -92,6 +93,10 @@ class CreatureService {
       }
     }
 
+    // Calculate equipment discovery bonuses
+    final equipmentRepository = EquipmentRepository(PersistenceService.instance);
+    final equipmentBonus = await equipmentRepository.getTotalDiscoveryBonus();
+
     // Apply streak bonus multiplier
     final streakMultiplier = _getStreakMultiplier(currentStreak);
 
@@ -102,7 +107,7 @@ class CreatureService {
     }
 
     // Calculate final discovery chance
-    double finalChance = (baseChance + coralBonus + multiSessionBonus) * streakMultiplier;
+    double finalChance = (baseChance + coralBonus + equipmentBonus + multiSessionBonus) * streakMultiplier;
 
     // First session of day gets guaranteed discovery (minimum 90% chance)
     if (isFirstSessionOfDay) {
