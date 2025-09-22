@@ -117,9 +117,11 @@ class AnalyticsService {
   /// Get weekly pattern analysis
   Future<WeeklyPattern> getWeeklyPattern() async {
     final now = DateTime.now();
-    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    // Normalize to start of day for consistent weekly calculations
+    final today = DateTime(now.year, now.month, now.day);
+    final startOfWeek = today.subtract(Duration(days: now.weekday - 1));
     final endOfWeek = startOfWeek.add(const Duration(days: 7));
-    
+
     final sessions = await PersistenceService.instance.sessions.getSessionsByDateRange(
       startOfWeek,
       endOfWeek,
@@ -136,15 +138,15 @@ class AnalyticsService {
       dailyFocus[i] = 0.0;
     }
 
-    // Process sessions
+    // Process sessions - standardize to include only completed focus sessions
     for (final session in sessions) {
       if (session.type == SessionType.focus && session.completed) {
         final hour = session.startTime.hour;
         final weekday = session.startTime.weekday;
         final minutes = session.duration / 60.0;
 
-        hourlyFocus[hour] = (hourlyFocus[hour] ?? 0) + minutes;
-        dailyFocus[weekday] = (dailyFocus[weekday] ?? 0) + minutes;
+        hourlyFocus[hour] = hourlyFocus[hour]! + minutes;
+        dailyFocus[weekday] = dailyFocus[weekday]! + minutes;
       }
     }
 
@@ -180,17 +182,18 @@ class AnalyticsService {
   Future<List<ProductivityInsight>> getProductivityInsights() async {
     final insights = <ProductivityInsight>[];
     final now = DateTime.now();
-    
-    // Get last 7 days of data
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Get last 7 days of data (including today)
     final lastWeekData = await getAnalyticsData(
-      startDate: now.subtract(const Duration(days: 7)),
-      endDate: now,
+      startDate: today.subtract(const Duration(days: 6)),
+      endDate: today.add(const Duration(days: 1)),
     );
 
     // Get previous 7 days for comparison
     final previousWeekData = await getAnalyticsData(
-      startDate: now.subtract(const Duration(days: 14)),
-      endDate: now.subtract(const Duration(days: 7)),
+      startDate: today.subtract(const Duration(days: 13)),
+      endDate: today.subtract(const Duration(days: 6)),
     );
 
     // Calculate trends (with safety checks)
@@ -217,18 +220,20 @@ class AnalyticsService {
     // Trend analysis (only if we have previous week data to compare)
     if (prevWeekAvg > 0) {
       if (thisWeekAvg > prevWeekAvg * 1.1) {
-        final percentChange = ((thisWeekAvg - prevWeekAvg) / prevWeekAvg * 100).round();
+        final percentChange = ((thisWeekAvg - prevWeekAvg) / prevWeekAvg * 100);
+        final formattedPercent = percentChange >= 10 ? percentChange.round().toString() : percentChange.toStringAsFixed(1);
         insights.add(ProductivityInsight(
           title: "Productivity Trend ↗️",
-          description: "Your focus time increased by $percentChange% this week!",
+          description: "Your focus time increased by $formattedPercent% this week!",
           type: InsightType.positive,
           impact: 0.8,
         ));
       } else if (thisWeekAvg < prevWeekAvg * 0.9) {
-        final percentChange = ((prevWeekAvg - thisWeekAvg) / prevWeekAvg * 100).round();
+        final percentChange = ((prevWeekAvg - thisWeekAvg) / prevWeekAvg * 100);
+        final formattedPercent = percentChange >= 10 ? percentChange.round().toString() : percentChange.toStringAsFixed(1);
         insights.add(ProductivityInsight(
           title: "Focus Time Declining ↘️",
-          description: "Your focus time decreased by $percentChange% this week.",
+          description: "Your focus time decreased by $formattedPercent% this week.",
           type: InsightType.negative,
           impact: 0.7,
         ));
@@ -284,7 +289,7 @@ class AnalyticsService {
 
   /// Calculate analytics for a single day
   Future<AnalyticsData> _calculateDayAnalytics(DateTime date, List<Session> sessions) async {
-    int totalFocusTime = 0; // in minutes - includes both completed and abandoned focus sessions
+    int totalFocusTime = 0; // in minutes - only completed focus sessions for consistent analytics
     int totalBreakTime = 0; // in minutes
     int completedFocusSessions = 0;
     int totalFocusSessions = 0;
@@ -295,12 +300,12 @@ class AnalyticsService {
         continue; // Skip invalid sessions
       }
       final minutes = (session.duration / 60).round();
-      
+
       if (session.type == SessionType.focus) {
-        totalFocusTime += minutes; // Include both completed and abandoned focus sessions
         totalFocusSessions++;
         if (session.completed) {
           completedFocusSessions++;
+          totalFocusTime += minutes; // Only count completed focus sessions for meaningful insights
         }
       } else {
         totalBreakTime += minutes;
