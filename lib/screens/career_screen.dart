@@ -777,7 +777,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                                 ),
                               ),
                               Text(
-                                'Level ${equipment.unlockLevel} Equipment',
+                                '${equipment.effectiveUnlockRP} RP Equipment',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: equipment.rarityColor,

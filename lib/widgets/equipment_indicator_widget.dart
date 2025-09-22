@@ -4,12 +4,14 @@ import '../utils/responsive_helper.dart';
 
 class EquipmentIndicatorWidget extends StatefulWidget {
   final int userLevel;
+  final int cumulativeRP;
   final List<String> unlockedEquipment;
   final bool showCertifications;
 
   const EquipmentIndicatorWidget({
     super.key,
     required this.userLevel,
+    this.cumulativeRP = 0,
     required this.unlockedEquipment,
     this.showCertifications = true,
   });
@@ -104,7 +106,7 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
                 ),
               ),
               Text(
-                'Level ${widget.userLevel} • ${widget.unlockedEquipment.length} items',
+                '${widget.cumulativeRP} RP • ${widget.unlockedEquipment.length} items',
                 style: TextStyle(
                   fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                   color: Colors.blue.shade600,
@@ -134,7 +136,8 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
       itemCount: equipmentData.length,
       itemBuilder: (context, index) {
         final equipment = equipmentData[index];
-        final isUnlocked = widget.userLevel >= equipment['requiredLevel'];
+        final requiredRP = equipment['requiredRP'] ?? ((equipment['requiredLevel'] ?? 1) - 1) * 50;
+        final isUnlocked = widget.cumulativeRP >= requiredRP;
         
         return AnimatedBuilder(
           animation: _animationController,
@@ -224,7 +227,7 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
                       SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
                       SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
                       Text(
-                        'Lv${equipment['requiredLevel']}',
+                        '$requiredRP RP',
                         style: TextStyle(
                           fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption') * 0.8,
                           color: Colors.orange.withValues(alpha: 0.8),
@@ -343,133 +346,133 @@ class _EquipmentIndicatorWidgetState extends State<EquipmentIndicatorWidget>
 
   List<Map<String, dynamic>> _getEquipmentData() {
     return [
-      // Basic Equipment (Levels 1-10)
+      // Basic Equipment (0-200 RP)
       {
         'name': 'Mask\n& Snorkel',
         'icon': Icons.masks,
-        'requiredLevel': 1,
+        'requiredRP': 0,
         'color': Colors.cyan,
       },
       {
         'name': 'Diving\nFins',
         'icon': Icons.water_damage,
-        'requiredLevel': 2,
+        'requiredRP': 50,
         'color': Colors.blue,
       },
       {
         'name': 'Waterproof\nNotebook',
         'icon': Icons.book,
-        'requiredLevel': 3,
+        'requiredRP': 50,
         'color': Colors.green,
       },
       {
         'name': 'Basic\nCamera',
         'icon': Icons.camera_alt,
-        'requiredLevel': 5,
+        'requiredRP': 150,
         'color': Colors.orange,
       },
 
-      // Intermediate Equipment (Levels 11-25)
+      // Intermediate Equipment (200-1000 RP)
       {
         'name': 'Scuba\nGear',
         'icon': Icons.air,
-        'requiredLevel': 11,
+        'requiredRP': 300,
         'color': Colors.purple,
       },
       {
         'name': 'Underwater\nLights',
         'icon': Icons.flashlight_on,
-        'requiredLevel': 13,
+        'requiredRP': 300,
         'color': Colors.yellow,
       },
       {
         'name': 'Digital\nCamera',
         'icon': Icons.camera_enhance,
-        'requiredLevel': 15,
+        'requiredRP': 500,
         'color': Colors.indigo,
       },
       {
         'name': 'Sample\nKit',
         'icon': Icons.science,
-        'requiredLevel': 18,
+        'requiredRP': 500,
         'color': Colors.teal,
       },
 
-      // Advanced Equipment (Levels 26-50)
+      // Advanced Equipment (1000-2000 RP)
       {
         'name': 'Tech\nDiving Gear',
         'icon': Icons.precision_manufacturing,
-        'requiredLevel': 26,
+        'requiredRP': 1050,
         'color': Colors.red,
       },
       {
         'name': 'Sonar\nSystem',
         'icon': Icons.radar,
-        'requiredLevel': 30,
+        'requiredRP': 1400,
         'color': Colors.lime,
       },
       {
         'name': 'ROV\nCompanion',
         'icon': Icons.smart_toy,
-        'requiredLevel': 35,
+        'requiredRP': 1800,
         'color': Colors.deepPurple,
       },
       {
         'name': 'Specimen\nLab',
         'icon': Icons.biotech,
-        'requiredLevel': 40,
+        'requiredRP': 1800,
         'color': Colors.brown,
       },
 
-      // Expert Equipment (Levels 51-75)
+      // Expert Equipment (2000-3500 RP)
       {
         'name': 'Research\nSubmersible',
         'icon': Icons.directions_boat,
-        'requiredLevel': 51,
+        'requiredRP': 2250,
         'color': Colors.deepOrange,
       },
       {
         'name': 'Genetic\nSequencer',
         'icon': Icons.psychology,
-        'requiredLevel': 60,
+        'requiredRP': 2750,
         'color': Colors.pink,
       },
       {
         'name': 'Satellite\nComm',
         'icon': Icons.satellite_alt,
-        'requiredLevel': 65,
+        'requiredRP': 3000,
         'color': Colors.lightBlue,
       },
       {
         'name': 'Breeding\nFacility',
         'icon': Icons.pets,
-        'requiredLevel': 70,
+        'requiredRP': 3500,
         'color': Colors.lightGreen,
       },
 
-      // Master Equipment (Levels 76-100)
+      // Master Equipment (3500+ RP)
       {
         'name': 'AI\nAssistant',
         'icon': Icons.psychology_alt,
-        'requiredLevel': 76,
+        'requiredRP': 3750,
         'color': Colors.amber,
       },
       {
         'name': 'Holographic\nDisplay',
         'icon': Icons.view_in_ar,
-        'requiredLevel': 85,
+        'requiredRP': 4200,
         'color': Colors.deepPurpleAccent,
       },
       {
         'name': 'Time-lapse\nCamera',
         'icon': Icons.timelapse,
-        'requiredLevel': 90,
+        'requiredRP': 4500,
         'color': Colors.redAccent,
       },
       {
         'name': 'Quantum\nScanner',
         'icon': Icons.sensors,
-        'requiredLevel': 95,
+        'requiredRP': 4750,
         'color': Colors.purpleAccent,
       },
     ];

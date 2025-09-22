@@ -260,7 +260,7 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
           ] else if (!equipment.isUnlocked) ...[
             const SizedBox(height: 2),
             Text(
-              'Lv${equipment.unlockLevel}',
+              '${equipment.effectiveUnlockRP} RP',
               style: TextStyle(
                 fontSize: 8,
                 color: Colors.orange.withValues(alpha: 0.8),
@@ -710,7 +710,7 @@ class _MobileEquipmentCategoryViewState extends State<_MobileEquipmentCategoryVi
               const SizedBox(height: 4),
               
               Text(
-                'Level ${equipment.unlockLevel}',
+                '${equipment.effectiveUnlockRP} RP',
                 style: TextStyle(
                   fontSize: 9,
                   color: equipment.rarityColor,
@@ -764,7 +764,7 @@ class _MobileEquipmentCategoryViewState extends State<_MobileEquipmentCategoryVi
                   ),
                 ),
                 child: Text(
-                  'Unlock at Lv${equipment.unlockLevel}',
+                  'Unlock at ${equipment.effectiveUnlockRP} RP',
                   style: TextStyle(
                     fontSize: 8,
                     color: Colors.orange.shade300,

@@ -33,6 +33,7 @@ class EquipmentProgressionService {
         description: data['description'] as String? ?? '',
         icon: data['icon'] as String? ?? '🔬',
         unlockLevel: unlockLevel,
+        unlockRP: unlockRP,
         category: _parseCategory(data['category'] as String? ?? 'documentation'),
         rarity: _parseRarity(data['rarity'] as String? ?? 'common'),
         benefits: _generateBenefits(data),
@@ -97,6 +98,7 @@ class EquipmentProgressionService {
           description: data['description'] as String? ?? '',
           icon: data['icon'] as String? ?? '🔬',
           unlockLevel: unlockLevel,
+          unlockRP: unlockRP,
           category: _parseCategory(data['category'] as String? ?? 'documentation'),
           rarity: _parseRarity(data['rarity'] as String? ?? 'common'),
           benefits: _generateBenefits(data),
@@ -218,6 +220,7 @@ class ResearchEquipment {
   final String description;
   final String icon;
   final int unlockLevel;
+  final int? unlockRP;
   final EquipmentCategory category;
   final EquipmentRarity rarity;
   final List<String> benefits;
@@ -236,6 +239,7 @@ class ResearchEquipment {
     required this.description,
     required this.icon,
     required this.unlockLevel,
+    this.unlockRP,
     required this.category,
     required this.rarity,
     required this.benefits,
@@ -248,7 +252,10 @@ class ResearchEquipment {
     this.requiredRareSpecies = 0,
     this.requiredLegendarySpecies = 0,
   });
-  
+
+  /// Get unlock RP with fallback calculation if null
+  int get effectiveUnlockRP => unlockRP ?? ((unlockLevel - 1) * 50);
+
   /// Get rarity color
   Color get rarityColor {
     switch (rarity) {
