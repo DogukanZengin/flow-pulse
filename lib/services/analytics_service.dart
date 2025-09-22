@@ -97,20 +97,20 @@ class AnalyticsService {
     final today = DateTime.now();
     final startOfDay = DateTime(today.year, today.month, today.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
-    
+
     final cacheKey = _dateKey(today);
-    if (_dailyCache.containsKey(cacheKey) && 
-        _cacheDate != null && 
+    if (_dailyCache.containsKey(cacheKey) &&
+        _cacheDate != null &&
         _cacheDate!.day == today.day) {
       return _dailyCache[cacheKey]!;
     }
 
     final sessions = await PersistenceService.instance.sessions.getSessionsByDateRange(startOfDay, endOfDay);
     final analytics = await _calculateDayAnalytics(today, sessions);
-    
+
     _dailyCache[cacheKey] = analytics;
     _cacheDate = today;
-    
+
     return analytics;
   }
 
@@ -291,7 +291,7 @@ class AnalyticsService {
 
     for (final session in sessions) {
       // Ensure duration is valid before converting to minutes
-      if (session.duration.isNaN || session.duration.isInfinite) {
+      if (session.duration <= 0) {
         continue; // Skip invalid sessions
       }
       final minutes = (session.duration / 60).round();

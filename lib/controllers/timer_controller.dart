@@ -12,6 +12,7 @@ import '../services/ocean_audio_service.dart';
 import '../services/fast_forward_service.dart';
 import '../services/efficient_background_timer_service.dart';
 import '../services/depth_traversal_service.dart';
+import '../services/analytics_service.dart';
 import '../models/coral.dart';
 import '../models/aquarium.dart';
 import '../models/creature.dart';
@@ -414,8 +415,24 @@ class TimerController extends ChangeNotifier {
     if (_sessionStartTime == null) return;
 
     final endTime = DateTime.now();
-    final actualDuration = endTime.difference(_sessionStartTime!).inSeconds;
-    
+
+    // For completed sessions, use the configured duration
+    // For incomplete sessions, use the actual elapsed time
+    int duration;
+    if (completed) {
+      // Use configured duration in seconds for completed sessions
+      if (_isStudySession) {
+        duration = _timerProvider.focusDuration * 60;
+      } else {
+        duration = _shouldUseLongBreak()
+            ? _timerProvider.longBreakDuration * 60
+            : _timerProvider.breakDuration * 60;
+      }
+    } else {
+      // Use actual elapsed time for incomplete sessions
+      duration = endTime.difference(_sessionStartTime!).inSeconds;
+    }
+
     SessionType sessionType;
     if (_isStudySession) {
       sessionType = SessionType.focus;
@@ -426,12 +443,15 @@ class TimerController extends ChangeNotifier {
     final session = Session(
       startTime: _sessionStartTime!,
       endTime: endTime,
-      duration: actualDuration,
+      duration: duration,
       type: sessionType,
       completed: completed,
     );
 
     await PersistenceService.instance.sessions.saveSession(session);
+
+    // Clear analytics cache so fresh data is loaded
+    AnalyticsService().clearCache();
   }
   
   void switchToWorkSession() {
