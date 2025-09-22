@@ -42,7 +42,7 @@ class ResearchPaperService {
         requiredDiscoveries: 5,
         requiredSpecies: [],
         researchValue: 100,
-        xpReward: 200,
+        rpReward: 50,
         citations: 0,
         publicationDate: null,
       ));
@@ -59,7 +59,7 @@ class ResearchPaperService {
         requiredDiscoveries: 10,
         requiredSpecies: [],
         researchValue: 150,
-        xpReward: 350,
+        rpReward: 75,
         citations: 0,
         publicationDate: null,
       ));
@@ -76,7 +76,7 @@ class ResearchPaperService {
         requiredDiscoveries: 8,
         requiredSpecies: [],
         researchValue: 200,
-        xpReward: 500,
+        rpReward: 100,
         citations: 0,
         publicationDate: null,
       ));
@@ -93,7 +93,7 @@ class ResearchPaperService {
         requiredDiscoveries: 5,
         requiredSpecies: [],
         researchValue: 300,
-        xpReward: 750,
+        rpReward: 150,
         citations: 0,
         publicationDate: null,
       ));
@@ -116,7 +116,7 @@ class ResearchPaperService {
         requiredDiscoveries: 20,
         requiredSpecies: [],
         researchValue: 80,
-        xpReward: 150,
+        rpReward: 30,
         citations: 0,
         publicationDate: null,
       ));
@@ -133,7 +133,7 @@ class ResearchPaperService {
         requiredDiscoveries: 10,
         requiredSpecies: [],
         researchValue: 120,
-        xpReward: 300,
+        rpReward: 60,
         citations: 0,
         publicationDate: null,
       ));
@@ -150,7 +150,7 @@ class ResearchPaperService {
         requiredDiscoveries: 5,
         requiredSpecies: [],
         researchValue: 250,
-        xpReward: 600,
+        rpReward: 125,
         citations: 0,
         publicationDate: null,
       ));
@@ -167,7 +167,7 @@ class ResearchPaperService {
         requiredDiscoveries: 1,
         requiredSpecies: [],
         researchValue: 500,
-        xpReward: 1500,
+        rpReward: 250,
         citations: 0,
         publicationDate: null,
       ));
@@ -185,7 +185,7 @@ class ResearchPaperService {
         requiredDiscoveries: 30,
         requiredSpecies: [],
         researchValue: 180,
-        xpReward: 400,
+        rpReward: 90,
         citations: 0,
         publicationDate: null,
       ));
@@ -202,7 +202,7 @@ class ResearchPaperService {
         requiredDiscoveries: 50,
         requiredSpecies: [],
         researchValue: 350,
-        xpReward: 1000,
+        rpReward: 175,
         citations: 0,
         publicationDate: null,
       ));
@@ -219,7 +219,7 @@ class ResearchPaperService {
         requiredDiscoveries: 75,
         requiredSpecies: [],
         researchValue: 450,
-        xpReward: 1250,
+        rpReward: 225,
         citations: 0,
         publicationDate: null,
       ));
@@ -236,7 +236,7 @@ class ResearchPaperService {
         requiredDiscoveries: 100,
         requiredSpecies: [],
         researchValue: 600,
-        xpReward: 2000,
+        rpReward: 300,
         citations: 0,
         publicationDate: null,
       ));
@@ -253,7 +253,7 @@ class ResearchPaperService {
         requiredDiscoveries: 144,
         requiredSpecies: [],
         researchValue: 1000,
-        xpReward: 5000,
+        rpReward: 500,
         citations: 0,
         publicationDate: null,
       ));
@@ -298,7 +298,7 @@ class ResearchPaper {
   final int requiredDiscoveries;
   final List<String> requiredSpecies;
   final int researchValue;
-  final int xpReward;
+  final int rpReward;
   int citations;
   DateTime? publicationDate;
 
@@ -312,7 +312,7 @@ class ResearchPaper {
     required this.requiredDiscoveries,
     required this.requiredSpecies,
     required this.researchValue,
-    required this.xpReward,
+    required this.rpReward,
     required this.citations,
     this.publicationDate,
   });

@@ -651,12 +651,22 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
             publishedPapers: _publishedPapers.map((p) => p.id).toList(),
             showOnlyAvailable: true,
             onPublishPaper: (paper) async {
+              // Award RP for publishing research paper
+              try {
+                await GamificationService.instance.awardResearchPoints(
+                  paper.rpReward,
+                  source: 'Research Paper: ${paper.title}',
+                );
+              } catch (e) {
+                debugPrint('Error awarding RP for research paper: $e');
+              }
+
               // Handle paper publication
               setState(() {
                 _availablePapers.remove(paper);
                 _publishedPapers.add(paper);
               });
-              
+
               // Show mobile-friendly success feedback
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -667,7 +677,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Published: ${paper.title}',
+                            'Published: ${paper.title}\n+${paper.rpReward} RP earned!',
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,

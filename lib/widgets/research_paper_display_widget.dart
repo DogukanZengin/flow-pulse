@@ -275,7 +275,7 @@ class ResearchPaperDisplayWidget extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '+${paper.xpReward} XP',
+                              '+${paper.rpReward} RP',
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: Colors.amber,
@@ -410,7 +410,7 @@ class ResearchPaperDisplayWidget extends StatelessWidget {
                             const Icon(Icons.star, color: Colors.amber, size: 16),
                             const SizedBox(width: 4),
                             Text(
-                              '+${paper.xpReward} XP',
+                              '+${paper.rpReward} RP',
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: Colors.amber,

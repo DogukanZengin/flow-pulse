@@ -478,7 +478,35 @@ class GamificationService {
     await _prefs?.setStringList(_unlockedThemesKey, _unlockedThemes.toList());
     await _prefs?.setStringList(_unlockedAchievementsKey, _unlockedAchievements.toList());
   }
-  
+
+  /// Award RP for research paper publication or other achievements
+  Future<void> awardResearchPoints(int rpAmount, {String? source}) async {
+    if (rpAmount <= 0) return;
+
+    _cumulativeRP += rpAmount;
+    _totalRP += rpAmount;
+    _todayRP += rpAmount;
+
+    // Update depth zone if needed
+    final newDepthZone = _calculateDepthZoneFromRP(_cumulativeRP);
+    if (newDepthZone != _currentDepthZone) {
+      _currentDepthZone = newDepthZone;
+    }
+
+    await _saveProgress();
+
+    if (source != null) {
+      debugPrint('🎯 Awarded $rpAmount RP: $source (Total: $_cumulativeRP RP)');
+    }
+  }
+
+  int _calculateDepthZoneFromRP(int rp) {
+    if (rp >= 501) return 3; // Abyssal
+    if (rp >= 201) return 2; // Deep
+    if (rp >= 51) return 1;  // Coral
+    return 0; // Shallow
+  }
+
   // Get streak emoji based on count
   String getStreakEmoji() {
     if (_currentStreak >= 30) return '🔥'; // Fire for long streaks
