@@ -7,11 +7,9 @@ import '../widgets/dive_computer_widget.dart';
 import '../widgets/research_progress_widget.dart';
 import '../widgets/timer_display.dart';
 import '../services/gamification_service.dart';
-import '../services/persistence/persistence_service.dart';
-import '../rendering/advanced_creature_renderer.dart';
+import '../rendering/simple_biome_creatures.dart';
 import '../rendering/biome_environment_renderer.dart';
 import '../widgets/enhanced_research_journal.dart';
-import '../data/comprehensive_species_database.dart';
 import '../services/marine_biology_career_service.dart';
 import '../services/depth_traversal_service.dart';
 import '../themes/ocean_theme.dart';
@@ -28,12 +26,10 @@ class _OceanWidgetConstants {
   // Animation cycles
   static const waveCyclesPerMaster = 3.0; // 3 wave cycles in 12 seconds
   static const bubbleCyclesPerMaster = 2.0; // 2 bubble cycles in 12 seconds
-  static const timerPulsePeriod = 2.0 / 12.0; // 2s pulse within 12s master
 
   // Timer styling
   static const timerBorderRadius = 25.0;
   static const timerBorderWidth = 3.0;
-  static const timerProgressBarHeight = 3.0;
 
   // Background alpha values
   static const timerBackgroundPrimary = 0.85;
@@ -62,11 +58,23 @@ class _OceanWidgetConstants {
   // Particle counts and sizes
   static const particleCount = 15;
   static const ambientBubbleCount = 12;
-  static const equipmentBubbleCount = 3;
 
-  // Fish animation
-  static const baseFishDuration = 8;
-  static const fishDurationIncrement = 3;
+  // Biome-specific animation speeds
+  static const Map<BiomeType, int> baseFishDurations = {
+    BiomeType.shallowWaters: 4,   // Fast - energetic small fish
+    BiomeType.coralGarden: 6,     // Moderate - territorial behavior
+    BiomeType.deepOcean: 12,      // Slower - energy conservation
+    BiomeType.abyssalZone: 20,    // Very slow - mysterious movement
+  };
+
+  // Creature counts per biome
+  static const Map<BiomeType, int> creatureCountPerBiome = {
+    BiomeType.shallowWaters: 8,  // Busy, lots of small fish
+    BiomeType.coralGarden: 6,    // Moderate activity
+    BiomeType.deepOcean: 4,      // Fewer, larger creatures
+    BiomeType.abyssalZone: 2,    // Sparse, mysterious
+  };
+
 }
 
 /// Full-screen marine biology research station and ocean environment
@@ -109,10 +117,13 @@ class FullScreenOceanWidget extends StatefulWidget {
 
 class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     with TickerProviderStateMixin {
-  // Consolidated animation system
+  // Consolidated animation system for ambient effects
   late AnimationController _masterController;
   late Animation<double> _waveAnimation;
   late Animation<double> _bubbleAnimation;
+
+  // Separate timer pulse controller for reliable timing
+  late AnimationController _timerPulseController;
   late Animation<double> _timerPulseAnimation;
 
   // Separate controllers for user interactions and session-based animations
@@ -128,20 +139,10 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
   // State for dive computer hover
   bool _isDiveComputerHovered = false;
   
-  // State for discovered creatures (for research journal)
-  List<Creature> _discoveredCreatures = [];
-  int _publishedPapersCount = 0;
-  
-  // Continuous time tracking for smooth animations
-  late DateTime _startTime;
-  double get _continuousTime => DateTime.now().difference(_startTime).inMilliseconds / 1000.0;
 
   @override
   void initState() {
     super.initState();
-    
-    // Initialize continuous time
-    _startTime = DateTime.now();
 
     // Master controller for ambient animations (waves, bubbles, timer pulse)
     _masterController = AnimationController(
@@ -160,12 +161,18 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
       end: _OceanWidgetConstants.bubbleCyclesPerMaster,
     ).animate(_masterController);
 
+    // Timer pulse animation (separate controller for reliable timing)
+    _timerPulseController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
+
     _timerPulseAnimation = Tween<double>(
       begin: 1.0,
       end: 1.1,
     ).animate(CurvedAnimation(
-      parent: _masterController,
-      curve: const _RepeatingCurve(period: _OceanWidgetConstants.timerPulsePeriod),
+      parent: _timerPulseController,
+      curve: Curves.easeInOut,
     ));
 
     // Depth progression animation (mimics diving deeper during session)
@@ -194,41 +201,10 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     // Start depth progression if session is running
     if (widget.isRunning) {
       _depthController.forward();
-    }
-    
-    // Load discovered creatures for research journal
-    _loadDiscoveredCreatures();
-    // Load published papers count
-    _loadPublishedPapersCount();
-  }
-  
-  /// Load discovered creatures from persistence service
-  Future<void> _loadDiscoveredCreatures() async {
-    try {
-      final discovered = await PersistenceService.instance.ocean.getDiscoveredCreatures();
-      if (mounted) {
-        setState(() {
-          _discoveredCreatures = discovered;
-        });
-      }
-    } catch (e) {
-      // Handle error silently - research journal will show empty state
+      _timerPulseController.repeat(reverse: true);
     }
   }
   
-  /// Load published papers count from research repository
-  Future<void> _loadPublishedPapersCount() async {
-    try {
-      final publishedPapers = await PersistenceService.instance.research.getPublishedPapers();
-      if (mounted) {
-        setState(() {
-          _publishedPapersCount = publishedPapers.length;
-        });
-      }
-    } catch (e) {
-      // Handle error silently - will show 0 papers
-    }
-  }
   
   /// Open the full research journal
   void _openResearchJournal() {
@@ -244,37 +220,58 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     _fishControllers = [];
     _fishAnimations = [];
 
-    for (int i = 0; i < widget.visibleCreatures.length; i++) {
+    final currentBiome = _getCurrentBiome();
+    final creatureCount = _getBiomeCreatureCount();
+    final baseDuration = _OceanWidgetConstants.baseFishDurations[currentBiome] ?? 8;
+
+    for (int i = 0; i < creatureCount; i++) {
       final controller = AnimationController(
-        duration: Duration(seconds: _OceanWidgetConstants.baseFishDuration + i * _OceanWidgetConstants.fishDurationIncrement),
+        duration: Duration(seconds: baseDuration + i * 2),
         vsync: this,
       );
 
-      // Create more realistic swimming patterns
+      // Create biome-appropriate swimming patterns
       final startY = 0.2 + (i * 0.15) % 0.6;
       final endY = startY + (math.sin(i.toDouble()) * 0.1);
-      
+
       final animation = Tween<Offset>(
         begin: Offset(-0.1, startY),
         end: Offset(1.1, endY),
       ).animate(CurvedAnimation(
         parent: controller,
-        curve: Curves.linear,
+        curve: _getBiomeSwimmingCurve(currentBiome),
       ));
 
       _fishControllers.add(controller);
       _fishAnimations.add(animation);
-      
+
       controller.repeat();
+    }
+  }
+
+  /// Get biome-appropriate swimming animation curve
+  Curve _getBiomeSwimmingCurve(BiomeType biome) {
+    switch (biome) {
+      case BiomeType.shallowWaters:
+        return Curves.linear; // Fast, direct movement
+      case BiomeType.coralGarden:
+        return Curves.easeInOut; // Territorial, varied pacing
+      case BiomeType.deepOcean:
+        return Curves.decelerate; // Energy-efficient gliding
+      case BiomeType.abyssalZone:
+        return Curves.slowMiddle; // Mysterious, hypnotic movement
     }
   }
 
   @override
   void didUpdateWidget(FullScreenOceanWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
-    // Update fish animations if creatures changed
-    if (oldWidget.visibleCreatures.length != widget.visibleCreatures.length) {
+
+    // Update fish animations if biome changed (instead of creature count)
+    final oldBiome = _getBiomeFromDepth(_calculateDepthFromOldWidget(oldWidget));
+    final newBiome = _getCurrentBiome();
+
+    if (oldBiome != newBiome) {
       for (final controller in _fishControllers) {
         controller.dispose();
       }
@@ -284,14 +281,32 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     // Update depth progression based on session state
     if (widget.isRunning && !oldWidget.isRunning) {
       _depthController.forward();
+      _timerPulseController.repeat(reverse: true);
     } else if (!widget.isRunning && oldWidget.isRunning) {
       _depthController.stop();
+      _timerPulseController.stop();
+      _timerPulseController.reset();
     }
+  }
+
+  /// Helper to calculate biome from previous widget state
+  double _calculateDepthFromOldWidget(FullScreenOceanWidget oldWidget) {
+    final elapsedTime = Duration(seconds: oldWidget.totalSessionSeconds - oldWidget.secondsRemaining);
+    return DepthTraversalService.calculateCurrentDepth(elapsedTime, GamificationService.instance.cumulativeRP);
+  }
+
+  /// Get biome from depth value
+  BiomeType _getBiomeFromDepth(double depth) {
+    if (depth >= _OceanWidgetConstants.abyssalZoneDepthThreshold) return BiomeType.abyssalZone;
+    if (depth >= _OceanWidgetConstants.deepOceanDepthThreshold) return BiomeType.deepOcean;
+    if (depth >= _OceanWidgetConstants.coralGardenDepthThreshold) return BiomeType.coralGarden;
+    return BiomeType.shallowWaters;
   }
 
   @override
   void dispose() {
     _masterController.dispose();
+    _timerPulseController.dispose();
     _depthController.dispose();
     _journalExpandController.dispose();
     for (final controller in _fishControllers) {
@@ -376,10 +391,39 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     return 'Ascending';
   }
 
-  int _getSpeciesDiscoveredInCurrentBiome() {
-    final currentBiome = _getCurrentBiome();
-    return _discoveredCreatures.where((creature) => creature.habitat == currentBiome).length;
+  /// Get count of creatures to display based on biome (simplified approach)
+  int _getBiomeCreatureCount() {
+    return _OceanWidgetConstants.creatureCountPerBiome[_getCurrentBiome()] ?? 4;
   }
+
+  /// Get biome-specific color for visual distinction
+  Color _getBiomeColor(BiomeType biome) {
+    switch (biome) {
+      case BiomeType.shallowWaters:
+        return const Color(0xFFFFD700); // Gold for tropical shallow waters
+      case BiomeType.coralGarden:
+        return const Color(0xFFFF6347); // Coral red for reef areas
+      case BiomeType.deepOcean:
+        return const Color(0xFF4682B4); // Steel blue for deep waters
+      case BiomeType.abyssalZone:
+        return const Color(0xFF191970); // Midnight blue for abyss
+    }
+  }
+
+  /// Get biome initial letter for compact display
+  String _getBiomeInitial(BiomeType biome) {
+    switch (biome) {
+      case BiomeType.shallowWaters:
+        return 'S';
+      case BiomeType.coralGarden:
+        return 'C';
+      case BiomeType.deepOcean:
+        return 'D';
+      case BiomeType.abyssalZone:
+        return 'A';
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -463,10 +507,10 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
                     Flexible(
                       flex: 1,
                       child: ResearchProgressWidget(
-                        speciesDiscoveredInCurrentBiome: _getSpeciesDiscoveredInCurrentBiome(),
-                        totalSpeciesInCurrentBiome: ComprehensiveSpeciesDatabase.getSpeciesForBiome(_getCurrentBiome()).length,
-                        totalSpeciesDiscovered: _discoveredCreatures.length,
-                        researchPapersPublished: _publishedPapersCount,
+                        speciesDiscoveredInCurrentBiome: 0, // Simplified - no discovery tracking
+                        totalSpeciesInCurrentBiome: _getBiomeCreatureCount(),
+                        totalSpeciesDiscovered: 0, // Simplified - no discovery tracking
+                        researchPapersPublished: 0, // Simplified - no research tracking
                         cumulativeRP: GamificationService.instance.cumulativeRP,
                         currentDepthZone: _getCurrentBiome().displayName,
                         currentCareerTitle: MarineBiologyCareerService.getCareerTitle(GamificationService.instance.cumulativeRP),
@@ -567,37 +611,38 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
   }
 
   Widget _buildSwimmingCreatures(Size screenSize) {
+    final creatureCount = _getBiomeCreatureCount();
+    final currentBiome = _getCurrentBiome();
+
     return Stack(
-      children: widget.visibleCreatures.asMap().entries.map((entry) {
-        final index = entry.key;
-        final creature = entry.value;
-        
+      children: List.generate(creatureCount, (index) {
         if (index >= _fishAnimations.length) return const SizedBox.shrink();
-        
+
         return AnimatedBuilder(
           animation: _fishAnimations[index],
           builder: (context, child) {
             return Positioned(
               left: _fishAnimations[index].value.dx * screenSize.width - 40,
               top: _fishAnimations[index].value.dy * screenSize.height,
-              child: _buildCreature(creature, index),
+              child: _buildBiomeCreature(currentBiome, index),
             );
           },
         );
-      }).toList(),
+      }),
     );
   }
 
-  Widget _buildCreature(Creature creature, int index) {
+  Widget _buildBiomeCreature(BiomeType biome, int index) {
     return SizedBox(
       width: 60,
       height: 45,
       child: CustomPaint(
-        painter: AdvancedCreaturePainter(
-          creature: creature,
+        painter: SimpleBiomeCreaturePainter(
+          biome: biome,
+          creatureIndex: index,
           swimDirection: _fishAnimations[index].value.dx > 0.5 ? 1 : -1,
-          depthLevel: _getCurrentDepth().round(),
           animationValue: _fishControllers[index].value,
+          depth: _getCurrentDepth(),
         ),
       ),
     );
@@ -956,48 +1001,38 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
             color: Colors.amber,
             size: 28,
           ),
-          if (_discoveredCreatures.isNotEmpty)
-            Positioned(
-              top: -2,
-              right: -4,
-              child: Container(
-                // Compact size with dynamic width
-                constraints: BoxConstraints(
-                  minWidth: _discoveredCreatures.length >= 10 ? 16 : 14,
-                  minHeight: 14,
-                ),
-                padding: EdgeInsets.symmetric(
-                  horizontal: _discoveredCreatures.length >= 100 ? 2 : _discoveredCreatures.length >= 10 ? 3 : 2,
-                  vertical: 1,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(_discoveredCreatures.length >= 10 ? 7 : 7),
-                  border: Border.all(color: Colors.white, width: 1),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      blurRadius: 2,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    // Format large numbers more compactly
-                    _discoveredCreatures.length > 99
-                        ? '99+'
-                        : '${_discoveredCreatures.length}',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: _discoveredCreatures.length >= 10 ? 8 : 9,
-                      fontWeight: FontWeight.bold,
-                      height: 1.0, // Tight line height
-                    ),
+          // Simplified biome indicator
+          Positioned(
+            top: -2,
+            right: -4,
+            child: Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                color: _getBiomeColor(_getCurrentBiome()),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.white, width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 2,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  _getBiomeInitial(_getCurrentBiome()),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                    height: 1.0,
                   ),
                 ),
               ),
             ),
+          ),
         ],
       ),
     );
@@ -1036,114 +1071,70 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
             ],
           ),
           const SizedBox(height: 12),
-          if (_discoveredCreatures.isNotEmpty) ...[
-            const Text(
-              'Recent Discovery:',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 11,
-              ),
+          const Text(
+            'Current Biome:',
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 11,
             ),
-            const SizedBox(height: 6),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: Colors.black.withValues(alpha: 0.3),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _discoveredCreatures.last.name,
-                    style: const TextStyle(
-                      color: Colors.amber,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+          ),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.black.withValues(alpha: 0.3),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _getCurrentBiome().displayName,
+                  style: const TextStyle(
+                    color: Colors.amber,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.water,
+                      color: Colors.lightBlue.withValues(alpha: 0.8),
+                      size: 12,
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.water,
-                        color: Colors.lightBlue.withValues(alpha: 0.8),
-                        size: 12,
+                    const SizedBox(width: 4),
+                    Text(
+                      '${_getCurrentDepth().toStringAsFixed(1)}m depth',
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 11,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _discoveredCreatures.last.habitat.displayName,
-                        style: const TextStyle(
-                          color: Colors.white60,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.star,
-                        color: Colors.green.withValues(alpha: 0.8),
-                        size: 12,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _discoveredCreatures.last.rarity.displayName,
-                        style: const TextStyle(
-                          color: Colors.white60,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Total Discoveries: ${_discoveredCreatures.length > 99 ? "99+" : _discoveredCreatures.length}',
-              style: TextStyle(
-                color: Colors.amber.withValues(alpha: 0.8),
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ] else ...[
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: Colors.black.withValues(alpha: 0.2),
-              ),
-              child: const Column(
-                children: [
-                  Icon(
-                    Icons.search,
-                    color: Colors.white38,
-                    size: 32,
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'No discoveries yet',
-                    style: TextStyle(
-                      color: Colors.white60,
-                      fontSize: 12,
                     ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Start diving to find marine life!',
-                    style: TextStyle(
-                      color: Colors.white38,
-                      fontSize: 10,
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.visibility,
+                      color: Colors.green.withValues(alpha: 0.8),
+                      size: 12,
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${_getBiomeCreatureCount()} creatures visible',
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         ],
       ),
     );
@@ -1342,48 +1333,6 @@ class AdvancedBiomeEnvironmentPainter extends CustomPainter {
   }
 }
 
-class AdvancedCreaturePainter extends CustomPainter {
-  final Creature creature;
-  final int swimDirection;
-  final int depthLevel;
-  final double animationValue;
-
-  AdvancedCreaturePainter({
-    required this.creature,
-    required this.swimDirection,
-    required this.depthLevel,
-    required this.animationValue,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.save();
-    
-    if (swimDirection < 0) {
-      canvas.scale(-1, 1);
-      canvas.translate(-size.width, 0);
-    }
-
-    // Use our advanced creature renderer
-    AdvancedCreatureRenderer.paintCreature(
-      canvas,
-      size,
-      creature,
-      animationValue,
-      depthLevel.toDouble(),
-    );
-
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(AdvancedCreaturePainter oldDelegate) {
-    return oldDelegate.creature != creature ||
-           oldDelegate.swimDirection != swimDirection ||
-           oldDelegate.depthLevel != depthLevel ||
-           oldDelegate.animationValue != animationValue;
-  }
-}
 
 // Enhanced painters for full-screen experience
 
@@ -1790,6 +1739,53 @@ class EnhancedCreaturePainter extends CustomPainter {
   }
 }
 
+class SimpleBiomeCreaturePainter extends CustomPainter {
+  final BiomeType biome;
+  final int creatureIndex;
+  final int swimDirection;
+  final double animationValue;
+  final double depth;
+
+  SimpleBiomeCreaturePainter({
+    required this.biome,
+    required this.creatureIndex,
+    required this.swimDirection,
+    required this.animationValue,
+    required this.depth,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+
+    if (swimDirection < 0) {
+      canvas.scale(-1, 1);
+      canvas.translate(-size.width, 0);
+    }
+
+    // Use our simplified biome creature renderer
+    SimpleBiomeCreatures.paintBiomeCreature(
+      canvas,
+      size,
+      biome,
+      creatureIndex,
+      animationValue,
+      depth,
+    );
+
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(SimpleBiomeCreaturePainter oldDelegate) {
+    return oldDelegate.biome != biome ||
+           oldDelegate.creatureIndex != creatureIndex ||
+           oldDelegate.swimDirection != swimDirection ||
+           oldDelegate.animationValue != animationValue ||
+           oldDelegate.depth != depth;
+  }
+}
+
 class ResearchBubblesPainter extends CustomPainter {
   final double progress;
   final bool isActive;
@@ -1822,7 +1818,7 @@ class ResearchBubblesPainter extends CustomPainter {
       final bubbleProgress = (progress + i * 0.4) % 1.0;
       final y = pos.dy - (bubbleProgress * screenSize.height * 0.7);
       final x = pos.dx + math.sin(bubbleProgress * math.pi * 4) * 20;
-      
+
       if (y > 0) {
         final bubbleSize = 2 + (bubbleProgress * 4);
         canvas.drawCircle(
@@ -1839,7 +1835,7 @@ class ResearchBubblesPainter extends CustomPainter {
       final x = screenSize.width * (0.1 + i * 0.07);
       final y = screenSize.height * (1.0 - offset);
       final radius = 1.5 + (i % 4);
-      
+
       if (y > 0 && y < screenSize.height) {
         canvas.drawCircle(Offset(x, y), radius, _bubblePaint);
       }
@@ -1852,15 +1848,3 @@ class ResearchBubblesPainter extends CustomPainter {
   }
 }
 
-/// Custom curve that repeats a pattern within a longer duration
-class _RepeatingCurve extends Curve {
-  const _RepeatingCurve({required this.period});
-
-  final double period; // Fraction of the total duration for one cycle
-
-  @override
-  double transform(double t) {
-    final normalizedT = (t % period) / period;
-    return Curves.easeInOut.transform(normalizedT);
-  }
-}
