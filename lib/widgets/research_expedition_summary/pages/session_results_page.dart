@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import '../models/expedition_result.dart';
+import '../models/achievement_hierarchy.dart' as hierarchy;
 import '../../../utils/responsive_helper.dart';
 
 /// Enhanced session results page with research narrative
 class SessionResultsPage extends StatefulWidget {
   final ExpeditionResult expeditionResult;
   final AnimationController animationController;
+  final hierarchy.AchievementClassification? achievementHierarchy;
 
   const SessionResultsPage({
     super.key,
     required this.expeditionResult,
     required this.animationController,
+    this.achievementHierarchy,
   });
 
   @override
@@ -109,16 +112,31 @@ class _SessionResultsPageState extends State<SessionResultsPage>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Hero Metric: Animated Data Points Counter
-                _buildHeroMetric(),
-                
+                // Achievement Hierarchy Hero or fallback to original hero metric
+                widget.achievementHierarchy != null
+                    ? hierarchy.AchievementHierarchy.buildHeroAchievement(
+                        widget.achievementHierarchy!.primary,
+                        widget.expeditionResult,
+                      )
+                    : _buildHeroMetric(),
+
                 const SizedBox(height: 24),
-                
+
+                // Secondary achievements (if using hierarchy)
+                if (widget.achievementHierarchy != null &&
+                    widget.achievementHierarchy!.secondary.isNotEmpty) ...[
+                  hierarchy.AchievementHierarchy.buildSecondaryAchievements(
+                    widget.achievementHierarchy!.secondary,
+                    widget.expeditionResult,
+                  ),
+                  const SizedBox(height: 20),
+                ],
+
                 // Quick Stats Bar
                 _buildQuickStats(),
-                
+
                 const SizedBox(height: 20),
-                
+
                 // Condensed Research Impact
                 _buildResearchImpact(),
               ],

@@ -13,6 +13,8 @@ import 'components/underwater_background.dart';
 import 'effects/jellyfish_levelup_effect.dart';
 import 'effects/school_of_fish_transition.dart';
 import 'effects/rare_creature_popup.dart';
+import 'models/achievement_hierarchy.dart' as hierarchy;
+import 'utils/biome_color_inheritance.dart';
 
 /// Main orchestration widget that coordinates the entire research expedition summary experience
 /// This replaces the monolithic ResearchExpeditionSummaryWidget with a modular architecture
@@ -40,6 +42,7 @@ class _ResearchExpeditionSummaryControllerState
   // Core data and configuration
   late ExpeditionResult _expeditionResult;
   late CelebrationConfig _celebrationConfig;
+  late hierarchy.AchievementClassification _achievementHierarchy;
   
   // Animation controllers
   late AnimationController _masterController;
@@ -68,12 +71,17 @@ class _ResearchExpeditionSummaryControllerState
     // Convert GamificationReward to enhanced ExpeditionResult
     _expeditionResult = _createExpeditionResult(widget.reward);
     _celebrationConfig = CelebrationConfig.fromExpeditionResult(_expeditionResult);
-    
+
+    // Calculate achievement hierarchy for enhanced visual presentation
+    _achievementHierarchy = hierarchy.AchievementHierarchy.calculatePriority(_expeditionResult);
+
     debugPrint('DEBUG: Created ${_celebrationConfig.phases.length} phases:');
     for (int i = 0; i < _celebrationConfig.phases.length; i++) {
       final phase = _celebrationConfig.phases[i];
       debugPrint('  Phase $i: ${phase.name} (${phase.startTime.inMilliseconds}ms - ${phase.endTime.inMilliseconds}ms)');
     }
+
+    debugPrint('DEBUG: Achievement hierarchy - Primary: ${_achievementHierarchy.primary?.title}, Secondary: ${_achievementHierarchy.secondary.length}');
   }
 
   void _initializeAnimations() {
@@ -254,12 +262,18 @@ class _ResearchExpeditionSummaryControllerState
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.8),
+                  gradient: BiomeColorInheritance.getBiomeBackgroundGradient(
+                    _expeditionResult.sessionBiome,
+                    _expeditionResult.sessionDepthReached,
+                  ),
                   borderRadius: BorderRadius.circular(25),
-                  border: Border.all(color: Colors.cyan.withValues(alpha: 0.7), width: 2),
+                  border: Border.all(
+                    color: BiomeColorInheritance.getBiomeAccentColor(_expeditionResult.sessionBiome).withValues(alpha: 0.7),
+                    width: 2,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.cyan.withValues(alpha: 0.3),
+                      color: BiomeColorInheritance.getBiomeAccentColor(_expeditionResult.sessionBiome).withValues(alpha: 0.3),
                       blurRadius: 15,
                       spreadRadius: 3,
                     ),
@@ -268,16 +282,21 @@ class _ResearchExpeditionSummaryControllerState
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.touch_app, color: Colors.cyan, size: 18),
+                    Icon(
+                      Icons.touch_app,
+                      color: BiomeColorInheritance.getBiomeAccentColor(_expeditionResult.sessionBiome),
+                      size: 18,
+                    ),
                     const SizedBox(width: 8),
                     Text(
-                      _currentPhaseIndex < _celebrationConfig.phases.length - 1 
+                      _currentPhaseIndex < _celebrationConfig.phases.length - 1
                           ? 'Tap to advance'
                           : 'Tap to continue',
-                      style: const TextStyle(
-                        color: Colors.cyan,
+                      style: TextStyle(
+                        color: BiomeColorInheritance.getBiomeAccentColor(_expeditionResult.sessionBiome),
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
+                        shadows: BiomeColorInheritance.getOceanTextShadows(_expeditionResult.sessionBiome),
                       ),
                     ),
                   ],
@@ -321,6 +340,7 @@ class _ResearchExpeditionSummaryControllerState
         return SessionResultsPage(
           expeditionResult: _expeditionResult,
           animationController: _phaseControllers[_currentPhaseIndex],
+          achievementHierarchy: _achievementHierarchy,
         );
         
       case 'Career Advancement':
@@ -453,23 +473,28 @@ class _ResearchExpeditionSummaryControllerState
     // Calculate content phases (excluding surfacing)
     final contentPhases = _celebrationConfig.phases.where((phase) => phase.name != 'Surfacing').toList();
     final currentContentPhaseIndex = _currentPhaseIndex > 0 ? _currentPhaseIndex - 1 : 0;
-    
+
+    // Use biome-aware colors for progress indicator
+    final biome = _expeditionResult.sessionBiome;
+    final progressColor = BiomeColorInheritance.getBiomeAccentColor(biome);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.8),
+        gradient: BiomeColorInheritance.getBiomeBackgroundGradient(biome, _expeditionResult.sessionDepthReached),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.amber.withValues(alpha: 0.5), width: 1),
+        border: Border.all(color: progressColor.withValues(alpha: 0.6), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             '${currentContentPhaseIndex + 1} of ${contentPhases.length}',
-            style: const TextStyle(
-              color: Colors.amber,
+            style: TextStyle(
+              color: progressColor,
               fontSize: 12,
               fontWeight: FontWeight.w600,
+              shadows: BiomeColorInheritance.getOceanTextShadows(biome),
             ),
           ),
           const SizedBox(width: 8),
@@ -484,10 +509,10 @@ class _ResearchExpeditionSummaryControllerState
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isCompleted
-                    ? Colors.amber
+                    ? progressColor
                     : isCurrent
-                        ? Colors.amber.withValues(alpha: 0.7)
-                        : Colors.grey.withValues(alpha: 0.4),
+                        ? progressColor.withValues(alpha: 0.7)
+                        : progressColor.withValues(alpha: 0.3),
               ),
             );
           }),
