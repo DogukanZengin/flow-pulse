@@ -18,6 +18,57 @@ import '../themes/ocean_theme.dart';
 import '../constants/timer_constants.dart';
 import '../utils/responsive_helper.dart';
 
+/// Constants for FullScreenOceanWidget layout and animations
+class _OceanWidgetConstants {
+  // Animation durations
+  static const masterAnimationDuration = Duration(seconds: 12);
+  static const journalExpandDuration = Duration(milliseconds: 300);
+  static const containerAnimationDuration = Duration(milliseconds: 300);
+
+  // Animation cycles
+  static const waveCyclesPerMaster = 3.0; // 3 wave cycles in 12 seconds
+  static const bubbleCyclesPerMaster = 2.0; // 2 bubble cycles in 12 seconds
+  static const timerPulsePeriod = 2.0 / 12.0; // 2s pulse within 12s master
+
+  // Timer styling
+  static const timerBorderRadius = 25.0;
+  static const timerBorderWidth = 3.0;
+  static const timerProgressBarHeight = 3.0;
+
+  // Background alpha values
+  static const timerBackgroundPrimary = 0.85;
+  static const timerBackgroundSecondary = 0.75;
+  static const timerBorderAlpha = 0.9;
+  static const timerShadowAlpha = 0.6;
+  static const timerGlowAlpha = 0.5;
+
+  // Responsive positioning (percentages)
+  static const timerTopMobile = 0.10;
+  static const timerTopTablet = 0.09;
+  static const timerTopDesktop = 0.08;
+
+  static const researchStationTopMobile = 0.25;
+  static const researchStationTopTablet = 0.23;
+  static const researchStationTopDesktop = 0.20;
+
+  static const centralControlBottomMobile = 0.20;
+  static const centralControlBottomTablet = 0.32;
+
+  // Depth thresholds
+  static const coralGardenDepthThreshold = 10.0;
+  static const deepOceanDepthThreshold = 20.0;
+  static const abyssalZoneDepthThreshold = 40.0;
+
+  // Particle counts and sizes
+  static const particleCount = 15;
+  static const ambientBubbleCount = 12;
+  static const equipmentBubbleCount = 3;
+
+  // Fish animation
+  static const baseFishDuration = 8;
+  static const fishDurationIncrement = 3;
+}
+
 /// Full-screen marine biology research station and ocean environment
 /// Replaces the circular timer with an immersive underwater experience
 class FullScreenOceanWidget extends StatefulWidget {
@@ -58,11 +109,14 @@ class FullScreenOceanWidget extends StatefulWidget {
 
 class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     with TickerProviderStateMixin {
-  late AnimationController _waveController;
-  late AnimationController _bubbleController;
-  late AnimationController _depthController;
-  late AnimationController _timerPulseController;
+  // Consolidated animation system
+  late AnimationController _masterController;
+  late Animation<double> _waveAnimation;
+  late Animation<double> _bubbleAnimation;
   late Animation<double> _timerPulseAnimation;
+
+  // Separate controllers for user interactions and session-based animations
+  late AnimationController _depthController;
   late AnimationController _journalExpandController;
   late Animation<double> _journalExpandAnimation;
   late List<AnimationController> _fishControllers;
@@ -88,18 +142,31 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     
     // Initialize continuous time
     _startTime = DateTime.now();
-    
-    // Water wave animation
-    _waveController = AnimationController(
-      duration: const Duration(seconds: 4),
+
+    // Master controller for ambient animations (waves, bubbles, timer pulse)
+    _masterController = AnimationController(
+      duration: _OceanWidgetConstants.masterAnimationDuration,
       vsync: this,
     )..repeat();
 
-    // Bubble animation
-    _bubbleController = AnimationController(
-      duration: const Duration(seconds: 6),
-      vsync: this,
-    )..repeat();
+    // Create multiple animations from single controller
+    _waveAnimation = Tween<double>(
+      begin: 0.0,
+      end: _OceanWidgetConstants.waveCyclesPerMaster,
+    ).animate(_masterController);
+
+    _bubbleAnimation = Tween<double>(
+      begin: 0.0,
+      end: _OceanWidgetConstants.bubbleCyclesPerMaster,
+    ).animate(_masterController);
+
+    _timerPulseAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.1,
+    ).animate(CurvedAnimation(
+      parent: _masterController,
+      curve: const _RepeatingCurve(period: _OceanWidgetConstants.timerPulsePeriod),
+    ));
 
     // Depth progression animation (mimics diving deeper during session)
     _depthController = AnimationController(
@@ -107,23 +174,9 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
       vsync: this,
     );
 
-    // Timer pulse animation for visibility
-    _timerPulseController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    );
-    
-    _timerPulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.1,
-    ).animate(CurvedAnimation(
-      parent: _timerPulseController,
-      curve: Curves.easeInOut,
-    ));
-
     // Journal expand animation
     _journalExpandController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: _OceanWidgetConstants.journalExpandDuration,
       vsync: this,
     );
     
@@ -141,7 +194,6 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     // Start depth progression if session is running
     if (widget.isRunning) {
       _depthController.forward();
-      _timerPulseController.repeat(reverse: true);
     }
     
     // Load discovered creatures for research journal
@@ -194,7 +246,7 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
 
     for (int i = 0; i < widget.visibleCreatures.length; i++) {
       final controller = AnimationController(
-        duration: Duration(seconds: 8 + i * 3), // Vary swimming speed
+        duration: Duration(seconds: _OceanWidgetConstants.baseFishDuration + i * _OceanWidgetConstants.fishDurationIncrement),
         vsync: this,
       );
 
@@ -232,20 +284,15 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     // Update depth progression based on session state
     if (widget.isRunning && !oldWidget.isRunning) {
       _depthController.forward();
-      _timerPulseController.repeat(reverse: true);
     } else if (!widget.isRunning && oldWidget.isRunning) {
       _depthController.stop();
-      _timerPulseController.stop();
-      _timerPulseController.reset();
     }
   }
 
   @override
   void dispose() {
-    _waveController.dispose();
-    _bubbleController.dispose();
+    _masterController.dispose();
     _depthController.dispose();
-    _timerPulseController.dispose();
     _journalExpandController.dispose();
     for (final controller in _fishControllers) {
       controller.dispose();
@@ -269,9 +316,9 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
 
   BiomeType _getCurrentBiome() {
     final depth = _getCurrentDepth();
-    if (depth >= 40) return BiomeType.abyssalZone;
-    if (depth >= 20) return BiomeType.deepOcean;
-    if (depth >= 10) return BiomeType.coralGarden;
+    if (depth >= _OceanWidgetConstants.abyssalZoneDepthThreshold) return BiomeType.abyssalZone;
+    if (depth >= _OceanWidgetConstants.deepOceanDepthThreshold) return BiomeType.deepOcean;
+    if (depth >= _OceanWidgetConstants.coralGardenDepthThreshold) return BiomeType.coralGarden;
     return BiomeType.shallowWaters;
   }
 
@@ -369,9 +416,9 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
             Positioned(
               top: ResponsiveHelper.responsiveValue<double>(
                 context: context,
-                mobile: screenSize.height * 0.10,  // 10% from top on mobile
-                tablet: screenSize.height * 0.09,   // 9% from top on tablet
-                desktop: screenSize.height * 0.08,  // 8% from top on desktop
+                mobile: screenSize.height * _OceanWidgetConstants.timerTopMobile,
+                tablet: screenSize.height * _OceanWidgetConstants.timerTopTablet,
+                desktop: screenSize.height * _OceanWidgetConstants.timerTopDesktop,
               ),
               left: 0,
               right: 0,
@@ -384,9 +431,9 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
             Positioned(
               top: ResponsiveHelper.responsiveValue<double>(
                 context: context,
-                mobile: screenSize.height * 0.25,  // 25% from top on mobile
-                tablet: screenSize.height * 0.23,   // 23% from top on tablet
-                desktop: screenSize.height * 0.20,  // 20% from top on desktop
+                mobile: screenSize.height * _OceanWidgetConstants.researchStationTopMobile,
+                tablet: screenSize.height * _OceanWidgetConstants.researchStationTopTablet,
+                desktop: screenSize.height * _OceanWidgetConstants.researchStationTopDesktop,
               ),
               left: ResponsiveHelper.getResponsiveSpacing(context, 'screen', fallback: 20.0),
               right: ResponsiveHelper.getResponsiveSpacing(context, 'screen', fallback: 20.0),
@@ -447,11 +494,11 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
 
   Widget _buildWaterBackground(Size screenSize) {
     return AnimatedBuilder(
-      animation: _waveController,
+      animation: _waveAnimation,
       builder: (context, child) {
         return CustomPaint(
           painter: AdvancedBiomeEnvironmentPainter(
-            progress: _continuousTime,
+            progress: _waveAnimation.value,
             biome: _getCurrentBiome(),
             depth: _getCurrentDepth().toDouble(),
             sessionProgress: widget.sessionProgress,
@@ -464,11 +511,11 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
 
   Widget _buildDepthParticles(Size screenSize) {
     return AnimatedBuilder(
-      animation: _bubbleController,
+      animation: _bubbleAnimation,
       builder: (context, child) {
         return CustomPaint(
           painter: DepthParticlesPainter(
-            progress: _bubbleController.value,
+            progress: _bubbleAnimation.value,
             depth: _getCurrentDepth().round(),
             isActive: widget.isRunning,
           ),
@@ -558,11 +605,11 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
 
   Widget _buildBubbles(Size screenSize) {
     return AnimatedBuilder(
-      animation: _bubbleController,
+      animation: _bubbleAnimation,
       builder: (context, child) {
         return CustomPaint(
           painter: ResearchBubblesPainter(
-            progress: _bubbleController.value,
+            progress: _bubbleAnimation.value,
             isActive: widget.isRunning,
             screenSize: screenSize,
           ),
@@ -608,23 +655,28 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
         return Transform.scale(
           scale: widget.isRunning ? _timerPulseAnimation.value : 1.0,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
+            duration: _OceanWidgetConstants.containerAnimationDuration,
             padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(25),
+              borderRadius: BorderRadius.circular(_OceanWidgetConstants.timerBorderRadius),
               gradient: LinearGradient(
                 colors: [
-                  Colors.black.withValues(alpha: 0.5),
-                  Colors.black.withValues(alpha: 0.3),
+                  Colors.black.withValues(alpha: _OceanWidgetConstants.timerBackgroundPrimary),
+                  Colors.black.withValues(alpha: _OceanWidgetConstants.timerBackgroundSecondary),
                 ],
               ),
               border: Border.all(
-                color: urgencyColor.withValues(alpha: 0.6),
-                width: 2,
+                color: urgencyColor.withValues(alpha: _OceanWidgetConstants.timerBorderAlpha),
+                width: _OceanWidgetConstants.timerBorderWidth,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: urgencyColor.withValues(alpha: 0.3),
+                  color: Colors.black.withValues(alpha: _OceanWidgetConstants.timerShadowAlpha),
+                  blurRadius: 20,
+                  spreadRadius: 3,
+                ),
+                BoxShadow(
+                  color: urgencyColor.withValues(alpha: _OceanWidgetConstants.timerGlowAlpha),
                   blurRadius: 15,
                   spreadRadius: 2,
                 ),
@@ -725,8 +777,8 @@ class _FullScreenOceanWidgetState extends State<FullScreenOceanWidget>
     // Responsive positioning
     final bottomOffset = ResponsiveHelper.responsiveValue<double>(
       context: context,
-      mobile: screenSize.height * 0.20,  // 35% from bottom on mobile
-      tablet: screenSize.height * 0.32,   // 32% from bottom on tablet
+      mobile: screenSize.height * _OceanWidgetConstants.centralControlBottomMobile,
+      tablet: screenSize.height * _OceanWidgetConstants.centralControlBottomTablet,
     );
     
     // Container needs extra width for reset button
@@ -1385,6 +1437,19 @@ class DepthParticlesPainter extends CustomPainter {
   final int depth;
   final bool isActive;
 
+  // Cached paint objects for performance
+  static final Paint _shallowPaint = Paint()
+    ..color = Colors.yellow.withValues(alpha: 0.4)
+    ..style = PaintingStyle.fill;
+
+  static final Paint _midWaterPaint = Paint()
+    ..color = Colors.white.withValues(alpha: 0.3)
+    ..style = PaintingStyle.fill;
+
+  static final Paint _deepWaterPaint = Paint()
+    ..color = Colors.cyan.withValues(alpha: 0.6)
+    ..style = PaintingStyle.fill;
+
   DepthParticlesPainter({
     required this.progress,
     required this.depth,
@@ -1395,28 +1460,22 @@ class DepthParticlesPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (!isActive) return;
 
-    final paint = Paint()
-      ..style = PaintingStyle.fill;
-
-    // Plankton/debris particles
-    for (int i = 0; i < 15; i++) {
+    // Plankton/debris particles using cached paint objects
+    for (int i = 0; i < _OceanWidgetConstants.particleCount; i++) {
       final offset = (progress + i * 0.1) % 1.0;
       final x = size.width * (0.1 + i * 0.06);
       final y = offset * size.height;
-      
-      // Vary particle appearance based on depth
+
+      // Vary particle appearance based on depth using cached paints
       if (depth < 15) {
         // Shallow water - small bright particles (plankton)
-        paint.color = Colors.yellow.withValues(alpha: 0.4);
-        canvas.drawCircle(Offset(x, y), 1.5, paint);
+        canvas.drawCircle(Offset(x, y), 1.5, _shallowPaint);
       } else if (depth < 30) {
         // Mid water - marine snow
-        paint.color = Colors.white.withValues(alpha: 0.3);
-        canvas.drawCircle(Offset(x, y), 1, paint);
+        canvas.drawCircle(Offset(x, y), 1, _midWaterPaint);
       } else {
         // Deep water - bioluminescent particles
-        paint.color = Colors.cyan.withValues(alpha: 0.6);
-        canvas.drawCircle(Offset(x, y), 2, paint);
+        canvas.drawCircle(Offset(x, y), 2, _deepWaterPaint);
       }
     }
   }
@@ -1736,6 +1795,11 @@ class ResearchBubblesPainter extends CustomPainter {
   final bool isActive;
   final Size screenSize;
 
+  // Cached paint object for bubbles
+  static final Paint _bubblePaint = Paint()
+    ..color = Colors.white.withValues(alpha: 0.6)
+    ..style = PaintingStyle.fill;
+
   ResearchBubblesPainter({
     required this.progress,
     required this.isActive,
@@ -1745,10 +1809,6 @@ class ResearchBubblesPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (!isActive) return;
-
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.6)
-      ..style = PaintingStyle.fill;
 
     // Equipment bubbles from dive computer area
     final equipmentBubbles = [
@@ -1768,20 +1828,20 @@ class ResearchBubblesPainter extends CustomPainter {
         canvas.drawCircle(
           Offset(x, y),
           bubbleSize,
-          paint,
+          _bubblePaint,
         );
       }
     }
 
     // Research station ambient bubbles
-    for (int i = 0; i < 12; i++) {
+    for (int i = 0; i < _OceanWidgetConstants.ambientBubbleCount; i++) {
       final offset = (progress + i * 0.12) % 1.0;
       final x = screenSize.width * (0.1 + i * 0.07);
       final y = screenSize.height * (1.0 - offset);
       final radius = 1.5 + (i % 4);
       
       if (y > 0 && y < screenSize.height) {
-        canvas.drawCircle(Offset(x, y), radius, paint);
+        canvas.drawCircle(Offset(x, y), radius, _bubblePaint);
       }
     }
   }
@@ -1789,5 +1849,18 @@ class ResearchBubblesPainter extends CustomPainter {
   @override
   bool shouldRepaint(ResearchBubblesPainter oldDelegate) {
     return oldDelegate.progress != progress || oldDelegate.isActive != isActive;
+  }
+}
+
+/// Custom curve that repeats a pattern within a longer duration
+class _RepeatingCurve extends Curve {
+  const _RepeatingCurve({required this.period});
+
+  final double period; // Fraction of the total duration for one cycle
+
+  @override
+  double transform(double t) {
+    final normalizedT = (t % period) / period;
+    return Curves.easeInOut.transform(normalizedT);
   }
 }
