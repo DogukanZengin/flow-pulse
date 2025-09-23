@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../../services/gamification_service.dart';
 import '../../models/creature.dart';
 import 'models/expedition_result.dart';
@@ -15,6 +16,8 @@ import 'effects/school_of_fish_transition.dart';
 import 'effects/rare_creature_popup.dart';
 import 'models/achievement_hierarchy.dart' as hierarchy;
 import 'utils/biome_color_inheritance.dart';
+import 'utils/performance_monitor.dart';
+import 'constants/adaptive_animation_constants.dart';
 
 /// Main orchestration widget that coordinates the entire research expedition summary experience
 /// This replaces the monolithic ResearchExpeditionSummaryWidget with a modular architecture
@@ -85,15 +88,20 @@ class _ResearchExpeditionSummaryControllerState
   }
 
   void _initializeAnimations() {
+    // Use adaptive duration for better performance on slower devices
+    final adaptiveDuration = AdaptiveAnimationConstants.getAdaptiveDuration(
+      _celebrationConfig.totalDuration
+    );
+
     // Single master animation controller for optimal performance
     _masterController = AnimationController(
-      duration: _celebrationConfig.totalDuration,
+      duration: adaptiveDuration,
       vsync: this,
     );
 
     // Derived animations from master controller for better sync and performance
     _surfacingController = AnimationController(
-      duration: const Duration(milliseconds: 1200), // was 2000ms - faster surfacing
+      duration: AdaptiveAnimationConstants.adaptiveSurfacingAnimation,
       vsync: this,
     );
 
@@ -111,14 +119,20 @@ class _ResearchExpeditionSummaryControllerState
     if (_animationStarted) return;
     _animationStarted = true;
 
+    // Start performance monitoring before animations begin
+    CelebrationPerformanceMonitor().startMonitoring();
+
     // Start with surfacing animation
     _surfacingController.forward();
-    
+
     // Start particle effects
     _particleController.forward();
-    
+
     // Wait for surfacing animation to complete, then show first content page automatically
-    await Future.delayed(const Duration(milliseconds: 600)); // was 1000ms - faster transition
+    final transitionDelay = AdaptiveAnimationConstants.getAdaptiveDelay(
+      const Duration(milliseconds: 600)
+    );
+    await Future.delayed(transitionDelay);
     
     // Start with phase 1 (Data Collection) instead of phase 0 (Surfacing)
     if (_celebrationConfig.phases.length > 1 && mounted) {
@@ -370,11 +384,12 @@ class _ResearchExpeditionSummaryControllerState
   
   List<Widget> _buildPhaseEffects() {
     if (_currentPhase == null) return [];
-    
+
     final effects = <Widget>[];
-    
-    // Performance-based effect rendering
-    final shouldRenderExpensiveEffects = _celebrationConfig.intensity.index >= 2;
+
+    // Performance-based effect rendering - use adaptive quality
+    final shouldRenderExpensiveEffects = CelebrationPerformanceMonitor.shouldRenderExpensiveEffects() &&
+        _celebrationConfig.intensity.index >= 2;
     
     // Add jellyfish effect for career advancement (only if high intensity)
     if (_currentPhase!.name == 'Career Advancement' && 
@@ -478,57 +493,88 @@ class _ResearchExpeditionSummaryControllerState
     final biome = _expeditionResult.sessionBiome;
     final progressColor = BiomeColorInheritance.getBiomeAccentColor(biome);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        gradient: BiomeColorInheritance.getBiomeBackgroundGradient(biome, _expeditionResult.sessionDepthReached),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: progressColor.withValues(alpha: 0.6), width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '${currentContentPhaseIndex + 1} of ${contentPhases.length}',
-            style: TextStyle(
-              color: progressColor,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              shadows: BiomeColorInheritance.getOceanTextShadows(biome),
+    // Add performance indicator when debug mode
+    final showPerformanceInfo = kDebugMode && CelebrationPerformanceMonitor().isMonitoring;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Main progress indicator
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            gradient: BiomeColorInheritance.getBiomeBackgroundGradient(biome, _expeditionResult.sessionDepthReached),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: progressColor.withValues(alpha: 0.6), width: 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${currentContentPhaseIndex + 1} of ${contentPhases.length}',
+                style: TextStyle(
+                  color: progressColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  shadows: BiomeColorInheritance.getOceanTextShadows(biome),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ...List.generate(contentPhases.length, (index) {
+                final isCompleted = index < currentContentPhaseIndex;
+                final isCurrent = index == currentContentPhaseIndex;
+
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isCompleted
+                        ? progressColor
+                        : isCurrent
+                            ? progressColor.withValues(alpha: 0.7)
+                            : progressColor.withValues(alpha: 0.3),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+
+        // Performance indicator in debug mode
+        if (showPerformanceInfo)
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              'FPS: ${CelebrationPerformanceMonitor.getCurrentFPS().toStringAsFixed(1)} | Quality: ${CelebrationPerformanceMonitor.getAdaptiveQuality().name}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontFamily: 'monospace',
+              ),
             ),
           ),
-          const SizedBox(width: 8),
-          ...List.generate(contentPhases.length, (index) {
-            final isCompleted = index < currentContentPhaseIndex;
-            final isCurrent = index == currentContentPhaseIndex;
-            
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 2),
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isCompleted
-                    ? progressColor
-                    : isCurrent
-                        ? progressColor.withValues(alpha: 0.7)
-                        : progressColor.withValues(alpha: 0.3),
-              ),
-            );
-          }),
-        ],
-      ),
+      ],
     );
   }
 
   @override
   void dispose() {
+    // Stop performance monitoring when disposing
+    CelebrationPerformanceMonitor().stopMonitoring();
+
     _masterController.dispose();
     _surfacingController.dispose();
     // _particleController now references _masterController, don't dispose twice
-    
+
     // Phase controllers now reference master controller, no separate disposal needed
-    
+
     super.dispose();
   }
 

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/celebration_config.dart';
 import '../constants/animation_constants.dart';
+import '../utils/performance_monitor.dart';
 
 /// Enhanced underwater particle system with three-layer celebration effects
 class UnderwaterParticleSystem extends StatefulWidget {
@@ -96,9 +97,17 @@ class _UnderwaterParticleSystemState extends State<UnderwaterParticleSystem>
   void _initializeParticles() {
     final biomeConfig = BiomeVisualConfig.forBiome(widget.celebrationConfig.primaryBiome);
     final random = math.Random();
-    
+
+    // Get adaptive particle counts based on device performance
+    final marineSnowCount = CelebrationPerformanceMonitor.getAdaptiveParticleCount(
+      AnimationConstants.marineSnowParticleCount
+    );
+    final planktonCount = CelebrationPerformanceMonitor.getAdaptiveParticleCount(
+      AnimationConstants.planktonParticleCount
+    );
+
     // Initialize background marine snow particles
-    for (int i = 0; i < AnimationConstants.marineSnowParticleCount; i++) {
+    for (int i = 0; i < marineSnowCount; i++) {
       _particles.add(Particle(
         position: Offset(
           random.nextDouble() * 400, // Will be scaled to actual size
@@ -116,7 +125,7 @@ class _UnderwaterParticleSystemState extends State<UnderwaterParticleSystem>
     }
     
     // Initialize plankton particles
-    for (int i = 0; i < AnimationConstants.planktonParticleCount; i++) {
+    for (int i = 0; i < planktonCount; i++) {
       _particles.add(Particle(
         position: Offset(
           random.nextDouble() * 400,
