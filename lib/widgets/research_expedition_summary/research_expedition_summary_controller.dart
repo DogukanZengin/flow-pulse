@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import '../../services/gamification_service.dart';
@@ -18,6 +19,7 @@ import 'models/achievement_hierarchy.dart' as hierarchy;
 import 'utils/biome_color_inheritance.dart';
 import 'utils/performance_monitor.dart';
 import 'constants/adaptive_animation_constants.dart';
+import 'constants/animation_constants.dart';
 
 /// Main orchestration widget that coordinates the entire research expedition summary experience
 /// This replaces the monolithic ResearchExpeditionSummaryWidget with a modular architecture
@@ -128,12 +130,16 @@ class _ResearchExpeditionSummaryControllerState
     // Start particle effects
     _particleController.forward();
 
-    // Wait for surfacing animation to complete, then show first content page automatically
+    // Wait for surfacing animation to complete with adaptive timing
     final transitionDelay = AdaptiveAnimationConstants.getAdaptiveDelay(
       const Duration(milliseconds: 600)
     );
     await Future.delayed(transitionDelay);
-    
+
+    // Add anticipation delay before revealing achievements to build suspense
+    final anticipationDelay = _getRandomAnticipationDelay();
+    await Future.delayed(anticipationDelay);
+
     // Start with phase 1 (Data Collection) instead of phase 0 (Surfacing)
     if (_celebrationConfig.phases.length > 1 && mounted) {
       _startPhase(1);
@@ -142,16 +148,53 @@ class _ResearchExpeditionSummaryControllerState
 
   // Removed automatic phase transitions - now purely user controlled
 
-  void _startPhase(int phaseIndex) {
+  void _startPhase(int phaseIndex) async {
     if (phaseIndex >= _celebrationConfig.phases.length) return;
-    
+
     debugPrint('DEBUG: Starting phase $phaseIndex: ${_celebrationConfig.phases[phaseIndex].name}');
-    
+
+    // Add anticipation delay for phases with significant achievements
+    if (phaseIndex > 1) {
+      final phaseName = _celebrationConfig.phases[phaseIndex].name;
+      double multiplier = 1.0;
+
+      // Scale delay based on phase significance
+      if (phaseName == 'Career Advancement' && _expeditionResult.leveledUp) {
+        multiplier = 1.5; // Longer anticipation for level ups
+      } else if (phaseName == 'Species Discovery' && _expeditionResult.discoveredCreature != null) {
+        // Scale by creature rarity
+        final creature = _expeditionResult.discoveredCreature;
+        if (creature is Creature) {
+          switch (creature.rarity) {
+            case CreatureRarity.legendary:
+              multiplier = 2.0; // Maximum anticipation for legendary discoveries
+              break;
+            case CreatureRarity.rare:
+              multiplier = 1.8; // High anticipation for rare discoveries
+              break;
+            case CreatureRarity.uncommon:
+              multiplier = 1.3; // Moderate anticipation for uncommon
+              break;
+            default:
+              multiplier = 1.0; // Standard timing for common
+          }
+        }
+      } else if (phaseName == 'Grand Finale') {
+        multiplier = 1.2; // Build up for finale
+      }
+
+      final anticipationDelay = _getScaledAnticipationDelay(multiplier: multiplier);
+      debugPrint('DEBUG: Adding anticipation delay of ${anticipationDelay.inMilliseconds}ms for $phaseName (multiplier: $multiplier)');
+      await Future.delayed(anticipationDelay);
+    }
+
+    if (!mounted) return;
+
     setState(() {
       _currentPhaseIndex = phaseIndex;
       _currentPhase = _celebrationConfig.phases[phaseIndex];
     });
-    
+
     // Start the phase controller
     _phaseControllers[phaseIndex].forward();
   }
@@ -169,8 +212,8 @@ class _ResearchExpeditionSummaryControllerState
       
       // Complete current phase controller
       _phaseControllers[_currentPhaseIndex].animateTo(1.0, duration: const Duration(milliseconds: 200));
-      
-      // Start the next phase
+
+      // Start the next phase (async call)
       _startPhase(nextPhaseIndex);
       
       // Temporarily disable skip to prevent rapid tapping
@@ -482,6 +525,25 @@ class _ResearchExpeditionSummaryControllerState
       default:
         return Colors.blue;
     }
+  }
+
+  /// Generate random anticipation delay for natural timing variation
+  Duration _getRandomAnticipationDelay() {
+    final random = Random();
+    final minMs = AnimationConstants.anticipationDelayMin.inMilliseconds;
+    final maxMs = AnimationConstants.anticipationDelayMax.inMilliseconds;
+    final randomMs = random.nextInt(maxMs - minMs) + minMs;
+    return Duration(milliseconds: randomMs);
+  }
+
+  /// Generate scaled anticipation delay based on achievement significance
+  Duration _getScaledAnticipationDelay({double multiplier = 1.0}) {
+    final baseDelay = _getRandomAnticipationDelay();
+    final scaledMs = (baseDelay.inMilliseconds * multiplier).round();
+    return Duration(milliseconds: scaledMs.clamp(
+      AnimationConstants.anticipationDelayMin.inMilliseconds,
+      AnimationConstants.anticipationDelayMax.inMilliseconds * 2,
+    ));
   }
 
   Widget _buildProgressIndicator() {

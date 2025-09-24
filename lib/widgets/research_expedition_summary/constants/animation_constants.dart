@@ -13,6 +13,10 @@ class AnimationConstants {
   static const Duration particleFloatDuration = Duration(seconds: 2); // was 8s - 4x faster, more lively
   static const Duration sparkleAnimationDuration = Duration(seconds: 2); // keep - good rhythm
   static const Duration burstEffectDuration = Duration(milliseconds: 1000); // was 1500ms - snappier bursts
+
+  // Anticipation Delays for Enhanced Timing
+  static const Duration anticipationDelayMin = Duration(milliseconds: 500);
+  static const Duration anticipationDelayMax = Duration(milliseconds: 1500);
   
   // Caustic Effect Configuration
   static const int causticGridWidth = 10; // Reduced from 15
