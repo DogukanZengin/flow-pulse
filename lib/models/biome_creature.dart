@@ -264,7 +264,7 @@ final List<BiomeCreature> _deepOceanCreatures = [
     size: CreatureSize.large,
     pattern: MovementPattern.gracefulCruise,
     primaryColor: Colors.blue.shade800,
-    secondaryColor: Colors.silver,
+    secondaryColor: Colors.grey.shade300,
     baseSpeed: 0.7,
     schoolingTendency: 0.3,
   ),

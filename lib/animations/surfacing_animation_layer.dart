@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/expedition_result.dart';
-import '../models/celebration_config.dart';
-import '../../../utils/responsive_helper.dart';
+import '../widgets/research_expedition_summary/models/expedition_result.dart';
+import '../widgets/research_expedition_summary/models/celebration_config.dart';
+import '../utils/responsive_helper.dart';
 
 /// Handles the surfacing animation from session depth to surface
 /// Shows the transition from underwater research environment to surface celebration
