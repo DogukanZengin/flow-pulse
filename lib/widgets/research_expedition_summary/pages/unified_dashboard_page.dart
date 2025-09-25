@@ -3,6 +3,9 @@ import '../models/expedition_result.dart';
 import '../models/achievement_hierarchy.dart' as hierarchy;
 import '../utils/surfacing_celebration_colors.dart';
 import '../../../utils/responsive_helper.dart';
+import '../components/progress_indicator_widget.dart';
+import '../components/comparison_metrics.dart';
+import '../utils/progress_calculations.dart';
 
 /// Unified dashboard page that replaces the sequential page flow
 /// with a single responsive interface showing all achievements.
@@ -29,7 +32,7 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
     with TickerProviderStateMixin {
 
   late Animation<double> _fadeAnimation;
-  late AnimationController _staggerController;
+  AnimationController? _staggerController;
   late List<Animation<double>> _cardAnimations;
 
   // Track expanded state of each section
@@ -43,8 +46,15 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
   @override
   void initState() {
     super.initState();
-    _initializeAnimations();
-    _startSurfacingAnimation();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_staggerController == null) {
+      _initializeAnimations();
+      _startSurfacingAnimation();
+    }
   }
 
   void _initializeAnimations() {
@@ -76,7 +86,7 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
         begin: 0.0,
         end: 1.0,
       ).animate(CurvedAnimation(
-        parent: _staggerController,
+        parent: _staggerController!,
         curve: Interval(start, end.clamp(0.0, 1.0), curve: Curves.easeOutBack),
       ));
     });
@@ -85,14 +95,14 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
   void _startSurfacingAnimation() {
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
-        _staggerController.forward();
+        _staggerController?.forward();
       }
     });
   }
 
   @override
   void dispose() {
-    _staggerController.dispose();
+    _staggerController?.dispose();
     super.dispose();
   }
 
@@ -143,18 +153,28 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
                 return Transform.translate(
                   offset: Offset(0, 50 * (1 - _cardAnimations[index].value)),
                   child: Opacity(
-                    opacity: _cardAnimations[index].value,
+                    opacity: _cardAnimations[index].value.clamp(0.0, 1.0),
                     child: Padding(
                       padding: EdgeInsets.only(
                         bottom: ResponsiveHelper.getResponsiveSpacing(context, 'card_spacing'),
                       ),
-                      child: _buildAchievementCard(section, isExpanded: true),
+                      child: _buildAchievementCard(section, isExpanded: false),
                     ),
                   ),
                 );
               },
             );
           }),
+          // Comparison metrics for mobile
+          Padding(
+            padding: EdgeInsets.only(
+              bottom: ResponsiveHelper.getResponsiveSpacing(context, 'card_spacing'),
+            ),
+            child: ComparisonMetrics(
+              expeditionResult: widget.expeditionResult,
+              showDetailedMetrics: false,
+            ),
+          ),
           _buildBreakTransitionPreview(),
         ],
       ),
@@ -186,15 +206,21 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
                 animation: _cardAnimations[index],
                 builder: (context, child) {
                   return Transform.scale(
-                    scale: _cardAnimations[index].value,
+                    scale: _cardAnimations[index].value.clamp(0.0, 1.2),
                     child: Opacity(
-                      opacity: _cardAnimations[index].value,
+                      opacity: _cardAnimations[index].value.clamp(0.0, 1.0),
                       child: _buildAchievementCard(DashboardSection.values[index]),
                     ),
                   );
                 },
               );
             },
+          ),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'section_spacing')),
+          // Comparison metrics for tablet
+          ComparisonMetrics(
+            expeditionResult: widget.expeditionResult,
+            showDetailedMetrics: false,
           ),
           SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'section_spacing')),
           _buildBreakTransitionPreview(),
@@ -238,7 +264,7 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
                               0,
                             ),
                             child: Opacity(
-                              opacity: _cardAnimations[index].value,
+                              opacity: _cardAnimations[index].value.clamp(0.0, 1.0),
                               child: _buildAchievementCard(DashboardSection.values[index]),
                             ),
                           );
@@ -299,7 +325,7 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
                               50 * centerY * (1 - _cardAnimations[index].value),
                             ),
                             child: Opacity(
-                              opacity: _cardAnimations[index].value,
+                              opacity: _cardAnimations[index].value.clamp(0.0, 1.0),
                               child: _buildAchievementCard(DashboardSection.values[index]),
                             ),
                           );
@@ -422,7 +448,7 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
                 _buildCardHeader(section),
                 SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'content_spacing')),
                 if (isExpanded || _expandedSections[section] == true)
-                  Expanded(child: _buildCardContent(section))
+                  _buildCardContent(section)
                 else
                   _buildCardSummary(section),
               ],
@@ -489,44 +515,229 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
   }
 
   Widget _buildCardContent(DashboardSection section) {
-    // This would contain the full content from the original pages
-    // For now, we'll show placeholder content
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Detailed ${_getTitleForSection(section).toLowerCase()} information would appear here.',
-            style: TextStyle(
-              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
-              color: SurfacingCelebrationColors.getCelebrationTextColor(context),
-            ),
-          ),
-          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'content_spacing')),
-          // TODO: Replace with actual content from original pages
-          _buildPlaceholderContent(section),
+          // Add progress indicators based on section type
+          if (section == DashboardSection.session) ..._buildSessionContent(),
+          if (section == DashboardSection.career) ..._buildCareerContent(),
+          if (section == DashboardSection.species) ..._buildSpeciesContent(),
+          if (section == DashboardSection.equipment) ..._buildEquipmentContent(),
         ],
       ),
     );
   }
 
-  Widget _buildPlaceholderContent(DashboardSection section) {
-    return Container(
-      height: 100,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+  List<Widget> _buildSessionContent() {
+    return [
+      // Session details placeholder
+      Text(
+        'Session Duration: ${widget.expeditionResult.sessionDurationMinutes} minutes',
+        style: TextStyle(
+          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
+          color: SurfacingCelebrationColors.getCelebrationTextColor(context),
+        ),
       ),
-      child: Center(
-        child: Text(
-          '${_getTitleForSection(section)} Content',
+      SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'content_spacing')),
+      Text(
+        'RP Gained: ${widget.expeditionResult.rpGained} (${widget.expeditionResult.rpBreakdown})',
+        style: TextStyle(
+          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
+          color: SurfacingCelebrationColors.getCelebrationTextColor(context),
+        ),
+      ),
+      SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'section_spacing')),
+      // Progress to next level
+      ProgressIndicatorWidget(
+        currentProgress: widget.expeditionResult.cumulativeRP.toDouble(),
+        totalRequired: (widget.expeditionResult.cumulativeRP + widget.expeditionResult.rpToNextLevel).toDouble(),
+        progressType: 'level',
+        accentColor: SurfacingCelebrationColors.surfacingGradient[2],
+        nextMilestone: 'Level ${widget.expeditionResult.newLevel + 1}',
+        rpToNext: widget.expeditionResult.rpToNextLevel,
+        showMilestonePreview: true,
+      ),
+      SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'content_spacing')),
+      // Depth zone progress
+      ProgressIndicatorWidget(
+        currentProgress: widget.expeditionResult.cumulativeRP.toDouble(),
+        totalRequired: (widget.expeditionResult.cumulativeRP + widget.expeditionResult.rpToNextDepthZone).toDouble(),
+        progressType: 'depth zone',
+        accentColor: SurfacingCelebrationColors.surfacingGradient[1],
+        nextMilestone: widget.expeditionResult.nextDepthZone,
+        rpToNext: widget.expeditionResult.rpToNextDepthZone,
+        showMilestonePreview: widget.expeditionResult.nextDepthZone != null,
+      ),
+    ];
+  }
+
+  List<Widget> _buildCareerContent() {
+    return [
+      // Career details
+      Text(
+        'Current Title: ${widget.expeditionResult.newCareerTitle ?? "Student Researcher"}',
+        style: TextStyle(
+          fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
+          fontWeight: FontWeight.bold,
+          color: SurfacingCelebrationColors.getCelebrationTextColor(context),
+        ),
+      ),
+      if (widget.expeditionResult.careerTitleChanged) ...[
+        SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'small_spacing')),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: SurfacingCelebrationColors.getCelebrationAccentColor(AchievementType.careerAdvancement)
+                .withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            'Promoted from ${widget.expeditionResult.oldCareerTitle}!',
+            style: TextStyle(
+              fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
+              color: SurfacingCelebrationColors.getCelebrationAccentColor(AchievementType.careerAdvancement),
+            ),
+          ),
+        ),
+      ],
+      SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'section_spacing')),
+      // Career progression
+      ProgressIndicatorWidget(
+        currentProgress: widget.expeditionResult.cumulativeRP.toDouble(),
+        totalRequired: (widget.expeditionResult.cumulativeRP + widget.expeditionResult.rpToNextCareer).toDouble(),
+        progressType: 'promotion',
+        accentColor: SurfacingCelebrationColors.getCelebrationAccentColor(AchievementType.careerAdvancement),
+        nextMilestone: widget.expeditionResult.nextCareerTitle,
+        rpToNext: widget.expeditionResult.rpToNextCareer,
+        showMilestonePreview: widget.expeditionResult.nextCareerTitle != null,
+      ),
+    ];
+  }
+
+  List<Widget> _buildSpeciesContent() {
+    final hasDiscovery = widget.expeditionResult.discoveredCreature != null;
+    return [
+      if (hasDiscovery) ...[
+        Text(
+          'New Discovery!',
           style: TextStyle(
+            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
+            fontWeight: FontWeight.bold,
+            color: SurfacingCelebrationColors.getCelebrationAccentColor(AchievementType.speciesDiscovery),
+          ),
+        ),
+        SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'small_spacing')),
+        // Placeholder for creature details
+        Text(
+          'Discovered a new species in the ${widget.expeditionResult.currentDepthZone}',
+          style: TextStyle(
+            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
+            color: SurfacingCelebrationColors.getCelebrationTextColor(context),
+          ),
+        ),
+      ] else ...[
+        Text(
+          'No new species discovered this session',
+          style: TextStyle(
+            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
             color: SurfacingCelebrationColors.getCelebrationSecondaryTextColor(context),
           ),
         ),
+      ],
+      SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'section_spacing')),
+      // Collection progress
+      ProgressIndicatorWidget(
+        currentProgress: widget.expeditionResult.allDiscoveredCreatures.length.toDouble(),
+        totalRequired: (widget.expeditionResult.allDiscoveredCreatures.length +
+                       widget.expeditionResult.speciesLeftToDiscover).toDouble(),
+        progressType: 'collection',
+        accentColor: SurfacingCelebrationColors.getCelebrationAccentColor(AchievementType.speciesDiscovery),
+        nextMilestone: '${widget.expeditionResult.speciesLeftToDiscover} species remaining',
+        showMilestonePreview: true,
       ),
-    );
+    ];
   }
+
+  List<Widget> _buildEquipmentContent() {
+    return [
+      if (widget.expeditionResult.unlockedEquipment.isNotEmpty) ...[
+        Text(
+          'Equipment Unlocked:',
+          style: TextStyle(
+            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
+            fontWeight: FontWeight.bold,
+            color: SurfacingCelebrationColors.getCelebrationTextColor(context),
+          ),
+        ),
+        SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'small_spacing')),
+        ...widget.expeditionResult.unlockedEquipment.map((equipment) =>
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.science,
+                  size: 16,
+                  color: SurfacingCelebrationColors.surfacingGradient[2],
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  equipment.name,
+                  style: TextStyle(
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
+                    color: SurfacingCelebrationColors.getCelebrationTextColor(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ] else ...[
+        Text(
+          'No new equipment unlocked',
+          style: TextStyle(
+            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
+            color: SurfacingCelebrationColors.getCelebrationSecondaryTextColor(context),
+          ),
+        ),
+      ],
+      if (widget.expeditionResult.nextEquipmentHint != null) ...[
+        SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'section_spacing')),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: SurfacingCelebrationColors.surfacingGradient[2].withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.tips_and_updates,
+                size: 20,
+                color: SurfacingCelebrationColors.surfacingGradient[2],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Next: ${widget.expeditionResult.nextEquipmentHint}',
+                  style: TextStyle(
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
+                    color: SurfacingCelebrationColors.getCelebrationSecondaryTextColor(context),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ];
+  }
+
 
   Widget _buildDesktopSidebar() {
     return Container(
@@ -546,6 +757,12 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
             ),
           ),
           SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'content_spacing')),
+          // Comparison metrics
+          ComparisonMetrics(
+            expeditionResult: widget.expeditionResult,
+            showDetailedMetrics: false,
+          ),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'section_spacing')),
           _buildBreakTransitionPreview(),
         ],
       ),
@@ -570,7 +787,12 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
             ),
           ),
           SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'content_spacing')),
-          // Add rich sidebar content here
+          // Detailed comparison metrics for wide desktop
+          ComparisonMetrics(
+            expeditionResult: widget.expeditionResult,
+            showDetailedMetrics: true,
+          ),
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'section_spacing')),
           _buildBreakTransitionPreview(),
         ],
       ),
