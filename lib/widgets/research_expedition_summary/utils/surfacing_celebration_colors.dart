@@ -36,7 +36,7 @@ class SurfacingCelebrationColors {
   static const Color common = Color(0xFF98FB98); // Pale green
 
   /// Achievement type specific colors that harmonize with surfacing theme
-  static const Color careerAdvancement = Color(0xFFFFD700); // Gold - highest honor
+  static const Color careerAdvancement = Color(0xFFE6B800); // Softer gold - highest honor
   static const Color levelUp = Color(0xFFE6E6FA); // Silver/platinum - significant
   static const Color speciesDiscovery = Color(0xFF40E0D0); // Turquoise - discovery excitement
   static const Color streakMilestone = Color(0xFF00E5FF); // Bright cyan - momentum
