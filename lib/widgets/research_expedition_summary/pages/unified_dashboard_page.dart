@@ -3,9 +3,10 @@ import '../models/expedition_result.dart';
 import '../models/achievement_hierarchy.dart' as hierarchy;
 import '../utils/surfacing_celebration_colors.dart';
 import '../../../utils/responsive_helper.dart';
+import '../../../utils/creature_asset_provider.dart';
+import '../../../models/creature.dart';
 import '../components/progress_indicator_widget.dart';
 import '../components/comparison_metrics.dart';
-import '../components/species_asset_display.dart';
 import '../utils/progress_calculations.dart';
 
 /// Unified dashboard page that replaces the sequential page flow
@@ -496,19 +497,19 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
     return [
       if (hasDiscovery) ...[
         Text(
-          'New Discovery!',
+          _getDiscoveryTitle(widget.expeditionResult.discoveredCreature!.rarity),
           style: TextStyle(
             fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
             fontWeight: FontWeight.bold,
-            color: SurfacingCelebrationColors.getCelebrationAccentColor(AchievementType.speciesDiscovery),
+            color: _getRarityColor(widget.expeditionResult.discoveredCreature!.rarity),
           ),
         ),
         SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'small_spacing')),
 
         // Display the newly discovered creature
         Center(
-          child: SpeciesAssetDisplay(
-            creature: widget.expeditionResult.discoveredCreature,
+          child: CreatureAssetProvider.buildCreatureImage(
+            creature: widget.expeditionResult.discoveredCreature!,
             width: ResponsiveHelper.responsiveValue(
               context: context,
               mobile: 100.0,
@@ -521,9 +522,8 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
               tablet: 120.0,
               desktop: 140.0,
             ),
-            showName: true,
-            showRarityIndicator: true,
-            useDefaultImageFallback: true,
+            fit: BoxFit.contain,
+            showPlaceholder: true,
           ),
         ),
 
@@ -539,7 +539,7 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
         ),
         SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'small_spacing')),
         Text(
-          'Discovered in the ${widget.expeditionResult.currentDepthZone}',
+          'Discovered in the ${widget.expeditionResult.discoveredCreature!.habitatName}',
           style: TextStyle(
             fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
             color: SurfacingCelebrationColors.getCelebrationSecondaryTextColor(context),
@@ -837,6 +837,33 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
         return AchievementType.research;
     }
   }
+
+  String _getDiscoveryTitle(CreatureRarity rarity) {
+    switch (rarity) {
+      case CreatureRarity.legendary:
+        return '🌟 LEGENDARY DISCOVERY! 🌟';
+      case CreatureRarity.rare:
+        return '✨ Rare Discovery! ✨';
+      case CreatureRarity.uncommon:
+        return '💎 Uncommon Discovery!';
+      case CreatureRarity.common:
+        return 'New Discovery!';
+    }
+  }
+
+  Color _getRarityColor(CreatureRarity rarity) {
+    switch (rarity) {
+      case CreatureRarity.legendary:
+        return const Color(0xFFFFD700); // Gold
+      case CreatureRarity.rare:
+        return const Color(0xFF9C27B0); // Purple
+      case CreatureRarity.uncommon:
+        return const Color(0xFF2196F3); // Blue
+      case CreatureRarity.common:
+        return SurfacingCelebrationColors.getCelebrationAccentColor(AchievementType.speciesDiscovery);
+    }
+  }
+
 }
 
 enum DashboardSection {

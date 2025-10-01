@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/creature.dart';
+import '../../../utils/creature_asset_provider.dart';
 import '../utils/biome_color_inheritance.dart';
 
 /// Species asset display framework that gracefully handles image loading
@@ -272,30 +273,15 @@ class _SpeciesAssetDisplayState extends State<SpeciesAssetDisplay>
   }
 
   Widget _buildImageDisplay(Creature creature, double width, double height) {
-    final assetPath = _getSpeciesAssetPath(creature);
-
-    if (assetPath.isEmpty) {
-      // No asset path available, fall back to default or silhouette
-      if (widget.useDefaultImageFallback) {
-        return _buildDefaultImageDisplay(creature, width, height);
-      }
-      return _buildSilhouetteFallback(creature, width, height);
-    }
-
+    // Use CreatureAssetProvider for intelligent asset loading with fallbacks
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
-      child: Image.asset(
-        assetPath,
+      child: CreatureAssetProvider.buildCreatureImage(
+        creature: creature,
         width: width * 0.8,
         height: height * 0.8,
         fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) {
-          // Fallback to default image if species image fails
-          if (widget.useDefaultImageFallback) {
-            return _buildDefaultImageDisplay(creature, width, height);
-          }
-          return _buildSilhouetteFallback(creature, width, height);
-        },
+        showPlaceholder: true,
       ),
     );
   }
@@ -325,10 +311,6 @@ class _SpeciesAssetDisplayState extends State<SpeciesAssetDisplay>
   Widget _buildSilhouetteFallback(Creature creature, double width, double height) {
     final biomeColor = BiomeColorInheritance.getBiomeAccentColor(creature.habitat);
     final effectiveColor = widget.overrideColor ?? biomeColor;
-
-    // Always treat creatures as discovered when shown in the species display
-    // (The unified dashboard should only show actually discovered creatures)
-    final isDiscovered = true;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -424,24 +406,6 @@ class _SpeciesAssetDisplayState extends State<SpeciesAssetDisplay>
               fontSize: 10,
               fontWeight: FontWeight.bold,
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildUndiscoveredOverlay() {
-    return Positioned.fill(
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          color: Colors.black.withValues(alpha: 0.6),
-        ),
-        child: const Center(
-          child: Icon(
-            Icons.lock,
-            color: Colors.white70,
-            size: 32,
           ),
         ),
       ),

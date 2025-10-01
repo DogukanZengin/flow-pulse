@@ -112,6 +112,23 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/sounds/
+    # Creature assets - optimized WebP format
+    - assets/creatures/optimized/shallow_waters/common/
+    - assets/creatures/optimized/shallow_waters/uncommon/
+    - assets/creatures/optimized/shallow_waters/rare/
+    - assets/creatures/optimized/shallow_waters/legendary/
+    - assets/creatures/optimized/coral_garden/common/
+    - assets/creatures/optimized/coral_garden/uncommon/
+    - assets/creatures/optimized/coral_garden/rare/
+    - assets/creatures/optimized/coral_garden/legendary/
+    - assets/creatures/optimized/deep_ocean/common/
+    - assets/creatures/optimized/deep_ocean/uncommon/
+    - assets/creatures/optimized/deep_ocean/rare/
+    - assets/creatures/optimized/deep_ocean/legendary/
+    - assets/creatures/optimized/abyssal_zone/common/
+    - assets/creatures/optimized/abyssal_zone/uncommon/
+    - assets/creatures/optimized/abyssal_zone/rare/
+    - assets/creatures/optimized/abyssal_zone/legendary/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

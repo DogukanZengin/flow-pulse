@@ -6,6 +6,7 @@ import '../services/gamification_service.dart';
 import '../services/marine_biology_career_service.dart';
 import '../themes/ocean_theme.dart';
 import '../utils/responsive_helper.dart';
+import '../utils/creature_asset_provider.dart';
 
 /// Enhanced Research Journal Widget for Phase 2 of Ocean Gamification Master Plan
 /// Provides comprehensive species tracking, discovery statistics, and research progress
@@ -1168,7 +1169,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Species icon/emoji
+            // Species image using CreatureAssetProvider
             Container(
               width: double.infinity,
               height: ResponsiveHelper.isMobile(context) ? 50 : 60,
@@ -1194,9 +1195,11 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
               ),
               child: Center(
                 child: isDiscovered
-                    ? Text(
-                        _getCreatureEmoji(species.habitat),
-                        style: TextStyle(fontSize: ResponsiveHelper.getIconSize(context, 'large')),
+                    ? CreatureAssetProvider.buildCreatureImage(
+                        creature: species,
+                        height: ResponsiveHelper.isMobile(context) ? 50 : 60,
+                        fit: BoxFit.contain,
+                        showPlaceholder: true,
                       )
                     : Stack(
                         alignment: Alignment.center,
@@ -1406,10 +1409,14 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
               color: rarityColor.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Center(
-              child: Text(
-                _getCreatureEmoji(creature.habitat),
-                style: TextStyle(fontSize: ResponsiveHelper.getIconSize(context, 'large')),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: CreatureAssetProvider.buildCreatureImage(
+                creature: creature,
+                width: ResponsiveHelper.isMobile(context) ? 50 : 60,
+                height: ResponsiveHelper.isMobile(context) ? 50 : 60,
+                fit: BoxFit.cover,
+                showPlaceholder: true,
               ),
             ),
           ),
@@ -1508,20 +1515,6 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
     );
   }
 
-
-
-  String _getCreatureEmoji(BiomeType habitat) {
-    switch (habitat) {
-      case BiomeType.shallowWaters:
-        return '🐠';
-      case BiomeType.coralGarden:
-        return '🐟';
-      case BiomeType.deepOcean:
-        return '🦈';
-      case BiomeType.abyssalZone:
-        return '🐙';
-    }
-  }
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
@@ -1681,10 +1674,14 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Center(
-                        child: Text(
-                          _getCreatureEmoji(species.habitat),
-                          style: const TextStyle(fontSize: 24),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: CreatureAssetProvider.buildCreatureImage(
+                          creature: species,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          showPlaceholder: true,
                         ),
                       ),
                     ),

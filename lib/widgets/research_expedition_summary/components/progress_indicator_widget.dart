@@ -73,7 +73,7 @@ class ProgressIndicatorWidget extends StatelessWidget {
               Positioned.fill(
                 child: Center(
                   child: Text(
-                    '${percentage.toStringAsFixed(0)}% to next $progressType',
+                    _getProgressLabel(percentage),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
@@ -121,7 +121,7 @@ class ProgressIndicatorWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${percentage.toStringAsFixed(1)}% to next $progressType',
+                _getProgressLabel(percentage),
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.9),
                   fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'body'),
@@ -326,5 +326,18 @@ class ProgressIndicatorWidget extends StatelessWidget {
   String _capitalizeProgressType() {
     if (progressType.isEmpty) return '';
     return progressType[0].toUpperCase() + progressType.substring(1);
+  }
+
+  String _getProgressLabel(double percentage) {
+    switch (progressType) {
+      case 'collection':
+        return '${percentage.toStringAsFixed(0)}% of species discovered';
+      case 'level':
+        return '${percentage.toStringAsFixed(0)}% to next level';
+      case 'career':
+        return '${percentage.toStringAsFixed(0)}% to promotion';
+      default:
+        return '${percentage.toStringAsFixed(0)}% to next $progressType';
+    }
   }
 }
