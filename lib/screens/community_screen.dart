@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/ocean_theme_colors.dart';
 
 /// Community Screen - Phase 4 Social Hub
 /// Houses leaderboards, collaborations, and community goals
@@ -39,19 +40,19 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
                   colors: [
-                    Colors.cyan.withValues(alpha: 0.3),
-                    Colors.blue.withValues(alpha: 0.2),
+                    OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
+                    OceanThemeColors.deepOceanAccent.withValues(alpha: 0.2),
                   ],
                 ),
                 border: Border.all(
-                  color: Colors.cyan.withValues(alpha: 0.5),
+                  color: OceanThemeColors.seafoamGreen.withValues(alpha: 0.6),
                   width: 2,
                 ),
               ),
               child: const Icon(
                 Icons.waves,
                 size: 64,
-                color: Colors.cyan,
+                color: OceanThemeColors.seafoamGreen,
               ),
             ),
 
@@ -88,13 +89,13 @@ class _CommunityScreenState extends State<CommunityScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.cyan.withValues(alpha: 0.1),
-                    Colors.blue.withValues(alpha: 0.05),
+                    OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
+                    OceanThemeColors.deepOceanAccent.withValues(alpha: 0.2),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Colors.cyan.withValues(alpha: 0.3),
+                  color: OceanThemeColors.deepOceanAccent.withValues(alpha: 0.4),
                   width: 1,
                 ),
               ),
@@ -106,7 +107,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.cyan,
+                      color: OceanThemeColors.seafoamGreen,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -130,7 +131,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
         children: [
           Icon(
             icon,
-            color: Colors.cyan.withValues(alpha: 0.8),
+            color: OceanThemeColors.deepOceanAccent,
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -171,7 +172,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   children: [
                     const Icon(
                       Icons.groups,
-                      color: Colors.cyan,
+                      color: OceanThemeColors.seafoamGreen,
                       size: 32,
                     ),
                     const SizedBox(width: 12),
@@ -205,7 +206,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
               Expanded(
                 child: _isLoading
                     ? const Center(
-                        child: CircularProgressIndicator(color: Colors.cyan),
+                        child: CircularProgressIndicator(color: OceanThemeColors.seafoamGreen),
                       )
                     : _buildComingSoonOverlay(),
               ),

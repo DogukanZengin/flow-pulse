@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/equipment_progression_service.dart';
 import '../utils/responsive_helper.dart';
+import '../theme/ocean_theme_colors.dart';
 
 /// Enhanced Equipment Display Widget for Phase 4
 /// Shows comprehensive equipment progression with categories and bonuses
@@ -62,14 +63,14 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
           ],
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.cyan.withValues(alpha: 0.3)),
+        border: Border.all(color: OceanThemeColors.deepOceanAccent.withValues(alpha: 0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.construction, color: Colors.amber, size: 20),
+              Icon(Icons.construction, color: OceanThemeColors.deepOceanAccent, size: 20),
               const SizedBox(width: 8),
               const Text(
                 'Research Equipment',
@@ -93,8 +94,8 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
           SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
           LinearProgressIndicator(
             value: bonuses.equippedPercentage,
-            backgroundColor: Colors.grey.withValues(alpha: 0.3),
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.cyan),
+            backgroundColor: Colors.white.withValues(alpha: 0.2),
+            valueColor: AlwaysStoppedAnimation<Color>(OceanThemeColors.seafoamGreen),
             borderRadius: BorderRadius.circular(3),
           ),
           SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
@@ -105,7 +106,7 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
                   '+${(bonuses.discoveryRateBonus * 100).toInt()}%',
                   'Discovery Rate',
                   Icons.search,
-                  Colors.green,
+                  OceanThemeColors.seafoamGreen,
                 ),
               ),
               SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
@@ -114,7 +115,7 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
                   '+${(bonuses.sessionXPBonus * 100).toInt()}%',
                   'Session XP',
                   Icons.trending_up,
-                  Colors.purple,
+                  Colors.white.withValues(alpha: 0.8),
                 ),
               ),
               SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
@@ -123,7 +124,7 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
                   '${(bonuses.completionPercentage * 100).toInt()}%',
                   'Unlocked',
                   Icons.lock_open,
-                  Colors.amber,
+                  Colors.white.withValues(alpha: 0.8),
                 ),
               ),
             ],
@@ -191,21 +192,21 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: equipment.isUnlocked 
+          colors: equipment.isUnlocked
               ? [
-                  equipment.rarityColor.withValues(alpha: 0.3),
-                  equipment.rarityColor.withValues(alpha: 0.1),
+                  OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
+                  OceanThemeColors.deepOceanAccent.withValues(alpha: 0.2),
                 ]
               : [
-                  Colors.grey.withValues(alpha: 0.3),
-                  Colors.grey.withValues(alpha: 0.1),
+                  OceanThemeColors.deepOceanBlue.withValues(alpha: 0.15),
+                  OceanThemeColors.deepOceanBlue.withValues(alpha: 0.05),
                 ],
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: equipment.isUnlocked 
-              ? equipment.rarityColor
-              : Colors.grey.withValues(alpha: 0.5),
+          color: equipment.isUnlocked
+              ? (equipment.isEquipped ? OceanThemeColors.seafoamGreen : OceanThemeColors.seafoamGreen.withValues(alpha: 0.6))
+              : OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
           width: equipment.isEquipped ? 3 : 2,
         ),
       ),
@@ -215,16 +216,14 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: equipment.isUnlocked 
-                  ? equipment.rarityColor.withValues(alpha: 0.2)
-                  : Colors.grey.withValues(alpha: 0.2),
+              color: OceanThemeColors.deepOceanBlue.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               equipment.icon,
               style: TextStyle(
                 fontSize: 20,
-                color: equipment.isUnlocked ? null : Colors.grey,
+                color: equipment.isUnlocked ? null : Colors.white.withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -234,7 +233,7 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w600,
-              color: equipment.isUnlocked ? Colors.white : Colors.grey,
+              color: equipment.isUnlocked ? Colors.white : Colors.white.withValues(alpha: 0.6),
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -245,14 +244,14 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.2),
+                color: OceanThemeColors.seafoamGreen.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
-              child: const Text(
+              child: Text(
                 'ON',
                 style: TextStyle(
                   fontSize: 7,
-                  color: Colors.green,
+                  color: OceanThemeColors.seafoamGreen,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -263,7 +262,7 @@ class EnhancedEquipmentDisplayWidget extends StatelessWidget {
               '${equipment.effectiveUnlockRP} RP',
               style: TextStyle(
                 fontSize: 8,
-                color: Colors.orange.withValues(alpha: 0.8),
+                color: Colors.white.withValues(alpha: 0.7),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -293,21 +292,21 @@ class EquipmentDetailsDialog extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: equipment.isUnlocked 
+            colors: equipment.isUnlocked
                 ? [
-                    equipment.rarityColor.withValues(alpha: 0.3),
-                    equipment.rarityColor.withValues(alpha: 0.1),
+                    OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
+                    OceanThemeColors.deepOceanAccent.withValues(alpha: 0.2),
                   ]
                 : [
-                    Colors.grey.withValues(alpha: 0.3),
-                    Colors.grey.withValues(alpha: 0.1),
+                    OceanThemeColors.deepOceanBlue.withValues(alpha: 0.15),
+                    OceanThemeColors.deepOceanBlue.withValues(alpha: 0.05),
                   ],
           ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: equipment.isUnlocked 
-                ? equipment.rarityColor.withValues(alpha: 0.5)
-                : Colors.grey.withValues(alpha: 0.5),
+            color: equipment.isUnlocked
+                ? OceanThemeColors.seafoamGreen.withValues(alpha: 0.6)
+                : OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
             width: 2,
           ),
         ),
@@ -320,9 +319,7 @@ class EquipmentDetailsDialog extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: equipment.isUnlocked 
-                        ? equipment.rarityColor.withValues(alpha: 0.2)
-                        : Colors.grey.withValues(alpha: 0.2),
+                    color: OceanThemeColors.deepOceanBlue.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -348,21 +345,21 @@ class EquipmentDetailsDialog extends StatelessWidget {
                         equipment.category.displayName,
                         style: TextStyle(
                           fontSize: 14,
-                          color: equipment.categoryColor,
+                          color: OceanThemeColors.seafoamGreen,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
-                          color: equipment.rarityColor.withValues(alpha: 0.2),
+                          color: OceanThemeColors.deepOceanBlue.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           equipment.rarity.displayName,
                           style: TextStyle(
                             fontSize: 10,
-                            color: equipment.rarityColor,
+                            color: Colors.white.withValues(alpha: 0.9),
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -512,13 +509,13 @@ class _MobileEquipmentCategoryViewState extends State<_MobileEquipmentCategoryVi
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                _getCategoryColor(category).withValues(alpha: 0.1),
-                _getCategoryColor(category).withValues(alpha: 0.05),
+                OceanThemeColors.deepOceanBlue.withValues(alpha: 0.2),
+                OceanThemeColors.deepOceanAccent.withValues(alpha: 0.1),
               ],
             ),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: _getCategoryColor(category).withValues(alpha: 0.3),
+              color: OceanThemeColors.deepOceanAccent.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
@@ -539,12 +536,12 @@ class _MobileEquipmentCategoryViewState extends State<_MobileEquipmentCategoryVi
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: _getCategoryColor(category).withValues(alpha: 0.2),
+                          color: OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
                           _getCategoryIcon(category),
-                          color: _getCategoryColor(category),
+                          color: OceanThemeColors.deepOceanAccent,
                           size: 20,
                         ),
                       ),
@@ -565,7 +562,7 @@ class _MobileEquipmentCategoryViewState extends State<_MobileEquipmentCategoryVi
                               '$unlockedCount/${categoryEquipment.length} unlocked',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: _getCategoryColor(category),
+                                color: OceanThemeColors.seafoamGreen,
                               ),
                             ),
                           ],
@@ -585,7 +582,7 @@ class _MobileEquipmentCategoryViewState extends State<_MobileEquipmentCategoryVi
                                   value: unlockedCount / categoryEquipment.length,
                                   strokeWidth: 3,
                                   backgroundColor: Colors.white.withValues(alpha: 0.2),
-                                  valueColor: AlwaysStoppedAnimation(_getCategoryColor(category)),
+                                  valueColor: AlwaysStoppedAnimation(OceanThemeColors.seafoamGreen),
                                 ),
                               ),
                             ),
@@ -595,7 +592,7 @@ class _MobileEquipmentCategoryViewState extends State<_MobileEquipmentCategoryVi
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: _getCategoryColor(category),
+                                  color: OceanThemeColors.seafoamGreen,
                                 ),
                               ),
                             ),

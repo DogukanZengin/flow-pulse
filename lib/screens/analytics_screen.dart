@@ -6,6 +6,7 @@ import '../services/analytics_service.dart';
 import '../widgets/streak_rewards_display_widget.dart';
 import '../services/streak_rewards_service.dart';
 import '../utils/responsive_helper.dart';
+import '../theme/ocean_theme_colors.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -46,17 +47,17 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF1A365D), // Deep Ocean Blue
-              Color(0xFF2D5A87), // Mid Ocean Blue
-              Color(0xFF3182CE), // Bright Ocean Blue
-              Color(0xFF00B4D8), // Tropical Water
+              OceanThemeColors.deepOceanBlue, // Deep Ocean Blue
+              OceanThemeColors.deepOceanAccent, // Mid Ocean Blue
+              OceanThemeColors.shallowWatersAccent, // Sky Blue
+              OceanThemeColors.celebrationAccent, // Turquoise
             ],
-            stops: [0.0, 0.3, 0.7, 1.0],
+            stops: const [0.0, 0.3, 0.7, 1.0],
           ),
         ),
         child: SafeArea(
@@ -74,7 +75,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Colors.teal, Colors.cyan],
+                          colors: [OceanThemeColors.deepOceanBlue, OceanThemeColors.deepOceanAccent],
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -101,27 +102,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                             'Expedition Analytics & Performance',
                             style: TextStyle(
                               fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
-                              color: Colors.cyan,
+                              color: Colors.white,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                    // Export Action Button
-                    Container(
-                      constraints: BoxConstraints(
-                        minHeight: ResponsiveHelper.getButtonSize(context, 'medium'),
-                        minWidth: ResponsiveHelper.getButtonSize(context, 'medium'),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.file_download,
-                            color: Colors.white),
-                        onPressed: () {
-                          // Export data functionality
-                        },
-                        tooltip: 'Export Research Data',
-                        iconSize: 20,
                       ),
                     ),
                   ],
@@ -141,11 +126,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                 ),
                 child: TabBar(
                   controller: _tabController,
-                  indicatorColor: Colors.cyan,
+                  indicatorColor: OceanThemeColors.seafoamGreen,
                   indicatorWeight: 3,
                   indicatorPadding: const EdgeInsets.symmetric(horizontal: 8),
                   dividerColor: Colors.transparent,
-                  labelColor: Colors.cyan,
+                  labelColor: Colors.white,
                   unselectedLabelColor: Colors.white60,
                   labelStyle: TextStyle(
                     fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
@@ -298,19 +283,19 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.purple.withValues(alpha: 0.2),
-                  Colors.indigo.withValues(alpha: 0.1),
+                  OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
+                  OceanThemeColors.deepOceanAccent.withValues(alpha: 0.2),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.purple.withValues(alpha: 0.3),
+                color: OceanThemeColors.deepOceanAccent.withValues(alpha: 0.4),
                 width: 1,
               ),
             ),
             child: Row(
               children: [
-                Icon(Icons.lightbulb, color: Colors.purple, size: 20),
+                Icon(Icons.lightbulb, color: OceanThemeColors.deepOceanAccent, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   'Research Lab Insights',
@@ -347,13 +332,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.cyan.withValues(alpha: 0.2),
-                Colors.blue.withValues(alpha: 0.1),
+                OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
+                OceanThemeColors.deepOceanAccent.withValues(alpha: 0.2),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.cyan.withValues(alpha: 0.3),
+              color: OceanThemeColors.deepOceanAccent.withValues(alpha: 0.4),
               width: 1,
             ),
           ),
@@ -362,7 +347,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
             children: [
               Row(
                 children: [
-                  Icon(Icons.scuba_diving, color: Colors.cyan, size: 20),
+                  Icon(Icons.scuba_diving, color: OceanThemeColors.deepOceanAccent, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     _isNarrowScreen
@@ -384,7 +369,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                       'Dive Time',
                       '${data.totalFocusTime}m',
                       Icons.access_time,
-                      Colors.cyan,
+                      Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -393,7 +378,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                       'Expeditions',
                       '${data.sessionsCompleted}',
                       Icons.explore,
-                      Colors.green,
+                      OceanThemeColors.seafoamGreen,
                     ),
                   ),
                 ],
@@ -406,7 +391,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                       'Success Rate',
                       '${(data.completionRate * 100).round()}%',
                       Icons.check_circle,
-                      Colors.orange,
+                      Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -415,7 +400,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                       'Research Streak',
                       '${data.streak} days',
                       Icons.local_fire_department,
-                      Colors.amber,
+                      Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                 ],
@@ -476,13 +461,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.teal.withValues(alpha: 0.2),
-                  Colors.blue.withValues(alpha: 0.1),
+                  OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
+                  OceanThemeColors.deepOceanAccent.withValues(alpha: 0.2),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.teal.withValues(alpha: 0.3),
+                color: OceanThemeColors.deepOceanAccent.withValues(alpha: 0.4),
                 width: 1,
               ),
             ),
@@ -501,13 +486,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.teal.withValues(alpha: 0.2),
-                Colors.blue.withValues(alpha: 0.1),
+                OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
+                OceanThemeColors.deepOceanAccent.withValues(alpha: 0.2),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.teal.withValues(alpha: 0.3),
+              color: OceanThemeColors.deepOceanAccent.withValues(alpha: 0.4),
               width: 1,
             ),
           ),
@@ -516,7 +501,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
             children: [
               Row(
                 children: [
-                  Icon(Icons.timeline, color: Colors.teal, size: 20),
+                  Icon(Icons.timeline, color: OceanThemeColors.deepOceanAccent, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     'Weekly Dive Hours',
@@ -610,11 +595,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                     entry.value.totalFocusTime.toDouble());
                               }).toList(),
                               isCurved: true,
-                              color: Colors.cyan,
+                              color: OceanThemeColors.seafoamGreen,
                               barWidth: 3,
                               belowBarData: BarAreaData(
                                 show: true,
-                                color: Colors.cyan.withValues(alpha: 0.1),
+                                color: OceanThemeColors.seafoamGreen.withValues(alpha: 0.2),
                               ),
                               dotData: FlDotData(
                                 show: true,
@@ -623,7 +608,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                     radius: 3,
                                     color: Colors.white,
                                     strokeWidth: 2,
-                                    strokeColor: Colors.cyan,
+                                    strokeColor: OceanThemeColors.seafoamGreen,
                                   );
                                 },
                               ),
@@ -762,11 +747,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                     entry.value.totalFocusTime.toDouble());
                               }).toList(),
                               isCurved: true,
-                              color: const Color(0xFF00BFFF),
+                              color: OceanThemeColors.celebrationAccent,
                               barWidth: 3,
                               belowBarData: BarAreaData(
                                 show: true,
-                                color: const Color(0xFF00BFFF)
+                                color: OceanThemeColors.celebrationAccent
                                     .withValues(alpha: 0.2),
                               ),
                               dotData: FlDotData(
@@ -776,7 +761,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                                     radius: 3,
                                     color: Colors.white,
                                     strokeWidth: 2,
-                                    strokeColor: const Color(0xFF00BFFF),
+                                    strokeColor: OceanThemeColors.celebrationAccent,
                                   );
                                 },
                               ),
@@ -1189,7 +1174,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                               children: [
                                 Icon(
                                   Icons.lightbulb_outline,
-                                  color: Colors.amber,
+                                  color: OceanThemeColors.seafoamGreen,
                                   size: 16,
                                 ),
                                 const SizedBox(width: 4),
@@ -1341,23 +1326,23 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
     switch (insight.type) {
       case InsightType.positive:
-        cardColor = Colors.green.withValues(alpha: 0.2);
-        iconColor = Colors.green;
+        cardColor = OceanThemeColors.seafoamGreen.withValues(alpha: 0.2);
+        iconColor = OceanThemeColors.seafoamGreen;
         iconData = Icons.trending_up;
         break;
       case InsightType.negative:
-        cardColor = Colors.red.withValues(alpha: 0.2);
-        iconColor = Colors.red;
+        cardColor = OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3);
+        iconColor = Colors.white.withValues(alpha: 0.8);
         iconData = Icons.trending_down;
         break;
       case InsightType.suggestion:
-        cardColor = Colors.blue.withValues(alpha: 0.2);
-        iconColor = Colors.blue;
+        cardColor = OceanThemeColors.deepOceanAccent.withValues(alpha: 0.3);
+        iconColor = OceanThemeColors.deepOceanAccent;
         iconData = Icons.lightbulb_outline;
         break;
       case InsightType.neutral:
-        cardColor = Colors.purple.withValues(alpha: 0.2);
-        iconColor = Colors.purple;
+        cardColor = OceanThemeColors.deepOceanBlue.withValues(alpha: 0.2);
+        iconColor = Colors.white.withValues(alpha: 0.8);
         iconData = Icons.info_outline;
         break;
     }
@@ -1485,13 +1470,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.orange.withValues(alpha: 0.2),
-                  Colors.red.withValues(alpha: 0.1),
+                  OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
+                  OceanThemeColors.deepOceanAccent.withValues(alpha: 0.2),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.orange.withValues(alpha: 0.3),
+                color: OceanThemeColors.deepOceanAccent.withValues(alpha: 0.4),
                 width: 1,
               ),
             ),
@@ -1537,13 +1522,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.orange.withValues(alpha: 0.2),
-            Colors.red.withValues(alpha: 0.1),
+            OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
+            OceanThemeColors.deepOceanAccent.withValues(alpha: 0.2),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.orange.withValues(alpha: 0.3),
+          color: OceanThemeColors.deepOceanAccent.withValues(alpha: 0.4),
           width: 1,
         ),
       ),
@@ -1552,7 +1537,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
         children: [
           Row(
             children: [
-              Icon(Icons.local_fire_department, color: Colors.orange, size: 20),
+              Icon(Icons.local_fire_department, color: OceanThemeColors.seafoamGreen, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Research Streak Rewards',
@@ -1704,4 +1689,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
       ],
     );
   }
+
+  // Close the extra Container wrapper added for dark overlay
 }

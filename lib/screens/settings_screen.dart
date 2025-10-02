@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../providers/timer_provider.dart';
 import '../widgets/fast_forward_control_widget.dart';
+import '../theme/ocean_theme_colors.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -17,10 +18,10 @@ class SettingsScreen extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF1B4D72), // Deep Ocean Research
-              Color(0xFF2E86AB), // Research Station Blue
-              Color(0xFF48A38A), // Equipment Teal
-              Color(0xFF81C7D4), // Laboratory Light Blue
+              OceanThemeColors.deepOceanBlue,
+              OceanThemeColors.deepOceanAccent,
+              OceanThemeColors.shallowWatersAccent,
+              OceanThemeColors.celebrationAccent,
             ],
             stops: [0.0, 0.3, 0.7, 1.0],
           ),

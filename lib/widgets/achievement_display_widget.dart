@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/marine_biology_achievement_service.dart';
+import '../theme/ocean_theme_colors.dart';
 
 /// Achievement Display Widget for Phase 4
 /// Shows marine biology achievements with progress tracking and badges
@@ -161,7 +162,12 @@ class AchievementDisplayWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: achievement.isUnlocked ? Colors.white : Colors.grey,
+              color: achievement.isUnlocked
+                  ? Colors.white
+                  : Colors.white.withValues(alpha: 0.65), // Light gray appearance via white opacity
+              shadows: achievement.isUnlocked
+                  ? OceanThemeColors.getReadableTextShadows()
+                  : OceanThemeColors.getLockedTextShadows(),
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -375,13 +381,13 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                _getCategoryColor(category).withValues(alpha: 0.1),
-                _getCategoryColor(category).withValues(alpha: 0.05),
+                OceanThemeColors.deepOceanBlue.withValues(alpha: 0.2),
+                OceanThemeColors.deepOceanAccent.withValues(alpha: 0.1),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: _getCategoryColor(category).withValues(alpha: 0.3),
+              color: OceanThemeColors.deepOceanAccent.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
@@ -402,7 +408,7 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: _getCategoryColor(category).withValues(alpha: 0.2),
+                          color: OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -427,7 +433,7 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                               '$unlockedCount/${achievements.length} unlocked',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: _getCategoryColor(category),
+                                color: OceanThemeColors.seafoamGreen,
                               ),
                             ),
                           ],
@@ -447,7 +453,7 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                                   value: unlockedCount / achievements.length,
                                   strokeWidth: 4,
                                   backgroundColor: Colors.white.withValues(alpha: 0.2),
-                                  valueColor: AlwaysStoppedAnimation(_getCategoryColor(category)),
+                                  valueColor: AlwaysStoppedAnimation(OceanThemeColors.seafoamGreen),
                                 ),
                               ),
                             ),
@@ -457,7 +463,7 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: _getCategoryColor(category),
+                                  color: OceanThemeColors.seafoamGreen,
                                 ),
                               ),
                             ),
@@ -516,21 +522,21 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: achievement.isUnlocked 
+          colors: achievement.isUnlocked
               ? [
-                  achievement.rarityColor.withValues(alpha: 0.3),
-                  achievement.rarityColor.withValues(alpha: 0.1),
+                  OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
+                  OceanThemeColors.deepOceanAccent.withValues(alpha: 0.2),
                 ]
               : [
-                  Colors.grey.withValues(alpha: 0.2),
-                  Colors.grey.withValues(alpha: 0.05),
+                  OceanThemeColors.deepOceanBlue.withValues(alpha: 0.15),
+                  OceanThemeColors.deepOceanBlue.withValues(alpha: 0.05),
                 ],
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: achievement.isUnlocked 
-              ? achievement.rarityColor.withValues(alpha: 0.5)
-              : Colors.grey.withValues(alpha: 0.3),
+          color: achievement.isUnlocked
+              ? OceanThemeColors.seafoamGreen.withValues(alpha: 0.6)
+              : OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
           width: achievement.isUnlocked ? 2 : 1,
         ),
       ),
@@ -540,9 +546,7 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
           Container(
             padding: EdgeInsets.all(isCompactScreen ? 8 : 10),
             decoration: BoxDecoration(
-              color: achievement.isUnlocked 
-                  ? achievement.rarityColor.withValues(alpha: 0.2)
-                  : Colors.grey.withValues(alpha: 0.2),
+              color: OceanThemeColors.deepOceanBlue.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(isCompactScreen ? 8 : 10),
             ),
             child: achievement.isUnlocked
@@ -553,7 +557,7 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                 : Icon(
                     Icons.help_outline,
                     size: isCompactScreen ? 20 : 24,
-                    color: Colors.grey.withValues(alpha: 0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                   ),
           ),
           
@@ -574,7 +578,12 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                         style: TextStyle(
                           fontSize: isCompactScreen ? 12 : 14,
                           fontWeight: FontWeight.w600,
-                          color: achievement.isUnlocked ? Colors.white : Colors.grey,
+                          color: achievement.isUnlocked
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.65),
+                          shadows: achievement.isUnlocked
+                              ? null // No shadows needed in full view (has background)
+                              : OceanThemeColors.getLockedTextShadows(),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -583,18 +592,14 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: achievement.isUnlocked 
-                            ? achievement.rarityColor.withValues(alpha: 0.2)
-                            : Colors.grey.withValues(alpha: 0.2),
+                        color: OceanThemeColors.deepOceanBlue.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         achievement.isUnlocked ? achievement.rarityDisplayName : '???',
                         style: TextStyle(
                           fontSize: 9,
-                          color: achievement.isUnlocked 
-                              ? achievement.rarityColor 
-                              : Colors.grey.withValues(alpha: 0.6),
+                          color: Colors.white.withValues(alpha: achievement.isUnlocked ? 0.9 : 0.6),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -607,15 +612,18 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                 // Description
                 Flexible(
                   child: Text(
-                    achievement.isUnlocked 
-                        ? achievement.description 
+                    achievement.isUnlocked
+                        ? achievement.description
                         : 'Complete marine research activities to unlock this mysterious achievement...',
                     style: TextStyle(
                       fontSize: isCompactScreen ? 10 : 12,
-                      color: achievement.isUnlocked 
+                      color: achievement.isUnlocked
                           ? Colors.white.withValues(alpha: 0.8)
-                          : Colors.grey.withValues(alpha: 0.6),
+                          : Colors.white.withValues(alpha: 0.6), // White at 60% instead of gray
                       fontStyle: achievement.isUnlocked ? FontStyle.normal : FontStyle.italic,
+                      shadows: achievement.isUnlocked
+                          ? OceanThemeColors.getReadableTextShadows()
+                          : OceanThemeColors.getLockedTextShadows(),
                     ),
                     maxLines: isCompactScreen ? 1 : 2,
                     overflow: TextOverflow.ellipsis,
@@ -632,20 +640,20 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                       vertical: isCompactScreen ? 2 : 4
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.2),
+                      color: OceanThemeColors.seafoamGreen.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.check_circle, color: Colors.green, size: isCompactScreen ? 10 : 12),
+                        Icon(Icons.check_circle, color: OceanThemeColors.seafoamGreen, size: isCompactScreen ? 10 : 12),
                         SizedBox(width: isCompactScreen ? 2 : 4),
                         Flexible(
                           child: Text(
                             'Unlocked • +${achievement.researchValue} XP',
                             style: TextStyle(
                               fontSize: isCompactScreen ? 8 : 10,
-                              color: Colors.green,
+                              color: OceanThemeColors.seafoamGreen,
                               fontWeight: FontWeight.w600,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -662,15 +670,15 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                         '${achievement.current}/${achievement.target} • ${(achievement.progress * 100).toInt()}%',
                         style: TextStyle(
                           fontSize: 10,
-                          color: achievement.rarityColor,
+                          color: OceanThemeColors.seafoamGreen,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: 4),
                       LinearProgressIndicator(
                         value: achievement.progress,
-                        backgroundColor: Colors.grey.withValues(alpha: 0.3),
-                        valueColor: AlwaysStoppedAnimation<Color>(achievement.rarityColor),
+                        backgroundColor: Colors.white.withValues(alpha: 0.2),
+                        valueColor: AlwaysStoppedAnimation<Color>(OceanThemeColors.seafoamGreen),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ],
@@ -680,7 +688,7 @@ class _MobileAchievementCategoryViewState extends State<_MobileAchievementCatego
                     achievement.unlocksAt,
                     style: TextStyle(
                       fontSize: 10,
-                      color: Colors.grey.withValues(alpha: 0.8),
+                      color: Colors.white.withValues(alpha: 0.7),
                       fontStyle: FontStyle.italic,
                     ),
                     maxLines: 1,

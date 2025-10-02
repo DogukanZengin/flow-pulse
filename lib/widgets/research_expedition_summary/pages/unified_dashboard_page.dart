@@ -8,6 +8,7 @@ import '../../../models/creature.dart';
 import '../components/progress_indicator_widget.dart';
 import '../components/comparison_metrics.dart';
 import '../utils/progress_calculations.dart';
+import '../../../theme/ocean_theme_colors.dart';
 
 /// Unified dashboard page that replaces the sequential page flow
 /// with a single responsive interface showing all achievements.
@@ -238,15 +239,7 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
         ResponsiveHelper.getResponsiveSpacing(context, 'header_padding'),
       ),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            const Color(0xFF001B3D),
-            const Color(0xFF0077BE),
-            const Color(0xFF87CEEB),
-          ],
-        ),
+        gradient: OceanThemeColors.getCelebrationGradient(),
         borderRadius: BorderRadius.circular(
           ResponsiveHelper.responsiveValue(
             context: context,
@@ -852,15 +845,16 @@ class _UnifiedDashboardPageState extends State<UnifiedDashboardPage>
   }
 
   Color _getRarityColor(CreatureRarity rarity) {
+    // Use unified theme colors for rarity display
     switch (rarity) {
       case CreatureRarity.legendary:
-        return const Color(0xFFFFD700); // Gold
+        return OceanThemeColors.legendaryRarity; // Soft gold
       case CreatureRarity.rare:
-        return const Color(0xFF9C27B0); // Purple
+        return OceanThemeColors.rareRarity; // Light blue
       case CreatureRarity.uncommon:
-        return const Color(0xFF2196F3); // Blue
+        return OceanThemeColors.uncommonRarity; // Soft green
       case CreatureRarity.common:
-        return SurfacingCelebrationColors.getCelebrationAccentColor(AchievementType.speciesDiscovery);
+        return OceanThemeColors.commonRarity; // Blue grey
     }
   }
 

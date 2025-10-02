@@ -10,6 +10,7 @@ import '../services/gamification_service.dart';
 import '../services/persistence/persistence_service.dart';
 import '../services/marine_biology_career_service.dart';
 import '../utils/responsive_helper.dart';
+import '../theme/ocean_theme_colors.dart';
 
 /// Career Screen - Phase 4 Progression Hub
 /// Houses achievements, equipment, and research papers
@@ -154,14 +155,14 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF0A1628), // Deep Ocean
-              Color(0xFF1E3A5F), // Ocean Blue
-              Color(0xFF2E5A7A), // Light Ocean
+              OceanThemeColors.deepOceanBlue, // Deep Ocean
+              OceanThemeColors.deepOceanAccent, // Ocean Blue
+              OceanThemeColors.shallowWatersAccent, // Light Ocean
             ],
           ),
         ),
@@ -180,7 +181,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                       padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Colors.amber, Colors.orange],
+                          colors: [OceanThemeColors.deepOceanBlue, OceanThemeColors.deepOceanAccent],
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -201,14 +202,16 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                               fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'title'),
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
+                              shadows: OceanThemeColors.getReadableTextShadows(),
                             ),
                           ),
                           Text(
                             'Level ${GamificationService.instance.currentLevel} Marine Biologist',
                             style: TextStyle(
                               fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
-                              color: Colors.cyan,
+                              color: Colors.white,
                               fontWeight: FontWeight.w500,
+                              shadows: OceanThemeColors.getReadableTextShadows(),
                             ),
                           ),
                         ],
@@ -220,9 +223,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                       height: 48,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: const LinearGradient(
-                          colors: [Colors.cyan, Colors.blue],
-                        ),
+                        color: OceanThemeColors.deepOceanAccent,
                         border: Border.all(color: Colors.white, width: 2),
                       ),
                       child: Center(
@@ -253,11 +254,11 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                 ),
                 child: TabBar(
                   controller: _tabController,
-                  indicatorColor: Colors.cyan,
+                  indicatorColor: OceanThemeColors.seafoamGreen,
                   indicatorWeight: 3,
                   indicatorPadding: const EdgeInsets.symmetric(horizontal: 8),
                   dividerColor: Colors.transparent,
-                  labelColor: Colors.cyan,
+                  labelColor: Colors.white,
                   unselectedLabelColor: Colors.white60,
                   labelStyle: TextStyle(
                     fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
@@ -343,7 +344,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
       ),
     );
   }
-  
+
   Widget _buildAchievementsTab() {
     return SingleChildScrollView(
       padding: EdgeInsets.only(
@@ -370,13 +371,13 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.cyan.withValues(alpha: 0.2),
-                  Colors.blue.withValues(alpha: 0.1),
+                  OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
+                  OceanThemeColors.deepOceanAccent.withValues(alpha: 0.2),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.cyan.withValues(alpha: 0.3),
+                color: OceanThemeColors.deepOceanAccent.withValues(alpha: 0.4),
                 width: 1,
               ),
             ),
@@ -386,7 +387,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                   child: _buildStatItem(
                     'Unlocked',
                     '${_achievements.where((a) => a.isUnlocked).length}',
-                    Colors.green,
+                    OceanThemeColors.seafoamGreen,
                     Icons.emoji_events,
                   ),
                 ),
@@ -399,7 +400,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                   child: _buildStatItem(
                     'Progress',
                     '${_achievements.where((a) => !a.isUnlocked && a.progress > 0).length}',
-                    Colors.orange,
+                    Colors.white.withValues(alpha: 0.8),
                     Icons.trending_up,
                   ),
                 ),
@@ -412,7 +413,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                   child: _buildStatItem(
                     'Total',
                     '${_achievements.length}',
-                    Colors.cyan,
+                    Colors.white.withValues(alpha: 0.8),
                     Icons.flag,
                   ),
                 ),
@@ -440,6 +441,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: color,
+            shadows: OceanThemeColors.getReadableTextShadows(),
           ),
         ),
         Text(
@@ -447,6 +449,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
           style: TextStyle(
             fontSize: 10,
             color: Colors.white.withValues(alpha: 0.8),
+            shadows: OceanThemeColors.getReadableTextShadows(),
           ),
         ),
       ],
@@ -494,13 +497,13 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.blue.withValues(alpha: 0.2),
-                  Colors.indigo.withValues(alpha: 0.1),
+                  OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
+                  OceanThemeColors.deepOceanAccent.withValues(alpha: 0.2),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.blue.withValues(alpha: 0.3),
+                color: OceanThemeColors.deepOceanAccent.withValues(alpha: 0.4),
                 width: 1,
               ),
             ),
@@ -509,7 +512,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
               children: [
                 Row(
                   children: [
-                    Icon(Icons.construction, color: Colors.blue, size: 20),
+                    Icon(Icons.construction, color: OceanThemeColors.deepOceanAccent, size: 20),
                     const SizedBox(width: 8),
                     Text(
                       'Equipment Status',
@@ -528,14 +531,14 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                       child: _buildEquipmentStat(
                         'Available',
                         '${_equipment.where((e) => e.isUnlocked).length}',
-                        Colors.green,
+                        OceanThemeColors.seafoamGreen,
                       ),
                     ),
                     Expanded(
                       child: _buildEquipmentStat(
                         'Discovery Bonus',
                         '+${(_equipmentBonuses!.discoveryRateBonus * 100).toInt()}%',
-                        Colors.cyan,
+                        Colors.white.withValues(alpha: 0.8),
                       ),
                     ),
                   ],
@@ -565,6 +568,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: color,
+            shadows: OceanThemeColors.getReadableTextShadows(),
           ),
         ),
         Text(
@@ -572,6 +576,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
           style: TextStyle(
             fontSize: 11,
             color: Colors.white.withValues(alpha: 0.8),
+            shadows: OceanThemeColors.getReadableTextShadows(),
           ),
         ),
       ],
@@ -597,13 +602,13 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.indigo.withValues(alpha: 0.2),
-                  Colors.purple.withValues(alpha: 0.1),
+                  OceanThemeColors.deepOceanBlue.withValues(alpha: 0.3),
+                  OceanThemeColors.deepOceanAccent.withValues(alpha: 0.2),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.indigo.withValues(alpha: 0.3),
+                color: OceanThemeColors.deepOceanAccent.withValues(alpha: 0.4),
                 width: 1,
               ),
             ),
@@ -612,7 +617,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
               children: [
                 Row(
                   children: [
-                    Icon(Icons.article, color: Colors.indigo, size: 20),
+                    Icon(Icons.article, color: OceanThemeColors.deepOceanAccent, size: 20),
                     const SizedBox(width: 8),
                     Text(
                       'Research Publications',
@@ -631,14 +636,14 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
                       child: _buildResearchStat(
                         'Available',
                         '${_availablePapers.length}',
-                        Colors.cyan,
+                        Colors.white.withValues(alpha: 0.8),
                       ),
                     ),
                     Expanded(
                       child: _buildResearchStat(
                         'Published',
                         '${_publishedPapers.length}',
-                        Colors.green,
+                        OceanThemeColors.seafoamGreen,
                       ),
                     ),
                   ],
@@ -712,6 +717,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: color,
+            shadows: OceanThemeColors.getReadableTextShadows(),
           ),
         ),
         Text(
@@ -719,6 +725,7 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
           style: TextStyle(
             fontSize: 11,
             color: Colors.white.withValues(alpha: 0.8),
+            shadows: OceanThemeColors.getReadableTextShadows(),
           ),
         ),
       ],
@@ -732,16 +739,16 @@ class _CareerScreenState extends State<CareerScreen> with SingleTickerProviderSt
       isScrollControlled: true,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF1E3A5F),
-              Color(0xFF0A1628),
+              OceanThemeColors.deepOceanAccent,
+              OceanThemeColors.deepOceanBlue,
             ],
           ),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           children: [

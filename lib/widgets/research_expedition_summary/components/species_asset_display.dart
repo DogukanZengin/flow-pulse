@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/creature.dart';
 import '../../../utils/creature_asset_provider.dart';
 import '../utils/biome_color_inheritance.dart';
+import '../../../theme/ocean_theme_colors.dart';
 
 /// Species asset display framework that gracefully handles image loading
 /// with intelligent fallbacks and biome-aware styling.
@@ -210,7 +211,7 @@ class _SpeciesAssetDisplayState extends State<SpeciesAssetDisplay>
   BoxDecoration _buildContainerDecoration(Creature? creature) {
     final biomeColor = creature != null
         ? BiomeColorInheritance.getBiomeAccentColor(creature.habitat)
-        : const Color(0xFF4682B4);
+        : OceanThemeColors.deepOceanBlue;
 
     final effectiveColor = widget.overrideColor ?? biomeColor;
 
@@ -266,7 +267,7 @@ class _SpeciesAssetDisplayState extends State<SpeciesAssetDisplay>
         strokeWidth: 3,
         valueColor: AlwaysStoppedAnimation<Color>(
           widget.overrideColor?.withValues(alpha: 0.7) ??
-          const Color(0xFF4682B4).withValues(alpha: 0.7),
+          OceanThemeColors.deepOceanBlue.withValues(alpha: 0.7),
         ),
       ),
     );
@@ -344,7 +345,7 @@ class _SpeciesAssetDisplayState extends State<SpeciesAssetDisplay>
     return Icon(
       Icons.help_outline,
       size: width * 0.4,
-      color: const Color(0xFF9E9E9E),
+      color: OceanThemeColors.textTertiary,
     );
   }
 
@@ -413,15 +414,16 @@ class _SpeciesAssetDisplayState extends State<SpeciesAssetDisplay>
   }
 
   Color _getRarityColor(CreatureRarity rarity) {
+    // Use unified theme colors for rarity display
     switch (rarity) {
       case CreatureRarity.common:
-        return const Color(0xFF757575); // Grey
+        return OceanThemeColors.commonRarity; // Blue grey
       case CreatureRarity.uncommon:
-        return const Color(0xFF4CAF50); // Green
+        return OceanThemeColors.uncommonRarity; // Soft green
       case CreatureRarity.rare:
-        return const Color(0xFF2196F3); // Blue
+        return OceanThemeColors.rareRarity; // Light blue
       case CreatureRarity.legendary:
-        return const Color(0xFF9C27B0); // Purple
+        return OceanThemeColors.legendaryRarity; // Soft gold
     }
   }
 

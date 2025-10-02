@@ -12,6 +12,7 @@ import '../widgets/research_expedition_summary_widget.dart';
 import '../controllers/timer_controller.dart';
 import '../controllers/ocean_system_controller.dart';
 import '../services/gamification_service.dart';
+import '../theme/ocean_theme_colors.dart';
 
 class TimerScreen extends StatefulWidget {
   const TimerScreen({super.key});
@@ -143,7 +144,7 @@ class TimerScreenState extends State<TimerScreen>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1B4D72),
+          backgroundColor: OceanThemeColors.deepOceanBlue,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
             side: BorderSide(
@@ -215,7 +216,7 @@ class TimerScreenState extends State<TimerScreen>
                         ),
                       ],
                     ),
-                    backgroundColor: const Color(0xFF2E86AB),
+                    backgroundColor: OceanThemeColors.deepOceanAccent,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -277,10 +278,10 @@ class TimerScreenState extends State<TimerScreen>
     return ListenableBuilder(
       listenable: Listenable.merge([_timerController, _oceanSystemController]),
       builder: (context, child) {
-        // Use consistent ocean theme colors
-        final oceanGradientColors = _timerController.isStudySession 
-          ? [const Color(0xFF1B4D72), const Color(0xFF2E86AB)] // Deep ocean focus
-          : [const Color(0xFF48A38A), const Color(0xFF81C7D4)]; // Light ocean break
+        // Use unified ocean theme colors
+        final oceanGradientColors = _timerController.isStudySession
+          ? [OceanThemeColors.deepOceanBlue, OceanThemeColors.deepOceanAccent] // Deep ocean focus
+          : [OceanThemeColors.seafoamGreen, OceanThemeColors.shallowWatersAccent]; // Light ocean break
         final oceanParticleColors = [
           Colors.blue.shade200,
           Colors.cyan.shade200, 
@@ -357,10 +358,10 @@ class TimerScreenState extends State<TimerScreen>
                             Container(
                               height: 52, // Increased for better touch targets
                               decoration: BoxDecoration(
-                                color: const Color(0xFF1B4D72).withValues(alpha: 0.4), // Slightly more opaque
+                                color: OceanThemeColors.deepOceanBlue.withValues(alpha: 0.4),
                                 borderRadius: BorderRadius.circular(14), // Slightly rounder
                                 border: Border.all(
-                                  color: const Color(0xFF5DADE2).withValues(alpha: 0.5), // More visible border
+                                  color: OceanThemeColors.shallowWatersAccent.withValues(alpha: 0.5),
                                   width: 1.5,
                                 ),
                                 boxShadow: [
@@ -391,20 +392,20 @@ class TimerScreenState extends State<TimerScreen>
                                               end: Alignment.bottomRight,
                                               colors: _timerController.isStudySession
                                                   ? [
-                                                      const Color(0xFF2E86AB),
-                                                      const Color(0xFF5DADE2),
+                                                      OceanThemeColors.deepOceanAccent,
+                                                      OceanThemeColors.shallowWatersAccent,
                                                     ]
                                                   : [
-                                                      const Color(0xFF48A38A),
-                                                      const Color(0xFF81C7D4),
+                                                      OceanThemeColors.seafoamGreen,
+                                                      OceanThemeColors.shallowWatersAccent,
                                                     ],
                                             ),
                                             borderRadius: BorderRadius.circular(11),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: _timerController.isStudySession
-                                                    ? const Color(0xFF5DADE2).withValues(alpha: 0.4)
-                                                    : const Color(0xFF81C7D4).withValues(alpha: 0.4),
+                                                    ? OceanThemeColors.shallowWatersAccent.withValues(alpha: 0.4)
+                                                    : OceanThemeColors.seafoamGreen.withValues(alpha: 0.4),
                                                 blurRadius: 8,
                                                 spreadRadius: 2,
                                                 offset: const Offset(0, 2),
@@ -561,9 +562,9 @@ class TimerScreenState extends State<TimerScreen>
                                           begin: Alignment.topCenter,
                                           end: Alignment.bottomCenter,
                                           colors: [
-                                            Color(0xFF87CEEB),
-                                            Color(0xFFFFF8DC),
-                                            Color(0xFF00BFFF),
+                                            OceanThemeColors.shallowWatersAccent,
+                                            OceanThemeColors.backgroundLight,
+                                            OceanThemeColors.celebrationAccent,
                                           ],
                                         ),
                                       ),
@@ -597,9 +598,9 @@ class TimerScreenState extends State<TimerScreen>
                                           begin: Alignment.topCenter,
                                           end: Alignment.bottomCenter,
                                           colors: [
-                                            Color(0xFF87CEEB),
-                                            Color(0xFF00A6D6),
-                                            Color(0xFF006994),
+                                            OceanThemeColors.shallowWatersAccent,
+                                            OceanThemeColors.deepOceanAccent,
+                                            OceanThemeColors.deepOceanBlue,
                                           ],
                                         ),
                                       ),

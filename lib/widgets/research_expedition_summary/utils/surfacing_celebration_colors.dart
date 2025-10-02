@@ -1,77 +1,78 @@
 import 'package:flutter/material.dart';
 import '../../../utils/responsive_helper.dart';
+import '../../../theme/ocean_theme_colors.dart';
 
 /// Surfacing celebration color system for expedition summary.
 ///
 /// Represents emerging from depths into bright, refreshing celebration colors
 /// that naturally transition to break sessions. Replaces the problematic
 /// depth-based color system that showed dark colors during celebrations.
+///
+/// Now uses unified OceanThemeColors palette for consistency.
 class SurfacingCelebrationColors {
 
   /// Surfacing gradient - represents emerging from depths to surface
   /// Used as main background gradient for celebration interface
-  static const List<Color> surfacingGradient = [
-    Color(0xFF001B3D), // Deep start (where we came from)
-    Color(0xFF0077BE), // Rising blue
-    Color(0xFF00BFFF), // Bright sky blue
-    Color(0xFF87CEEB), // Surface sky blue
-  ];
+  /// Now uses unified celebration gradient from theme
+  static const List<Color> surfacingGradient = OceanThemeColors.celebrationGradient;
 
   /// Enhanced surfacing gradient with more stops for smoother transition
   static const List<Color> surfacingGradientEnhanced = [
-    Color(0xFF000B1A), // Deepest depths
-    Color(0xFF001B3D), // Deep ocean
-    Color(0xFF003366), // Mid-rise
-    Color(0xFF0077BE), // Rising blue
-    Color(0xFF00BFFF), // Bright sky blue
-    Color(0xFF87CEEB), // Surface sky blue
-    Color(0xFFB0E0E6), // Powder blue (surface sparkle)
+    Color(0xFF2C5F7C), // Deep ocean blue (start)
+    Color(0xFF3A6F8C), // Slightly lighter
+    Color(0xFF4682B4), // Steel blue (rising)
+    Color(0xFF5B9BD5), // Mid-rise blue
+    Color(0xFF87CEEB), // Sky blue (surface)
+    Color(0xFF9DD9F3), // Lighter sky
+    Color(0xFFB0E0E6), // Powder blue (celebration)
   ];
 
-  /// Achievement rarity colors - bright and celebratory
-  static const Color legendary = Color(0xFFFFD700); // Gold
-  static const Color epic = Color(0xFFE6E6FA); // Lavender (silver/platinum feel)
-  static const Color rare = Color(0xFF40E0D0); // Turquoise
-  static const Color uncommon = Color(0xFF87CEEB); // Sky blue
-  static const Color common = Color(0xFF98FB98); // Pale green
+  /// Achievement rarity colors - softened for less visual aggression
+  static const Color legendary = OceanThemeColors.legendaryRarity;
+  static const Color epic = Color(0xFFE6E6FA); // Lavender (kept for silver/platinum feel)
+  static const Color rare = OceanThemeColors.rareRarity;
+  static const Color uncommon = OceanThemeColors.uncommonRarity;
+  static const Color common = OceanThemeColors.commonRarity;
 
   /// Achievement type specific colors that harmonize with surfacing theme
-  static const Color careerAdvancement = Color(0xFFE6B800); // Softer gold - highest honor
+  /// Now using unified theme colors with subtle variations
+  static const Color careerAdvancement = OceanThemeColors.legendaryRarity; // Soft gold - highest honor
   static const Color levelUp = Color(0xFFE6E6FA); // Silver/platinum - significant
-  static const Color speciesDiscovery = Color(0xFF40E0D0); // Turquoise - discovery excitement
-  static const Color streakMilestone = Color(0xFF00E5FF); // Bright cyan - momentum
-  static const Color sessionQuality = Color(0xFF87CEEB); // Sky blue - excellence
-  static const Color research = Color(0xFF98FB98); // Pale green - knowledge
+  static const Color speciesDiscovery = OceanThemeColors.celebrationAccent; // Turquoise - discovery excitement
+  static const Color streakMilestone = OceanThemeColors.seafoamGreen; // Seafoam - momentum
+  static const Color sessionQuality = OceanThemeColors.shallowWatersAccent; // Sky blue - excellence
+  static const Color research = OceanThemeColors.uncommonRarity; // Soft green - knowledge
 
   /// Break session transition colors - natural flow from celebration to rest
   static const List<Color> breakTransitionGradient = [
-    Color(0xFF87CEEB), // Sky blue (from celebration)
-    Color(0xFF98FB98), // Refreshing pale green
-    Color(0xFFF0F8FF), // Alice blue (rest preparation)
-    Color(0xFFF5F5F5), // White smoke (clean rest state)
+    OceanThemeColors.shallowWatersAccent, // Sky blue (from celebration)
+    OceanThemeColors.seafoamGreen, // Refreshing seafoam
+    OceanThemeColors.backgroundLight, // Light ocean background (rest preparation)
+    OceanThemeColors.backgroundWhite, // White (clean rest state)
   ];
 
   /// Get responsive surfacing gradient based on screen size
   /// Larger screens get more dramatic gradients, mobile gets subtle ones
+  /// Now using unified theme colors for consistency
   static LinearGradient getResponsiveSurfacingGradient(BuildContext context) {
     final screenType = ResponsiveHelper.getScreenType(context);
 
     switch (screenType) {
       case DeviceScreenType.mobile:
-        // Subtle gradient for mobile readability
+        // Subtle gradient for mobile readability - simplified for clarity
         return const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF001B3D),
-            Color(0xFF0077BE),
-            Color(0xFF87CEEB),
+            Color(0xFF2C5F7C), // Deep ocean blue
+            Color(0xFF4682B4), // Steel blue
+            Color(0xFF87CEEB), // Sky blue
           ],
           stops: [0.0, 0.5, 1.0],
         );
 
       case DeviceScreenType.tablet:
-        // Balanced gradient for tablets
+        // Balanced gradient for tablets - uses unified gradient
         return const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -81,7 +82,7 @@ class SurfacingCelebrationColors {
 
       case DeviceScreenType.desktop:
       case DeviceScreenType.wideDesktop:
-        // Full dramatic gradient for desktop
+        // Full dramatic gradient for desktop - enhanced with more stops
         return const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -127,29 +128,12 @@ class SurfacingCelebrationColors {
 
   /// Get celebration text shadows that complement surfacing colors
   /// Replaces harsh black shadows with ocean-harmonious alternatives
+  /// Now uses softened shadows from unified theme
   static List<Shadow> getCelebrationTextShadows(BuildContext context) {
-    final screenType = ResponsiveHelper.getScreenType(context);
-
-    // Adjust shadow intensity based on screen size
-    final baseAlpha = screenType == DeviceScreenType.mobile ? 0.6 : 0.8;
-
-    return [
-      Shadow(
-        color: const Color(0xFF40E0D0).withValues(alpha: 0.3), // Turquoise glow
-        blurRadius: 12.0,
-        offset: const Offset(0, 0),
-      ),
-      Shadow(
-        color: const Color(0xFF0077BE).withValues(alpha: baseAlpha), // Ocean blue depth
-        blurRadius: 8.0,
-        offset: const Offset(0, 2),
-      ),
-      Shadow(
-        color: Colors.black.withValues(alpha: baseAlpha), // Subtle black for readability
-        blurRadius: 12.0,
-        offset: const Offset(0, 4),
-      ),
-    ];
+    // Simplified shadow system - softer and less aggressive
+    return OceanThemeColors.getOceanTextShadows(
+      accentColor: OceanThemeColors.celebrationAccent,
+    );
   }
 
   /// Get responsive text color that works well against surfacing backgrounds
@@ -163,19 +147,21 @@ class SurfacingCelebrationColors {
   }
 
   /// Get border color that complements surfacing celebration theme
+  /// Now using unified theme accent color
   static Color getCelebrationBorderColor(AchievementType? type) {
     if (type != null) {
       return getAchievementTypeColor(type).withValues(alpha: 0.8);
     }
-    return const Color(0xFF40E0D0).withValues(alpha: 0.8); // Default turquoise
+    return OceanThemeColors.celebrationAccent.withValues(alpha: 0.8); // Default turquoise
   }
 
   /// Get accent color for achievements (replaces problematic gold everywhere)
+  /// Now using unified theme accent color
   static Color getCelebrationAccentColor(AchievementType? type) {
     if (type != null) {
       return getAchievementTypeColor(type);
     }
-    return const Color(0xFF40E0D0); // Default turquoise accent
+    return OceanThemeColors.celebrationAccent; // Default turquoise accent
   }
 
   /// Get colors for the celebration-to-break transition
@@ -189,17 +175,19 @@ class SurfacingCelebrationColors {
   }
 
   /// Get particle colors for celebration effects
+  /// Now uses softened colors from unified theme
   static List<Color> getCelebrationParticleColors() {
     return [
-      const Color(0xFF40E0D0), // Turquoise
-      const Color(0xFF87CEEB), // Sky blue
-      const Color(0xFF00E5FF), // Bright cyan
-      const Color(0xFF98FB98), // Pale green
+      OceanThemeColors.celebrationAccent, // Turquoise
+      OceanThemeColors.shallowWatersAccent, // Sky blue
+      OceanThemeColors.seafoamGreen, // Seafoam green
+      OceanThemeColors.uncommonRarity, // Soft green
       Colors.white.withValues(alpha: 0.8), // White sparkles
     ];
   }
 
   /// Get container background for achievement cards
+  /// Now uses softened colors from unified theme
   static BoxDecoration getCelebrationCardDecoration(
     BuildContext context,
     AchievementType? type,
@@ -211,8 +199,8 @@ class SurfacingCelebrationColors {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          const Color(0xFF001B3D).withValues(alpha: 0.9),
-          const Color(0xFF0077BE).withValues(alpha: 0.8),
+          OceanThemeColors.deepOceanBlue.withValues(alpha: 0.9),
+          OceanThemeColors.deepOceanAccent.withValues(alpha: 0.8),
         ],
       ),
       borderRadius: BorderRadius.circular(
@@ -234,15 +222,9 @@ class SurfacingCelebrationColors {
       ),
       boxShadow: [
         BoxShadow(
-          color: borderColor.withValues(alpha: 0.3),
-          blurRadius: 12,
-          spreadRadius: 2,
-          offset: const Offset(0, 4),
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.4),
-          blurRadius: 8,
-          spreadRadius: 1,
+          color: borderColor.withValues(alpha: 0.2), // Softer shadow
+          blurRadius: 8, // Reduced blur for subtlety
+          spreadRadius: 1, // Reduced spread
           offset: const Offset(0, 2),
         ),
       ],

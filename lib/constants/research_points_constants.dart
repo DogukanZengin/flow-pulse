@@ -167,14 +167,19 @@ extension SessionQualityExtension on SessionQuality {
   }
   
   /// Get the color associated with this quality level
+  /// Returns hex color code string for compatibility
+  /// Maps to unified OceanThemeColors:
+  /// - Perfect: seafoamGreen (#7FB3B1)
+  /// - Good: deepOceanAccent (#4682B4)
+  /// - Abandoned: coralPink (#FF9B85)
   String get colorCode {
     switch (this) {
       case SessionQuality.perfect:
-        return '#4CAF50'; // Green
+        return '#7FB3B1'; // Seafoam green (from OceanThemeColors)
       case SessionQuality.good:
-        return '#2196F3'; // Blue
+        return '#4682B4'; // Deep ocean accent (from OceanThemeColors)
       case SessionQuality.abandoned:
-        return '#F44336'; // Red
+        return '#FF9B85'; // Coral pink (from OceanThemeColors)
     }
   }
 }

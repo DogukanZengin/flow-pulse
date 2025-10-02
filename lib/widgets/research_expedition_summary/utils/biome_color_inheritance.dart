@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
 import '../../../models/creature.dart';
+import '../../../theme/ocean_theme_colors.dart';
 
 /// Biome-aware color inheritance system for visual continuity
 /// between ocean widget and expedition summary.
 ///
 /// Implements ocean-harmonious colors instead of harsh contrasts
 /// following the "Research Station Underwater" design principle.
+///
+/// Now uses unified OceanThemeColors palette for consistency.
 class BiomeColorInheritance {
 
   /// Get biome-specific accent color for achievements and highlights
+  /// Uses softened colors from unified theme
   static Color getBiomeAccentColor(BiomeType biome) {
     switch (biome) {
       case BiomeType.shallowWaters:
-        return const Color(0xFF87CEEB); // Sky blue - bright and welcoming
+        return OceanThemeColors.shallowWatersAccent;
       case BiomeType.coralGarden:
-        return const Color(0xFF40E0D0); // Turquoise - vibrant coral colors
+        return OceanThemeColors.coralGardenAccent;
       case BiomeType.deepOcean:
-        return const Color(0xFF4682B4); // Steel blue - deeper waters
+        return OceanThemeColors.deepOceanAccent;
       case BiomeType.abyssalZone:
-        return const Color(0xFF191970); // Midnight blue - mysterious depths
+        return OceanThemeColors.abyssalZoneAccent;
     }
   }
 

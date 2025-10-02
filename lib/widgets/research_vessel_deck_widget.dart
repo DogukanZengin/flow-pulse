@@ -301,7 +301,7 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
     
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'screen')),
+      padding: EdgeInsets.all(ResponsiveHelper.getResponsiveSpacing(context, 'card')), // Reduced from 'screen' to 'card'
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -311,7 +311,7 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(ResponsiveHelper.getResponsiveSpacing(context, 'screen')),
+        borderRadius: BorderRadius.circular(12), // Fixed value instead of responsive
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(38), // 0.15 opacity
@@ -337,9 +337,9 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
               height: 1.3, // Better line height for readability
             ),
           ),
-          
-          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
-          
+
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')), // Reduced from 'navigation' to 'element'
+
           // Sun arc progress visualization with centered timer
           LayoutBuilder(
             builder: (context, constraints) {
@@ -347,7 +347,7 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
               final margin = constraints.maxWidth * 0.05;
               final availableWidth = constraints.maxWidth - (margin * 2);
               final maxRadius = availableWidth / 2;
-              final radius = (maxRadius * 0.8).clamp(20.0, maxRadius);
+              final radius = (maxRadius * 0.65).clamp(20.0, maxRadius); // Reduced from 0.8 to 0.65 for smaller arc
               final rayExtension = radius * 0.22; // Max extension for sun rays
               final containerHeight = radius + margin + rayExtension; // Proper height calculation
               
@@ -377,7 +377,7 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
                         child: Text(
                           '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
                           style: TextStyle(
-                            fontSize: ResponsiveHelper.isMobile(context) ? 36 : 48,
+                            fontSize: ResponsiveHelper.isMobile(context) ? 28 : 40, // Reduced from 36/48 to 28/40
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                             fontFamily: 'monospace',
@@ -397,9 +397,9 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
               );
             },
           ),
-          
+
           SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'element')),
-          
+
           // Break session info
           Text(
             'Relax and recharge on deck • ${widget.totalBreakSeconds ~/ 60} min break',
@@ -409,8 +409,8 @@ class _ResearchVesselDeckWidgetState extends State<ResearchVesselDeckWidget>
             ),
             textAlign: TextAlign.center,
           ),
-          
-          const SizedBox(height: 32),
+
+          SizedBox(height: ResponsiveHelper.getResponsiveSpacing(context, 'card')), // Reduced from fixed 32 to responsive 'card'
           
           // Quick action buttons - simplified flow
           Row(

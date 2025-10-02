@@ -7,6 +7,7 @@ import '../services/marine_biology_career_service.dart';
 import '../themes/ocean_theme.dart';
 import '../utils/responsive_helper.dart';
 import '../utils/creature_asset_provider.dart';
+import '../theme/ocean_theme_colors.dart';
 
 /// Enhanced Research Journal Widget for Phase 2 of Ocean Gamification Master Plan
 /// Provides comprehensive species tracking, discovery statistics, and research progress
@@ -137,7 +138,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
         ),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Colors.cyan,
+          indicatorColor: OceanThemeColors.seafoamGreen,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
           tabs: const [
@@ -163,7 +164,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.cyan),
+                valueColor: AlwaysStoppedAnimation<Color>(OceanThemeColors.seafoamGreen),
               ),
             )
           : FadeTransition(
@@ -202,7 +203,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
               ),
               borderRadius: BorderRadius.circular(15),
               border: Border.all(
-                color: OceanTheme.oceanCyan.withValues(alpha: 0.4),
+                color: OceanThemeColors.seafoamGreen.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -226,16 +227,16 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
-                        color: OceanTheme.oceanCyan.withValues(alpha: 0.2),
+                        color: OceanThemeColors.seafoamGreen.withValues(alpha: 0.1),
                         border: Border.all(
-                          color: OceanTheme.oceanCyan.withValues(alpha: 0.4),
+                          color: OceanThemeColors.seafoamGreen.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
                       child: Text(
                         '$_currentRP RP',
                         style: TextStyle(
-                          color: OceanTheme.oceanCyan,
+                          color: OceanThemeColors.seafoamGreen,
                           fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                           fontWeight: FontWeight.bold,
                         ),
@@ -249,7 +250,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                 Text(
                   _currentCareerTitle,
                   style: TextStyle(
-                    color: OceanTheme.oceanCyan,
+                    color: OceanThemeColors.seafoamGreen,
                     fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'subtitle'),
                     fontWeight: FontWeight.w600,
                   ),
@@ -272,7 +273,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                     LinearProgressIndicator(
                       value: _careerProgress.clamp(0.0, 1.0),
                       backgroundColor: Colors.white.withValues(alpha: 0.1),
-                      valueColor: AlwaysStoppedAnimation<Color>(OceanTheme.oceanCyan),
+                      valueColor: AlwaysStoppedAnimation<Color>(OceanThemeColors.seafoamGreen),
                       minHeight: 3,
                     ),
                   ],
@@ -382,9 +383,9 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
       child: Column(
         children: [
           TabBar(
-            labelColor: OceanTheme.oceanCyan,
+            labelColor: OceanThemeColors.seafoamGreen,
             unselectedLabelColor: Colors.white.withValues(alpha: 0.7),
-            indicatorColor: OceanTheme.oceanCyan,
+            indicatorColor: OceanThemeColors.seafoamGreen,
             tabs: BiomeType.values.map((biome) => Tab(text: biome.displayName.split(' ')[0])).toList(),
           ),
           Expanded(
@@ -424,19 +425,19 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
     String biomeIcon;
     switch (biome) {
       case BiomeType.shallowWaters:
-        biomeColor = OceanTheme.shallowWaterBlue;
+        biomeColor = OceanThemeColors.seafoamGreen;
         biomeIcon = '🏝️';
         break;
       case BiomeType.coralGarden:
-        biomeColor = OceanTheme.coralGardenTeal;
+        biomeColor = OceanThemeColors.seafoamGreen;
         biomeIcon = '🪸';
         break;
       case BiomeType.deepOcean:
-        biomeColor = OceanTheme.deepOceanBlue;
+        biomeColor = OceanThemeColors.deepOceanBlue;
         biomeIcon = '🌊';
         break;
       case BiomeType.abyssalZone:
-        biomeColor = OceanTheme.abyssal;
+        biomeColor = OceanThemeColors.deepOceanBlue;
         biomeIcon = '🕳️';
         break;
     }
@@ -511,13 +512,13 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: OceanTheme.successGreen.withValues(alpha: 0.2),
+                          color: OceanThemeColors.seafoamGreen.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           'COMPLETE',
                           style: TextStyle(
-                            color: OceanTheme.successGreen,
+                            color: OceanThemeColors.seafoamGreen,
                             fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                             fontWeight: FontWeight.bold,
                           ),
@@ -573,11 +574,11 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
     String rarityEmoji;
     switch (rarity) {
       case CreatureRarity.common:
-        rarityColor = OceanTheme.successGreen;
+        rarityColor = OceanThemeColors.seafoamGreen;
         rarityEmoji = '🐟'; // Basic fish
         break;
       case CreatureRarity.uncommon:
-        rarityColor = OceanTheme.oceanCyan;
+        rarityColor = OceanThemeColors.deepOceanAccent;
         rarityEmoji = '🐠'; // Tropical fish
         break;
       case CreatureRarity.rare:
@@ -760,22 +761,22 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
     String biomeDescription;
     switch (biome) {
       case BiomeType.shallowWaters:
-        biomeColor = OceanTheme.shallowWaterBlue;
+        biomeColor = OceanThemeColors.seafoamGreen;
         biomeIcon = '🏝️';
         biomeDescription = 'Sunlit waters teeming with colorful marine life';
         break;
       case BiomeType.coralGarden:
-        biomeColor = OceanTheme.coralGardenTeal;
+        biomeColor = OceanThemeColors.seafoamGreen;
         biomeIcon = '🪸';
         biomeDescription = 'Vibrant coral ecosystems hosting diverse species';
         break;
       case BiomeType.deepOcean:
-        biomeColor = OceanTheme.deepOceanBlue;
+        biomeColor = OceanThemeColors.deepOceanBlue;
         biomeIcon = '🌊';
         biomeDescription = 'Mysterious depths with adapted marine creatures';
         break;
       case BiomeType.abyssalZone:
-        biomeColor = OceanTheme.abyssal;
+        biomeColor = OceanThemeColors.deepOceanBlue;
         biomeIcon = '🕳️';
         biomeDescription = 'The deepest realm of extraordinary life forms';
         break;
@@ -867,10 +868,10 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                               vertical: ResponsiveHelper.isMobile(context) ? 2 : 4,
                             ),
                             decoration: BoxDecoration(
-                              color: OceanTheme.successGreen.withValues(alpha: 0.2),
+                              color: OceanThemeColors.seafoamGreen.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: OceanTheme.successGreen.withValues(alpha: 0.4),
+                                color: OceanThemeColors.seafoamGreen.withValues(alpha: 0.4),
                                 width: 1,
                               ),
                             ),
@@ -879,14 +880,14 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                               children: [
                                 Icon(
                                   Icons.check_circle,
-                                  color: OceanTheme.successGreen,
+                                  color: OceanThemeColors.seafoamGreen,
                                   size: ResponsiveHelper.isMobile(context) ? 12 : 14,
                                 ),
                                 const SizedBox(width: 2),
                                 Text(
                                   'EXPLORED',
                                   style: TextStyle(
-                                    color: OceanTheme.successGreen,
+                                    color: OceanThemeColors.seafoamGreen,
                                     fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -1013,11 +1014,11 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
     String rarityEmoji;
     switch (rarity) {
       case CreatureRarity.common:
-        rarityColor = OceanTheme.successGreen;
+        rarityColor = OceanThemeColors.seafoamGreen;
         rarityEmoji = '🐟';
         break;
       case CreatureRarity.uncommon:
-        rarityColor = OceanTheme.oceanCyan;
+        rarityColor = OceanThemeColors.deepOceanAccent;
         rarityEmoji = '🐠';
         break;
       case CreatureRarity.rare:
@@ -1109,10 +1110,10 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
     Color rarityColor;
     switch (species.rarity) {
       case CreatureRarity.common:
-        rarityColor = OceanTheme.successGreen;
+        rarityColor = OceanThemeColors.seafoamGreen;
         break;
       case CreatureRarity.uncommon:
-        rarityColor = OceanTheme.oceanCyan;
+        rarityColor = OceanThemeColors.deepOceanAccent;
         break;
       case CreatureRarity.rare:
         rarityColor = OceanTheme.rarePurple;
@@ -1371,16 +1372,16 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
     Color rarityColor;
     switch (creature.rarity) {
       case CreatureRarity.common:
-        rarityColor = Colors.green;
+        rarityColor = OceanThemeColors.seafoamGreen;
         break;
       case CreatureRarity.uncommon:
-        rarityColor = Colors.blue;
+        rarityColor = OceanThemeColors.deepOceanAccent;
         break;
       case CreatureRarity.rare:
-        rarityColor = Colors.purple;
+        rarityColor = OceanTheme.rarePurple;
         break;
       case CreatureRarity.legendary:
-        rarityColor = Colors.orange;
+        rarityColor = OceanTheme.legendaryOrange;
         break;
     }
     
@@ -1390,7 +1391,7 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFF1A237E).withValues(alpha: 0.8),
+            OceanThemeColors.deepOceanBlue.withValues(alpha: 0.8),
             rarityColor.withValues(alpha: 0.2),
           ],
         ),
@@ -1463,14 +1464,14 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                     SizedBox(width: ResponsiveHelper.getResponsiveSpacing(context, 'navigation')),
                     Icon(
                       Icons.place,
-                      color: Colors.cyan,
+                      color: OceanThemeColors.deepOceanAccent,
                       size: 14,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       creature.habitat.displayName,
                       style: TextStyle(
-                        color: Colors.cyan,
+                        color: OceanThemeColors.deepOceanAccent,
                         fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                       ),
                     ),
@@ -1496,13 +1497,13 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: OceanTheme.oceanCyan.withValues(alpha: 0.2),
+                  color: OceanThemeColors.seafoamGreen.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   '+${creature.pearlValue} RP',
                   style: TextStyle(
-                    color: OceanTheme.oceanCyan,
+                    color: OceanThemeColors.seafoamGreen,
                     fontSize: ResponsiveHelper.getResponsiveFontSize(context, 'caption'),
                     fontWeight: FontWeight.bold,
                   ),
@@ -1781,21 +1782,21 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: OceanTheme.oceanCyan.withValues(alpha: 0.1),
+                          color: OceanThemeColors.deepOceanAccent.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
                           children: [
                             Icon(
                               Icons.place,
-                              color: OceanTheme.oceanCyan,
+                              color: OceanThemeColors.deepOceanAccent,
                               size: 20,
                             ),
                             const SizedBox(height: 4),
                             Text(
                               'Habitat',
                               style: TextStyle(
-                                color: OceanTheme.oceanCyan,
+                                color: OceanThemeColors.deepOceanAccent,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -1817,21 +1818,21 @@ class _EnhancedResearchJournalState extends State<EnhancedResearchJournal>
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: OceanTheme.successGreen.withValues(alpha: 0.1),
+                          color: OceanThemeColors.seafoamGreen.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
                           children: [
                             Icon(
                               Icons.science,
-                              color: OceanTheme.successGreen,
+                              color: OceanThemeColors.seafoamGreen,
                               size: 20,
                             ),
                             const SizedBox(height: 4),
                             Text(
                               'Research Value',
                               style: TextStyle(
-                                color: OceanTheme.successGreen,
+                                color: OceanThemeColors.seafoamGreen,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
